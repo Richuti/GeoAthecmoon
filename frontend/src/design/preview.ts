@@ -1,10 +1,11 @@
 // TEMPORAL (paso C0): carga los datos de prueba y hace cálculos mínimos para revisar el diseño con
 // datos reales del generador. Se reemplaza así:
 //   - carga y estado          → ya están en src/api.ts (4.1) y src/state (4.2)
-//   - luz, contacto, viabilidad → src/lib/ (tarea 5), con interpolación y pruebas
+//   - luz, contacto, viabilidad → ya están en src/lib/ (5.1–5.4); falta la recomendación (5.5)
 //   - presets del módulo       → src/sim/lander.ts (S1)
 // No agregues lógica nueva aquí: va en esos pasos.
 
+import { siteViability, type ViabilityResult } from '../lib/viability'
 import { visibility } from '../lib/visibility'
 import type { SiteData } from '../types'
 
@@ -14,27 +15,16 @@ export interface SitePreview {
   contact: boolean[]
   lightPct: number
   contactPct: number
-  slopeScore: number
+  /** Viabilidad del periodo completo (puntaje, factores, resumen y avisos) */
+  result: ViabilityResult
+  /** Atajo: result.score */
   viability: number
 }
 
-/** Pesos por defecto de la viabilidad (los mismos que propone la tarea 5.4). */
-export const WEIGHTS = { light: 0.45, contact: 0.35, slope: 0.2 }
-
 export function buildPreview(data: SiteData): SitePreview {
-  // Luz y contacto ya salen de src/lib/visibility.ts (5.2). La viabilidad pasa a src/lib en 5.4.
-  const { lit, contact, lightPct, contactPct } = visibility(data)
-  const s = data.slope.max100mDeg
-  const slopeScore = s <= 5 ? 100 : s >= 10 ? 0 : (100 * (10 - s)) / 5
-  return {
-    data,
-    lit,
-    contact,
-    lightPct,
-    contactPct,
-    slopeScore,
-    viability: WEIGHTS.light * lightPct + WEIGHTS.contact * contactPct + WEIGHTS.slope * slopeScore,
-  }
+  const vis = visibility(data)
+  const result = siteViability(data, vis)
+  return { data, ...vis, result, viability: result.score }
 }
 
 // ---------------------------------------------------------------------------

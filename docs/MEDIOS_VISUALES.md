@@ -165,10 +165,14 @@ below is pitch black. Composition with a calm, dark lower third. 2400x1200.
 | V1 Amanecer polar | Recibido (1280×720, 24 fps, 7.9 s) | ✅ Muy bueno. Cielo negro, luz rasante, cráter en sombra. El Sol se ve grande, pero como licencia cinematográfica sirve. |
 | V2 El Sol que gira | Recibido (1280×720, 24 fps, 7.9 s) | ⚠️ Sirve. Trae marcos de película con números arriba y abajo; se recortan al convertirlo. Tiene destellos de lente. |
 | V3 Tierra baja | Recibido (1280×720, 24 fps, 7.9 s) | ❌ Conviene regenerarlo. La Tierra sale gigante (debería medir unos 2°, como un pulgar con el brazo estirado) y sube en vez de bajar. También trae marcos de película. |
-| V4 Descenso | Pendiente | |
-| V5 Noche lunar | Pendiente | |
+| V4 Descenso | Recibido (1280×720, 24 fps, 7.9 s) | ⚠️ El módulo **despega** en vez de aterrizar (se puede invertir con `-vf reverse`). El polvo hace nubes como en la Tierra; en el vacío debería salir en líneas rectas y caer enseguida. Trae marcos de película. |
+| V5 Noche lunar | Recibido (1280×720, 24 fps, 7.9 s) | ⚠️ La idea funciona: se va el Sol, queda la luz de la Tierra y titila la luz verde de estado. Pero la Tierra sale gigante, como en el V3. Trae marcos de película. |
+| I1 Fondo para compartir | Recibido (1731×909) | ✅ Excelente. La Tierra tiene el tamaño correcto y hay espacio para el título. Se ajusta a 1200×630 casi sin recortar. |
+| I2 Borde de cráter | Recibido (1774×887) | ✅ Excelente. El Sol es chico y rasante, y la parte de abajo queda oscura para poner texto. |
 
-Para regenerar el V3, agregar al prompt: *"Earth appears small in the sky, only about 2 degrees wide (the size of a thumbnail at arm's length), roughly four times the Sun's disc. No film border, no frame numbers, no lens flare."*
+Para el polvo del V4, agregar: *"dust sprays outward in straight radial streaks and falls immediately, no billowing clouds (vacuum)"*.
+
+Para regenerar el V3 y el V5, agregar al prompt: *"Earth appears small in the sky, only about 2 degrees wide (the size of a thumbnail at arm's length), roughly four times the Sun's disc. No film border, no frame numbers, no lens flare."*
 
 Todos traen audio; se quita al convertirlos (`-an`).
 

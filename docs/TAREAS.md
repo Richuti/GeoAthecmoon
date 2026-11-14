@@ -160,11 +160,19 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - La app ya lo usa: la línea de tiempo, el panel "Ahora", la barra de ventanas y el alunizaje en el simulador. `preview.ts` ya no tiene formato.
 - **Commit:** `Tarea 5.3: tiempo y formato de fechas y duraciones`
 
-### 5.4 Viabilidad · MVP
+### 5.4 Viabilidad · MVP · [x]
 - **Archivo:** `src/lib/viability.ts`.
-- Combina el % de luz, el % de comunicación y la puntuación de pendiente con pesos ajustables (por defecto 0.45 / 0.35 / 0.20).
-- **Pendiente:** 100 hasta 5°, baja hasta 0 a los 10°, que es el límite típico de un módulo de alunizaje.
-- Devuelve el % y la explicación en lenguaje simple, por ejemplo: "Buena luz (82 %), pero la Tierra solo se ve el 40 % del tiempo".
+- **`viability(input, weights, { missionSurvives })`:** combina el % de luz, el % de contacto y el puntaje de pendiente.
+  - Los pesos son ajustables (por defecto 0.45 / 0.35 / 0.20) y `normalizeWeights` los lleva a sumar 1.
+  - **Pendiente:** 100 hasta 5°, baja hasta 0 a los 10°.
+  - Devuelve el puntaje, el veredicto (Buena / Aceptable / Difícil) y el detalle de cada factor (puntaje, peso, puntos que aporta y puntos que pierde).
+  - También devuelve el **factor que más resta**, un **resumen en lenguaje simple** y **avisos concretos**: pendiente peligrosa, más de la mitad del tiempo sin Sol, poco contacto o misión que no sobrevive.
+  - Las frases usan el mismo número redondeado que se muestra en pantalla.
+- **Tope para S3:** si `missionSurvives` es `false`, el puntaje queda en 40 como máximo y se avisa.
+- **`siteViability(data, vis, weights, range)`:** la viabilidad del periodo completo o de un rango (los días de una misión).
+- **Probado:** `tests/viability.test.ts`, 25 casos (110 en total). Con los datos reales, Connecting Ridge queda primero y Nobile último, y Nobile avisa por su pendiente.
+- **En la app:** el panel de viabilidad ya usa la librería. Muestra el resumen, los avisos y la marca "Más resta" en el factor que más baja el puntaje.
+- **Commit:** `Tarea 5.4: viabilidad con pesos, factor limitante y avisos`
 
 ### 5.5 Recomendación · MVP
 - **Archivo:** `src/lib/recommend.ts`.

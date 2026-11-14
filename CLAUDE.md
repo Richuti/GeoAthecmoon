@@ -82,7 +82,8 @@ La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un pas
 - **Hecho también:** C0 (sistema de diseño y layout final; `src/design/preview.ts` es temporal).
 - **Hecho:** 4.1 (cliente de datos `src/api.ts`, con caché y validación del contrato) y 4.2 (estado global en `src/state`, hook `useAppState()`).
 - **Hecho:** 4.3 (`SiteSelector`, con teclado, versión móvil plegable y enlace directo `?sitio=`).
-- **Hecho:** 5.1 (`src/lib/horizon.ts`), 5.2 (`src/lib/visibility.ts`) y 5.3 (`src/lib/time.ts`, todo en UTC). **Siguiente:** 5.4 (viabilidad con pesos ajustables y explicación en lenguaje simple).
+- **Hecho:** 5.1 (`src/lib/horizon.ts`), 5.2 (`src/lib/visibility.ts`), 5.3 (`src/lib/time.ts`, todo en UTC) y 5.4 (`src/lib/viability.ts`). **Siguiente:** 5.5 (recomendación: mejor fecha de inicio y mejor sitio alternativo).
+- **Medios:** ya están todos en el escritorio de Richard (fuera del repo). Su revisión está en `docs/MEDIOS_VISUALES.md`. Se procesan en la tarea C3.
 - **Orden:** 3 → 4 → 5 → S1 → S2 → 6 → 8 → SU1 → SU2 → SU3 → 7 → 9 → S3 → 11. El C0 se cierra antes del 4. El 3.3 es manual y lo hace el equipo.
 - **Pendiente pequeño:** agregar `TIME_TYPE='UT'` a `fetch-horizons.mjs` y volver a descargar.
 - **Diseño:** el paso C0 (sistema de diseño) va antes de la primera pantalla. La calidad visual tiene que ser de primer nivel.

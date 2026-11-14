@@ -5,7 +5,6 @@ import { WindowsBar } from './components/WindowsBar'
 import { Badge, Button, EmptyState, InfoTip, Panel, Segmented, Slider, Stat, StatGrid, cx, type Tone } from './components/ui'
 import {
   PRESETS,
-  WEIGHTS,
   buildPreview,
   type LanderPreview,
   type PresetId,
@@ -14,6 +13,7 @@ import {
 import { formatCoords, formatLat, formatLon } from './lib/format'
 import { CATEGORY_LABEL } from './lib/sites'
 import { dayNumber, formatDate, formatDateTime, formatDuration, formatTime, sampleTime, totalDays } from './lib/time'
+import { VERDICT_LABEL, type Verdict } from './lib/viability'
 import { nextChange } from './lib/visibility'
 import { useAppState, type Speed } from './state'
 
@@ -300,20 +300,7 @@ function PauseIcon() {
 // Viabilidad
 // ---------------------------------------------------------------------------
 
-function verdict(v: number): { label: string; tone: Tone } {
-  if (v >= 70) return { label: 'Buena', tone: 'ok' }
-  if (v >= 50) return { label: 'Aceptable', tone: 'caution' }
-  return { label: 'Difícil', tone: 'critical' }
-}
-
-function explain(p: SitePreview): string {
-  const l = Math.round(p.lightPct)
-  const c = Math.round(p.contactPct)
-  const light = l >= 70 ? 'Mucha luz' : l >= 50 ? 'Luz media' : 'Poca luz'
-  const contact = c >= 60 ? 'buen contacto' : c >= 40 ? 'contacto parcial' : 'poco contacto'
-  const slope = p.data.slope.max100mDeg <= 5 ? 'terreno suave' : 'pendiente fuerte'
-  return `${light} (${l} % del tiempo), ${contact} con la Tierra (${c} %) y ${slope}.`
-}
+const VERDICT_TONE: Record<Verdict, Tone> = { good: 'ok', fair: 'caution', poor: 'critical' }
 
 function Viability({
   p,
@@ -324,8 +311,10 @@ function Viability({
   previews: Record<string, SitePreview>
   onSelect: (id: string) => void
 }) {
-  const v = Math.round(p.viability)
-  const vd = verdict(v)
+  const r = p.result
+  const v = Math.round(r.score)
+  // Se marca el factor que más resta solo si de verdad pesa (igual que en el resumen).
+  const limit = r.factors[r.limiting].lost >= 5 ? r.limiting : null
   const best = Object.values(previews)
     .filter((o) => o.data.site.id !== p.data.site.id)
     .sort((a, b) => b.viability - a.viability)[0]
@@ -336,8 +325,9 @@ function Viability({
       label="Viabilidad del periodo"
       actions={
         <InfoTip label="Viabilidad" align="end">
-          Combina el % de tiempo con luz solar, el % con contacto directo con la Tierra y la pendiente del terreno. Más
-          adelante podrás ajustar cuánto pesa cada uno.
+          Combina el % de tiempo con luz solar, el % con contacto directo con la Tierra y la pendiente del terreno
+          (hasta 5° es cómoda; desde 10° la mayoría de los módulos no puede alunizar). El número junto a cada factor es
+          cuánto pesa.
         </InfoTip>
       }
     >
@@ -346,27 +336,46 @@ function Viability({
           <span className="font-display text-8xl font-black leading-[0.8]">{v}</span>
           <span className="ml-1 font-display text-3xl font-bold text-ink-muted">%</span>
         </p>
-        <Badge tone={vd.tone} className="mb-1">
-          {vd.label}
+        <Badge tone={VERDICT_TONE[r.verdict]} className="mb-1">
+          {VERDICT_LABEL[r.verdict]}
         </Badge>
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-ink-muted">{explain(p)}</p>
+      <p className="mt-3 text-sm leading-relaxed text-ink-muted">{r.summary}</p>
+      {r.warnings.length > 0 && (
+        <ul className="mt-3 flex flex-col gap-1.5" aria-label="Avisos">
+          {r.warnings.map((w) => (
+            <li key={w} className="flex items-start gap-2 text-xs leading-relaxed text-ink-muted">
+              <span aria-hidden className="mt-1.5 size-1.5 shrink-0 bg-caution" />
+              {w}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="mt-5 flex flex-col gap-3.5">
-        <Factor label="Luz solar" weight={WEIGHTS.light} value={`${Math.round(p.lightPct)} %`} pct={p.lightPct} bar="bg-sun" />
+        <Factor
+          label="Luz solar"
+          weight={r.factors.light.weight}
+          value={`${Math.round(r.factors.light.score)} %`}
+          pct={r.factors.light.score}
+          bar="bg-sun"
+          limiting={limit === 'light'}
+        />
         <Factor
           label="Contacto con la Tierra"
-          weight={WEIGHTS.contact}
-          value={`${Math.round(p.contactPct)} %`}
-          pct={p.contactPct}
+          weight={r.factors.contact.weight}
+          value={`${Math.round(r.factors.contact.score)} %`}
+          pct={r.factors.contact.score}
           bar="bg-earth"
+          limiting={limit === 'contact'}
         />
         <Factor
           label="Pendiente"
-          weight={WEIGHTS.slope}
+          weight={r.factors.slope.weight}
           value={`${p.data.slope.max100mDeg.toFixed(1)}° máx.`}
-          pct={p.slopeScore}
+          pct={r.factors.slope.score}
           bar="bg-ink-muted"
+          limiting={limit === 'slope'}
         />
       </div>
 
@@ -386,12 +395,28 @@ function Viability({
   )
 }
 
-function Factor({ label, weight, value, pct, bar }: { label: string; weight: number; value: string; pct: number; bar: string }) {
+function Factor({
+  label,
+  weight,
+  value,
+  pct,
+  bar,
+  limiting,
+}: {
+  label: string
+  weight: number
+  value: string
+  pct: number
+  bar: string
+  /** Es el factor que más baja el puntaje (se marca solo si de verdad resta) */
+  limiting?: boolean
+}) {
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm text-ink-muted">
           {label} <span className="font-mono text-[0.625rem] text-ink-faint">×{weight.toFixed(2)}</span>
+          {limiting && <span className="ml-2 text-[0.625rem] font-bold uppercase tracking-[0.06em] text-caution">Más resta</span>}
         </span>
         <span className="font-mono text-sm text-ink">{value}</span>
       </div>
