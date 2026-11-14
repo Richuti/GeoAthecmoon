@@ -18,7 +18,7 @@
 | B2 Horizonte, pendiente y terreno reales | Rafael | ✅ | sáb 13:00 |
 | B3 JSON finales (LOLA + Horizons) en `backend/out/`, con 4 sitios movidos a la cresta | Rafael | ✅ | sáb 14:00 |
 | B5 Caso de la demo (`docs/CASO_DEMO.md`, réplica del simulador S2/S3 en Python) | Rafael | ✅ | sáb 17:00 |
-| Confirmar en QuickMap las 6 coordenadas (`backend/sites_verified.json`) con marcador visible | Dilan y Joshua | ⏳ | sáb 16:00 |
+| Confirmar en QuickMap las 6 coordenadas (`backend/sites_verified.json`) con marcador visible | Dilan y Joshua | ✅ 6/6 (`docs/validacion/quickmap_marcadores_dilan.pdf`) | sáb 16:00 |
 | Decidir con Richard si el repo será público para el jurado | Rafael y Richard | ⏳ | sáb 18:00 |
 | Entregar el terreno real a Richard para Blender | Rafael → Richard | ⏳ | sáb 14:00 |
 | C0, 4, 5, S1, S2 (diseño, datos, cálculos, simulador) | Richard | ✅ en la rama `frontend` (sáb 13:11); S2 verificado contra `CASO_DEMO.md` con datos reales | sáb noche |
