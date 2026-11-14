@@ -72,10 +72,13 @@ const SITES = [
     description: 'Cresta que une Shackleton con de Gerlache. Muy iluminada y alta sobre su entorno.',
     relief: {
       baseM: 1950,
-      targetHorizon: 1.0,
+      targetHorizon: 1.9,
       noiseM: 80,
       craters: 6,
-      features: [{ kind: 'ridge', az: 40, lengthKm: 40, widthKm: 2.2, heightM: 700 }],
+      features: [
+        { kind: 'ridge', az: 40, lengthKm: 40, widthKm: 2.2, heightM: 700 },
+        { kind: 'massif', az: 130, distKm: 7.5, radiusKm: 3.5, heightM: 800 },
+      ],
       mound: { heightM: 30, radiusKm: 0.5, power: 2, offsetKm: 0.1, offsetAz: 130 },
     },
   },
@@ -127,7 +130,7 @@ const SITES = [
       noiseM: 140,
       craters: 6,
       features: [{ kind: 'massif', az: 150, distKm: 7, radiusKm: 2.5, heightM: 700 }],
-      mound: { heightM: 260, radiusKm: 1.2, power: 2, offsetKm: 0.3, offsetAz: 225 },
+      mound: { heightM: 220, radiusKm: 1.0, power: 2, offsetKm: 0.05, offsetAz: 225 },
     },
   },
   {
@@ -441,6 +444,12 @@ function calibrateTerrain(site) {
     else hi = mid
   }
   const scale = (lo + hi) / 2
+  if (scale < 0.1) {
+    console.warn(
+      `⚠ ${site.id}: la loma local ya tapa ${maxHorizon(0).toFixed(2)}° y el relieve quedó casi plano ` +
+        `(escala ${scale.toFixed(3)}). Baja mound.offsetKm o sube targetHorizon.`,
+    )
+  }
 
   const grid = gridFor(scale)
   const surface = (x, y) => scale * relief(x, y) + mound(x, y)

@@ -55,15 +55,18 @@ GeoAthectum/
 ## Tareas del frontend
 La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un paso a la vez**, en el orden de ese archivo, y se marca con `[x]` cuando Richard lo sube.
 
-- **Hecho:** 1 (base) y 2 (contrato).
-- **Siguiente:** 3.1, el script de datos de prueba (`frontend/scripts/generate-mock-data.mjs`). El borrador está escrito; falta correrlo, calibrar el relieve y agregar `"mock"` a `package.json`.
+- **Hecho:** 1 (base), 2 (contrato) y 3.1 (datos de prueba: `npm run mock`).
+- **Siguiente:** 3.2, Sol y Tierra reales desde JPL Horizons (`frontend/scripts/fetch-horizons.mjs`).
+- **Diseño:** el paso C0 (sistema de diseño) va antes de la primera pantalla. La calidad visual tiene que ser de primer nivel.
+- **Modelos 3D:** los hace Richard (sección "Lo que Richard crea en 3D" en `docs/TAREAS.md`). El código tiene que funcionar sin ellos y cargarlos cuando existan.
 
 ## Recursos de NASA del reto (usarlos siempre que se pueda)
 **Regla:** cuando un dato pueda salir de un recurso de NASA, se usa ese recurso y se cita en la app (panel "Fuentes"). Lo sintético es solo de respaldo y se marca con `mock: true`.
-- **JPL Horizons API:** posiciones del Sol (10) y la Tierra (399) desde un punto en la Luna.
-- **Moon Trek:** DEM LOLA del polo sur (unos 20 m/px).
-- **Quickmap (ASU):** sitios e imágenes LRO.
-- **CSA Moon Exploration:** contexto para el pitch.
+Recursos oficiales del reto (detalle y uso en `docs/TAREAS.md`):
+- **JPL Horizons:** posiciones del Sol (`10`) y la Tierra (`399`) desde un punto en la Luna. API: `https://ssd.jpl.nasa.gov/api/horizons.api`.
+- **Moon Trek (NASA):** visualización 3D, topografía (DEM LOLA del polo sur, unos 20 m/px) e imágenes LRO.
+- **Quickmap (ASU, datos del LRO):** explorar sitios, topografía e imágenes. No es del gobierno de EE. UU.: respetar sus condiciones de uso.
+- **CSA Moon Exploration:** contexto de misiones y del papel de Canadá en Artemis, para el pitch.
 
 ## Limitaciones (decirlas en el pitch)
 No modelamos temperatura, polvo ni satélites de relevo. Los datos de prueba no son reales: en la tarea 11 se reemplazan por los del backend.

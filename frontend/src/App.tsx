@@ -1,7 +1,7 @@
 // Layout base de GeoAthectum. Cada bloque se llena en las siguientes tareas.
 function Placeholder({ title, task }: { title: string; task: string }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-4 text-center">
+    <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-white/15 bg-white/2 p-4 text-center">
       <p className="text-sm font-medium text-gray-300">{title}</p>
       <p className="mt-1 text-xs text-gray-500">{task}</p>
     </div>
