@@ -1,0 +1,25 @@
+# Dependencias y builds
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+
+# Python (backend)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Datos pesados (DEM)
+*.tif
+*.tiff
+*.img
+
+# Logs y editor
+*.log
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
