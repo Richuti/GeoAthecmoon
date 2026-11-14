@@ -1,0 +1,48 @@
+{
+ "source": "LOLA EXTRAS/ILLUMINATION AVGVISIB_75S_120M_201608 (NASA/GSFC, Mazarico et al. 2011)",
+ "period": "2009-07-13 a 2013-07-18",
+ "sites": {
+  "shackleton-rim": {
+   "name": "Borde del cráter Shackleton",
+   "sunPct": 62.2,
+   "earthPct": 18.9,
+   "permanentShadowPctOfTile": 23.9,
+   "bestSunPctWithin1km": 88.2
+  },
+  "connecting-ridge": {
+   "name": "Connecting Ridge",
+   "sunPct": 51.0,
+   "earthPct": 42.8,
+   "permanentShadowPctOfTile": 2.8,
+   "bestSunPctWithin1km": 85.1
+  },
+  "de-gerlache-rim": {
+   "name": "Borde de de Gerlache",
+   "sunPct": 53.7,
+   "earthPct": 61.4,
+   "permanentShadowPctOfTile": 2.2,
+   "bestSunPctWithin1km": 78.9
+  },
+  "mons-mouton": {
+   "name": "Mons Mouton",
+   "sunPct": 46.9,
+   "earthPct": 93.5,
+   "permanentShadowPctOfTile": 1.8,
+   "bestSunPctWithin1km": 52.3
+  },
+  "malapert-massif": {
+   "name": "Macizo Malapert",
+   "sunPct": 19.5,
+   "earthPct": 52.2,
+   "permanentShadowPctOfTile": 0.2,
+   "bestSunPctWithin1km": 78.5
+  },
+  "nobile-rim": {
+   "name": "Borde de Nobile",
+   "sunPct": 28.3,
+   "earthPct": 12.9,
+   "permanentShadowPctOfTile": 2.4,
+   "bestSunPctWithin1km": 40.1
+  }
+ }
+}

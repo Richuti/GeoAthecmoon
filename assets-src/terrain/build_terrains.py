@@ -26,12 +26,12 @@ GRID = 257             # puntos por lado (~78 m)
 HORIZON_KM = 150.0
 MAST_M = 2.0
 
-SITES = {  # coordenadas aproximadas (verificar con Quickmap, tarea 3.3)
+SITES = {  # deben coincidir con frontend/scripts/sites.mjs; 4 verificadas (backend/sites_verified.json)
     'shackleton-rim': ('Borde del cráter Shackleton', -89.67, 197.0),
-    'connecting-ridge': ('Connecting Ridge', -89.45, 222.0),
-    'de-gerlache-rim': ('Borde de de Gerlache', -88.67, 292.0),
-    'mons-mouton': ('Mons Mouton', -84.8, 29.2),
-    'malapert-massif': ('Macizo Malapert', -86.0, 2.9),
+    'connecting-ridge': ('Connecting Ridge', -89.44, 222.6),
+    'de-gerlache-rim': ('Borde de de Gerlache', -88.67, 291.6),
+    'mons-mouton': ('Mons Mouton', -84.81, 29.2),
+    'malapert-massif': ('Macizo Malapert', -85.99, 2.1),
     'nobile-rim': ('Borde de Nobile', -85.4, 37.0),
 }
 

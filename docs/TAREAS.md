@@ -387,7 +387,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 ## Fase C2 · Interfaz del simulador
 
 ### SU1. Panel "Configurar misión" · MVP
-- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionSetup.tsx` y `SimulatorWorkspace.tsx`. Franja superior con sitio, módulo, fecha UTC, duración y acción principal; parámetros técnicos desplegables. Terreno amplio y lectura de viabilidad a su lado, sin marcos repetidos ni columnas con scroll independiente. La fecha de alunizaje es independiente del cursor de reproducción.
+- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionSetup.tsx` y `SimulatorWorkspace.tsx`. Formulario principal reducido a sitio, fecha UTC y duración; módulo y parámetros técnicos desplegables. Navegación entre viaje Tierra–Luna y sitio de alunizaje. Terreno amplio y lectura de viabilidad a su lado. La fecha de alunizaje es independiente del cursor de reproducción.
 - **Archivo:** `src/components/sim/MissionSetup.tsx`.
 - Selector de preset, más sliders para cada parámetro con su unidad y un tooltip en lenguaje simple. También la fecha de alunizaje y la duración.
 - El panel se configura con **área** y **eficiencia**. Al lado se muestra la potencia pico calculada (`1361 W/m² × área × eficiencia`).
@@ -423,6 +423,15 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ### SU5. Animación de descenso · Extra
 - Al empezar la simulación, el módulo baja hasta el sitio en unos 3 segundos, antes de que empiece el tiempo de la misión. Respeta `prefers-reduced-motion`.
+
+### SU6. Viaje Tierra–Luna y accesibilidad · [ ] · Implementado, pendiente de revisión de Richard
+- `src/sim/transfer.ts`, `tests/transfer.test.ts`, `src/components/sim/EarthMoonJourney.tsx` y `TransferViewer.tsx`.
+- Ascenso ilustrativo con un GLB Saturn V de NASA y transferencia orbital educativa calculada desde una órbita terrestre de 200 km. Muestra duración, distancia y velocidad; la Luna se mueve hacia el encuentro previsto.
+- Reproducción sin autoplay, pausa, avance manual y controles por teclado. Movimiento reducido detiene la reproducción y usa una cámara general fija. «Evaluar este alunizaje» conecta con el motor de superficie.
+- Supuestos y límites explícitos: dos cuerpos, Luna circular y fase orientada para un encuentro ideal. No calcula ascenso físico, ventanas reales de lanzamiento, captura, descenso ni consumo del cohete. Detalle y fuentes en `docs/TRANSFERENCIA.md`; modelo registrado en `docs/CREDITOS.md`.
+- Simplificación: tres campos principales; ajustes del módulo y gráfica detallada de batería, datos y eventos desplegables. Las cifras y unidades de los sliders se anuncian a lectores de pantalla.
+- **Probado:** conservación de energía y momento angular, condiciones de salida y encuentro; recorrido completo en navegador con escritorio, móvil, teclado y movimiento reducido. La simulación y comparación de sitios siguen funcionando.
+- **Commit sugerido:** `Tarea SU6: viaje Tierra-Luna calculado y simplificación accesible del simulador`.
 
 ### IA1. Diseñar y aplicar un plan de misión con IA · Futura · [ ]
 - **Objetivo:** integrar la IA en el trabajo del simulador para proponer planes que se puedan comprobar y aplicar. No se plantea como un chat de preguntas generales.

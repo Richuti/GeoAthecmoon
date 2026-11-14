@@ -1,0 +1,74 @@
+{
+ "source": "LOLA LDEM_80S_80M (NASA/LRO, PDS)",
+ "halfExtentKm": 180.0,
+ "grid": 449,
+ "units": "km",
+ "axes": "Y arriba en el polo; -Z hacia lon 0 (cara visible); +X hacia 90\u00b0E",
+ "curvature": true,
+ "heightRangeKm": [
+  -22.59,
+  1.87
+ ],
+ "sites": {
+  "shackleton-rim": {
+   "name": "Borde del cr\u00e1ter Shackleton",
+   "lat": -89.67,
+   "lon": 197.0,
+   "position_km": [
+    -2.928,
+    1.641,
+    9.579
+   ]
+  },
+  "connecting-ridge": {
+   "name": "Connecting Ridge",
+   "lat": -89.45,
+   "lon": 222.0,
+   "position_km": [
+    -11.172,
+    1.865,
+    12.408
+   ]
+  },
+  "de-gerlache-rim": {
+   "name": "Borde de de Gerlache",
+   "lat": -88.67,
+   "lon": 292.0,
+   "position_km": [
+    -37.429,
+    1.335,
+    -15.122
+   ]
+  },
+  "mons-mouton": {
+   "name": "Mons Mouton",
+   "lat": -84.8,
+   "lon": 29.2,
+   "position_km": [
+    77.057,
+    -1.839,
+    -137.877
+   ]
+  },
+  "malapert-massif": {
+   "name": "Macizo Malapert",
+   "lat": -86.0,
+   "lon": 2.9,
+   "position_km": [
+    6.15,
+    0.867,
+    -121.396
+   ]
+  },
+  "nobile-rim": {
+   "name": "Borde de Nobile",
+   "lat": -85.4,
+   "lon": 37.0,
+   "position_km": [
+    84.147,
+    0.42,
+    -111.667
+   ]
+  }
+ }
+}

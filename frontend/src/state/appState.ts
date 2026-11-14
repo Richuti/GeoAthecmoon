@@ -43,7 +43,7 @@ export const initialState: AppState = {
   index: 0,
   playing: false,
   speed: 6,
-  mode: 'explore',
+  mode: 'simulate',
   missionDays: 14,
   playbackRange: null,
 }

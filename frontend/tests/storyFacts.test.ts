@@ -17,7 +17,7 @@ describe('lapDays', () => {
   test('sin movimiento: Infinity', () => assert.equal(lapDays([10, 10, 10], 1), Infinity))
 })
 
-describe('con los datos de prueba', () => {
+describe('con los datos de JPL Horizons y LOLA', () => {
   const dir = join(import.meta.dirname, '..', 'public', 'data', 'sites')
   const sites: SiteData[] = readdirSync(dir).map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')))
   const f = storyFacts(sites)!
@@ -30,7 +30,24 @@ describe('con los datos de prueba', () => {
     assert.ok(f.dateExample)
     assert.ok(f.dateExample.best - f.dateExample.fromStart > 30)
   })
-  test('autonomía del Explorador ligero: 19.8 h', () => assert.ok(Math.abs(f.autonomyHours - 19.8) < 1e-6))
+  test('calcula la sombra con la serie solar y el paso temporal', () => {
+    const site: SiteData = {
+      ...sites[0],
+      stepHours: 2,
+      horizon: { azimuthStepDeg: 360, elevationDeg: [0] },
+      sun: { az: [0, 0, 0, 0, 0, 0], el: [-1, -1, 1, -1, -1, -1] },
+      earth: { az: [0, 0, 0, 0, 0, 0], el: [1, 1, 1, 1, 1, 1] },
+    }
+    assert.equal(storyFacts([site])!.longestShadowHours, 6)
+    assert.equal(storyFacts([{ ...site, sun: { ...site.sun, el: [1, 1, 1, 1, 1, 1] } }])!.longestShadowHours, 0)
+  })
+  test('excluye datos sintéticos y fuentes sin verificar', () => {
+    assert.equal(storyFacts(sites.map((site) => ({ ...site, mock: true }))), null)
+    assert.equal(storyFacts(sites.map((site) => ({ ...site, sources: { ephemeris: 'model', terrain: 'lola' } }))), null)
+    assert.equal(storyFacts(sites.map((site) => ({ ...site, sources: { ephemeris: 'jpl-horizons', terrain: 'synthetic' } }))), null)
+    assert.equal(storyFacts(sites.map((site) => ({ ...site, sources: undefined }))), null)
+    assert.equal(storyFacts([...sites, { ...sites[0], mock: true }])!.siteCount, sites.length)
+  })
   test('6 sitios y 60 días', () => {
     assert.equal(f.siteCount, 6)
     assert.equal(f.periodDays, 60)

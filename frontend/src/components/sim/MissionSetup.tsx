@@ -28,6 +28,7 @@ export function MissionSetup({
   onDate,
   onSimulate,
   siteControl,
+  actionLabel,
 }: {
   /** null si se cambió algún valor a mano */
   preset: PresetId | null
@@ -46,6 +47,7 @@ export function MissionSetup({
   onDate: (value: string) => void
   onSimulate: () => void
   siteControl?: ReactNode
+  actionLabel?: string
 }) {
   const set = (key: keyof LanderConfig) => (v: number) => onCfg({ ...cfg, [key]: v })
   const range = (key: keyof LanderConfig) => PARAMETER_RANGES[key]
@@ -56,51 +58,48 @@ export function MissionSetup({
 
   return (
     <section aria-label="Configurar misión">
-      <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1.15fr_0.65fr_auto]">
+      <div className="grid items-end gap-6 sm:grid-cols-2">
           {siteControl}
-          <div>
-          <label htmlFor="mission-module" className="mb-2 block text-sm text-ink-muted">Módulo</label>
-          <select id="mission-module" value={preset ?? 'custom'}
-            onChange={(e) => onPreset(e.target.value as PresetId)}
-            className="min-h-11 w-full rounded-hw border border-seam-strong bg-hull px-3 text-sm text-ink">
-            {!preset && <option value="custom" disabled>Personalizado</option>}
-            {PRESET_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-          </div>
 
             <div>
               <label htmlFor="mission-date" className="mb-2 block text-sm text-ink-muted">Fecha de alunizaje · UTC</label>
               <input id="mission-date" type="datetime-local" value={toInputValue(timelineDate)}
                 min={toInputValue(minDate)} max={toInputValue(maxDate)} step={3600}
                 onChange={(e) => { if (e.target.validity.valid && e.target.value) onDate(e.target.value) }}
-                className="min-h-11 w-full min-w-0 rounded-hw border border-seam-strong bg-hull px-3 text-sm text-ink" />
+                className="min-h-12 w-full min-w-0 rounded-hw border border-seam-strong bg-hull px-3 text-base text-ink" />
             </div>
             <div>
-              <label htmlFor="mission-days" className="mb-2 block text-sm text-ink-muted">Duración</label>
-              <div className="flex min-h-11 items-center gap-2 rounded-hw border border-seam-strong bg-hull px-3">
-                <input id="mission-days" type="number" min={1} max={maxDays} value={daysInput}
+              <label htmlFor="mission-days" className="mb-2 block text-sm text-ink-muted">Tiempo en la superficie</label>
+              <div className="flex min-h-12 items-center gap-2 rounded-hw border border-seam-strong bg-hull px-3">
+                <input id="mission-days" aria-label="Duración de la misión en días" type="number" min={1} max={maxDays} value={daysInput}
                   onChange={(e) => {
                     setDaysInput(e.target.value)
                     const value = e.target.valueAsNumber
                     if (Number.isInteger(value) && value >= 1 && value <= maxDays) onMissionDays(value)
                   }}
                   onBlur={() => setDaysInput(String(missionDays))}
-                  className="min-w-0 w-full bg-transparent text-sm text-ink" />
+                  className="min-h-11 min-w-0 w-full bg-transparent text-base text-ink" />
                 <span className="text-xs text-ink-muted">días</span>
               </div>
             </div>
-            <Button variant="primary" size="lg" className="min-h-11 sm:col-span-2 lg:col-span-1" onClick={onSimulate}>
-              {landingDate === null ? 'Simular misión' : 'Volver a simular'}
+            <div>
+              <label htmlFor="mission-module" className="mb-2 block text-sm text-ink-muted">Módulo de la misión</label>
+              <select id="mission-module" value={preset ?? 'custom'} onChange={(e) => onPreset(e.target.value as PresetId)}
+                className="min-h-12 w-full rounded-hw border border-seam-strong bg-hull px-3 text-base text-ink">
+                {!preset && <option value="custom" disabled>Personalizado</option>}
+                {PRESET_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+            <Button variant="primary" size="lg" className="min-h-12 w-full sm:col-span-2" onClick={onSimulate}>
+              {actionLabel ?? (landingDate === null ? 'Simular misión' : 'Volver a simular')}
             </Button>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-xs leading-relaxed text-ink-muted">
-        <p>Panel <span className="text-sun">{Math.round(peak)} W</span> · Batería {cfg.batteryKWh} kWh · Autonomía sin Sol {formatDuration(autonomyHours(cfg))}</p>
-        <p>{landingDate && landingDate.getTime() !== timelineDate.getTime() ? 'Fecha modificada: vuelve a simular para aplicar el cambio.' : 'Presets ilustrativos. Puedes ajustar el módulo.'}</p>
-      </div>
+      {landingDate && landingDate.getTime() !== timelineDate.getTime() && <p role="status" className="mt-3 text-sm text-ink-muted">Cambiaste la fecha. Evalúa de nuevo el alunizaje para actualizar el resultado.</p>}
 
-          <details className="mt-2">
-            <summary className="cursor-pointer py-2 text-sm text-ink-muted hover:text-ink">Ajustar módulo · opciones avanzadas</summary>
+          <details className="mt-6 border-t border-seam">
+            <summary className="min-h-12 cursor-pointer py-4 text-base font-bold text-ink hover:text-white">Ajustes avanzados del módulo</summary>
+            <p className="mt-2 text-sm leading-relaxed text-ink-muted">Puedes empezar con el módulo elegido. Abre estos ajustes si quieres cambiar la batería, los paneles o los instrumentos. Los módulos son configuraciones de referencia.</p>
             <div className="mt-4 grid gap-x-8 gap-y-5 rounded-hw bg-hull p-5 sm:grid-cols-2 xl:grid-cols-4">
               <p className="instrument-label col-span-full">Energía</p>
               <Slider label="Área del panel" unit="m²" tone="sun" {...range('panelAreaM2')} value={cfg.panelAreaM2} onChange={set('panelAreaM2')}

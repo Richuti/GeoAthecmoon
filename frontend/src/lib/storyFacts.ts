@@ -1,10 +1,9 @@
 // Datos reales para la portada narrativa. Cada frase de la historia usa un número calculado aquí a partir
-// de los datos de la app (JPL Horizons, horizonte y simulador), nunca escrito a mano.
+// de las efemérides de JPL Horizons y el horizonte LOLA, nunca escrito a mano.
 
 import type { SiteData } from '../types'
-import { autonomyHours, PRESETS } from '../sim/lander.ts'
 import { recommend } from './recommend.ts'
-import { visibility } from './visibility.ts'
+import { visibility, windows } from './visibility.ts'
 
 export interface StoryFacts {
   /** Sitio de referencia para los datos del Sol y la Tierra (Shackleton si existe) */
@@ -17,8 +16,8 @@ export interface StoryFacts {
   contactPct: number
   /** Ejemplo de fecha: viabilidad de una misión de 14 días desde el inicio del periodo y desde la mejor fecha */
   dateExample: { siteName: string; fromStart: number; best: number; bestStartIndex: number } | null
-  /** Horas que aguanta el Explorador ligero sin Sol */
-  autonomyHours: number
+  /** Tramo más largo sin luz dentro del periodo del sitio de referencia, en horas. */
+  longestShadowHours: number
   /** Cantidad de sitios y días de datos */
   siteCount: number
   periodDays: number
@@ -40,6 +39,8 @@ export function lapDays(az: number[], stepHours: number): number {
 }
 
 export function storyFacts(sites: SiteData[]): StoryFacts | null {
+  // La portada solo atribuye cifras a NASA cuando ambas fuentes están verificadas en el conjunto cargado.
+  sites = sites.filter((site) => !site.mock && site.sources?.ephemeris === 'jpl-horizons' && site.sources.terrain === 'lola')
   if (sites.length === 0) return null
   const ref = sites.find((s) => s.site.id === 'shackleton-rim') ?? sites[0]
   const contexts = sites.map((data) => ({ data, vis: visibility(data) }))
@@ -62,7 +63,7 @@ export function storyFacts(sites: SiteData[]): StoryFacts | null {
     sunLapDays: lapDays(ref.sun.az, ref.stepHours),
     contactPct: refVis.contact.length ? (100 * refVis.contact.filter(Boolean).length) / refVis.contact.length : 0,
     dateExample,
-    autonomyHours: autonomyHours(PRESETS.explorer.config),
+    longestShadowHours: Math.max(0, ...windows(refVis.lit.map((lit) => !lit)).map((w) => (w.end - w.start) * ref.stepHours)),
     siteCount: sites.length,
     periodDays: Math.round((ref.sun.el.length * ref.stepHours) / 24),
     period: { start: ref.start, stepHours: ref.stepHours },

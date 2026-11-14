@@ -1,5 +1,5 @@
 // Portada continua: un solo escenario fijo encadena las tomas y revela los datos con el avance del video.
-// Las imágenes son ilustraciones generadas con IA; los datos se calculan por separado.
+// Los datos se calculan a partir de JPL Horizons y del horizonte topográfico LOLA.
 //
 // Rendimiento: un solo bucle requestAnimationFrame actualiza variables CSS y el tiempo de los videos de las
 // escenas visibles, sin volver a dibujar React en cada cuadro. Con "reducir movimiento" se ven pósters fijos.
@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { StoryFacts } from '../lib/storyFacts'
 import { storyCues, storyPosition, storyVideoProgress } from '../lib/storyTiming'
-import { formatDateTime, formatShortDate, sampleTime } from '../lib/time'
+import { formatDate, formatDateTime, sampleTime } from '../lib/time'
 import { Button, cx } from './ui'
 
 interface Readout {
@@ -51,7 +51,7 @@ function inSentence(name: string | undefined): string {
 function buildScenes(f: StoryFacts | null): Scene[] {
   const n = (v: number | undefined, d = 0) => (v === undefined ? '…' : v.toFixed(d))
   const ex = f?.dateExample
-  const exStart = f && ex ? formatShortDate(sampleTime(f.period, 0)) : '…'
+  const exStart = f && ex ? formatDate(sampleTime(f.period, 0)) : '…'
   const exBest = f && ex ? formatDateTime(sampleTime(f.period, ex.bestStartIndex)) : '…'
 
   return [
@@ -59,11 +59,11 @@ function buildScenes(f: StoryFacts | null): Scene[] {
       id: 'amanecer',
       video: 'v1-amanecer-polar',
       chapter: 'El problema',
-      title: 'En el polo sur, el Sol nunca termina de salir.',
+      title: 'Aquí, la luz depende del relieve.',
       body: (
         <>
-          En {inSentence(f?.refName)} nunca sube más de {n(f?.sunMaxElDeg, 1)}° sobre el horizonte. Un cerro a
-          kilómetros de distancia basta para dejar un sitio a oscuras.
+          En {inSentence(f?.refName)}, el Sol alcanza una altura máxima de {n(f?.sunMaxElDeg, 1)}° durante los{' '}
+          {f?.periodDays ?? '…'} días analizados. El relieve determina cuándo llega la luz al sitio.
         </>
       ),
       readout: f && { value: f.sunMaxElDeg, decimals: 1, unit: '°', label: 'Altura máxima del Sol', source: `JPL Horizons · ${f.periodDays} días` },
@@ -72,11 +72,11 @@ function buildScenes(f: StoryFacts | null): Scene[] {
       id: 'sol-que-gira',
       video: 'v2-sol-que-gira',
       chapter: 'La luz',
-      title: 'La luz no sube: da vueltas.',
+      title: 'El Sol gira. Las sombras también.',
       body: (
         <>
-          El Sol no sale ni se pone como en la Tierra: rodea el horizonte una vez cada {n(f?.sunLapDays, 1)} días. Las
-          sombras giran como las agujas de un reloj, y cada sitio tiene sus horas de luz y de sombra.
+          Desde {inSentence(f?.refName)}, el Sol completa una vuelta al horizonte en aproximadamente {n(f?.sunLapDays, 1)} días.
+          Al cambiar su dirección, el relieve cambia las zonas iluminadas.
         </>
       ),
       readout: f && { value: f.sunLapDays, decimals: 1, unit: 'días', label: 'Una vuelta del Sol al horizonte', source: 'JPL Horizons' },
@@ -88,11 +88,11 @@ function buildScenes(f: StoryFacts | null): Scene[] {
       title: 'La Tierra también está baja.',
       body: (
         <>
-          Desde {inSentence(f?.refName)}, la Tierra se ve solo el {n(f?.contactPct)} % del tiempo. Cuando una cresta
-          la tapa, no hay comunicación directa y los datos tienen que esperar.
+          Desde {inSentence(f?.refName)}, la Tierra queda por encima del relieve el {n(f?.contactPct)} % del periodo
+          analizado. Cuando el terreno la oculta, se pierde la línea de visión para la comunicación directa.
         </>
       ),
-      readout: f && { value: f.contactPct, decimals: 0, unit: '%', label: 'Tiempo con contacto directo', source: 'JPL Horizons + relieve del sitio' },
+      readout: f && { value: f.contactPct, decimals: 0, unit: '%', label: 'Tiempo con línea de visión a la Tierra', source: 'JPL Horizons + LOLA' },
     },
     {
       id: 'descenso',
@@ -101,13 +101,13 @@ function buildScenes(f: StoryFacts | null): Scene[] {
       title: 'El mismo sitio, otra fecha, otra misión.',
       body: ex ? (
         <>
-          En {inSentence(ex.siteName)}, una misión de 14 días que empieza el {exStart} logra {n(ex.fromStart)} % de viabilidad.
-          Empezando el {exBest}, sube a {n(ex.best)} %.
+          En {inSentence(ex.siteName)}, una misión de 14 días que empieza el {exStart} obtiene {n(ex.fromStart)} puntos
+          de viabilidad sobre 100. Al comenzar el {exBest}, obtiene {n(ex.best)} puntos.
         </>
       ) : (
         <>Elegir bien la fecha puede cambiar por completo la luz y el contacto de una misión.</>
       ),
-      readout: ex && { value: ex.best, decimals: 0, unit: '%', label: `Viabilidad en ${ex.siteName}, mejor fecha`, source: 'Calculado por GeoAthectum' },
+      readout: ex && { value: ex.best, decimals: 0, unit: '/100', label: `Índice de viabilidad · ${ex.siteName}`, source: 'GeoAthectum · JPL Horizons + LOLA' },
     },
     {
       id: 'noche',
@@ -116,11 +116,11 @@ function buildScenes(f: StoryFacts | null): Scene[] {
       title: 'Sin Sol, solo queda la batería.',
       body: (
         <>
-          Cuando el Sol se oculta, el módulo vive de lo que guardó. Un explorador ligero aguanta unas{' '}
-          {n(f?.autonomyHours)} horas a oscuras: si la sombra dura más, la misión termina.
+          En {inSentence(f?.refName)}, el tramo más largo sin luz dentro del periodo analizado dura{' '}
+          {n(f?.longestShadowHours)} horas. Durante esas horas, los paneles solares no pueden abastecer al módulo.
         </>
       ),
-      readout: f && { value: f.autonomyHours, decimals: 0, unit: 'h', label: 'Autonomía sin Sol · explorador ligero', source: 'Simulador · valores ilustrativos' },
+      readout: f && { value: f.longestShadowHours, decimals: 0, unit: 'h', label: 'Mayor tramo sin luz en el periodo', source: 'JPL Horizons + LOLA · muestras horarias' },
     },
   ]
 }
@@ -160,11 +160,11 @@ export function Story({ facts, onOpen }: { facts: StoryFacts | null; onOpen: () 
         const p = isCurrent ? position.local : 0
 
         // Video: el tiempo sigue al scroll con un poco de inercia.
-        const end = video && Number.isFinite(video.duration) && video.duration > 0 ? Math.max(0.01, video.duration - 0.05) : null
-        if (video && end !== null) {
+        const end = Number.isFinite(video.duration) && video.duration > 0 ? Math.max(0.01, video.duration - 0.05) : null
+        if (end !== null) {
           const target = storyVideoProgress(p) * end
           const s = state[k]
-          s.t += (target - s.t) * 0.14
+          s.t += (target - s.t) * 0.22
           if (Math.abs(video.currentTime - s.t) > 0.02 && !video.seeking) video.currentTime = s.t
         }
 
@@ -245,10 +245,10 @@ export function Story({ facts, onOpen }: { facts: StoryFacts | null; onOpen: () 
           <SceneStage scene={s} index={k} total={scenes.length} reduced={reduced} first={k === 0} />
         </section>
       ))}<Finale facts={facts} onOpen={onOpen} /></> : (
-        <section ref={journey} aria-label="Viaje al polo sur lunar" className="relative h-[1200svh]" style={{ '--finale': 0 } as CSSProperties}>
+        <section ref={journey} aria-label="Viaje al polo sur lunar" className="relative h-[900svh]" style={{ '--finale': 0 } as CSSProperties}>
           <div className="sticky top-0 h-dvh overflow-hidden bg-void">
             {scenes.map((s, k) => (
-              <video key={s.video} ref={(el) => { videos.current[k] = el }} aria-hidden muted playsInline
+              <video key={s.id} ref={(el) => { videos.current[k] = el }} aria-hidden muted playsInline
                 preload={k === 0 ? 'auto' : 'metadata'} poster={`${MEDIA}/${s.video}.jpg`}
                 className="absolute inset-0 size-full object-cover" style={{ opacity: k === 0 ? 1 : 0 }}>
                 <source src={`${MEDIA}/${s.video}.mp4`} type="video/mp4" />
@@ -335,18 +335,19 @@ function SceneStage({
   continuous?: boolean
 }) {
   const src = `${MEDIA}/${scene.video}`
+  const poster = `${src}.jpg`
   return (
     <div className={cx('overflow-hidden', continuous ? 'absolute inset-0' : 'relative min-h-dvh')}
       style={continuous ? { opacity: 'var(--scene-opacity)' } : undefined}>
       {continuous ? null : reduced ? (
-        <img src={`${src}.jpg`} alt="" className="absolute inset-0 size-full object-cover" />
+        <img src={poster} alt="" className="absolute inset-0 size-full object-cover" />
       ) : (
         <video
           aria-hidden
           muted
           playsInline
           preload={first ? 'auto' : 'metadata'}
-          poster={`${src}.jpg`}
+          poster={poster}
           className="absolute inset-0 size-full object-cover"
         >
           <source src={`${src}.mp4`} type="video/mp4" />
@@ -393,7 +394,6 @@ function SceneStage({
         </div>
       )}
 
-      <p className="absolute bottom-4 right-4 text-[0.6875rem] text-ink-faint sm:right-8">Ilustración generada con IA</p>
     </div>
   )
 }
@@ -429,15 +429,15 @@ function Finale({ facts, onOpen, continuous = false, active = true }: { facts: S
           Tú eliges dónde y cuándo.
         </h2>
         <p className="mt-6 max-w-xl text-base leading-relaxed text-ink-muted sm:text-lg">
-          {facts ? `${facts.siteCount} sitios del polo sur y ${facts.periodDays} días` : 'Sitios del polo sur y semanas'} de
-          posiciones reales del Sol y la Tierra. Mueve la fecha, cambia el módulo y mira si tu misión sobrevive.
+          {facts ? `${facts.siteCount} sitios del polo sur y ${facts.periodDays} días de efemérides` : 'Sitios del polo sur y efemérides'} de
+          JPL Horizons, con relieve de LOLA. Compara fechas, configura tu módulo y evalúa la misión antes de alunizar.
         </p>
         <Button variant="primary" size="lg" className="mt-8" onClick={onOpen} tabIndex={active ? undefined : -1}>
           Abrir el planificador
         </Button>
         <p className="mt-10 max-w-xl text-xs leading-relaxed text-ink-faint">
-          Las imágenes de esta portada son ilustraciones generadas con IA. Los datos vienen de JPL Horizons (NASA) y del
-          relieve de cada sitio.
+          Fuentes: JPL Horizons (NASA/JPL) y altimetría LOLA (Lunar Reconnaissance Orbiter).
+          {facts && <> Periodo: {formatDate(sampleTime(facts.period, 0))} – {formatDate(sampleTime(facts.period, (facts.periodDays * 24) / facts.period.stepHours - 1))}. Fechas en UTC.</>}
         </p>
       </div>
     </section>

@@ -6,7 +6,9 @@ export const STEP_HOURS = 1
 export const DAYS = 60
 export const SAMPLES = (DAYS * 24) / STEP_HOURS
 
-// Coordenadas aproximadas: se verifican con Quickmap y Moon Trek en el paso 3.3.
+// Connecting Ridge, de Gerlache, Mons Mouton y Malapert usan las coordenadas verificadas del backend
+// (backend/sites_verified.json). Shackleton y Nobile siguen siendo aproximadas (paso 3.3).
+// Deben coincidir con assets-src/terrain/build_terrains.py.
 //
 // `relief` solo lo usa el terreno sintético (generate-mock-data.mjs):
 //   baseM          altura de referencia (solo cosmético)
@@ -37,8 +39,8 @@ export const SITES = [
   {
     id: 'connecting-ridge',
     name: 'Connecting Ridge',
-    lat: -89.45,
-    lon: 222.0,
+    lat: -89.44,
+    lon: 222.6,
     category: 'artemis',
     description: 'Cresta que une Shackleton con de Gerlache. Muy iluminada y alta sobre su entorno.',
     relief: {
@@ -57,7 +59,7 @@ export const SITES = [
     id: 'de-gerlache-rim',
     name: 'Borde del cráter de Gerlache',
     lat: -88.67,
-    lon: 292.0,
+    lon: 291.6,
     category: 'artemis',
     description: 'Borde de un cráter de 32 km. Buena luz con algunas sombras largas del relieve vecino.',
     relief: {
@@ -75,7 +77,7 @@ export const SITES = [
   {
     id: 'mons-mouton',
     name: 'Mons Mouton',
-    lat: -84.8,
+    lat: -84.81,
     lon: 29.2,
     category: 'clps',
     description: 'Meseta de cima plana, cerca de donde alunizó IM-2 (2025). Terreno suave y Tierra visible.',
@@ -91,8 +93,8 @@ export const SITES = [
   {
     id: 'malapert-massif',
     name: 'Macizo Malapert',
-    lat: -86.0,
-    lon: 2.9,
+    lat: -85.99,
+    lon: 2.1,
     category: 'artemis',
     description: 'Montaña cara a la Tierra: buen contacto directo. Ladera con más pendiente.',
     relief: {
