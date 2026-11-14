@@ -1,31 +1,5 @@
-// TEMPORAL (paso C0): carga los datos de prueba y hace cálculos mínimos para revisar el diseño con
-// datos reales del generador. Se reemplaza así:
-//   - carga y estado          → ya están en src/api.ts (4.1) y src/state (4.2)
-//   - luz, contacto, viabilidad → ya están en src/lib/ (5.1–5.4); falta la recomendación (5.5)
-//   - presets del módulo       → src/sim/lander.ts (S1)
-// No agregues lógica nueva aquí: va en esos pasos.
-
-import { siteViability, type ViabilityResult } from '../lib/viability'
-import { visibility } from '../lib/visibility'
-import type { SiteData } from '../types'
-
-export interface SitePreview {
-  data: SiteData
-  lit: boolean[]
-  contact: boolean[]
-  lightPct: number
-  contactPct: number
-  /** Viabilidad del periodo completo (puntaje, factores, resumen y avisos) */
-  result: ViabilityResult
-  /** Atajo: result.score */
-  viability: number
-}
-
-export function buildPreview(data: SiteData): SitePreview {
-  const vis = visibility(data)
-  const result = siteViability(data, vis)
-  return { data, ...vis, result, viability: result.score }
-}
+// TEMPORAL: presets ilustrativos del módulo para la vista previa del simulador.
+// Se reemplazan por src/sim/lander.ts en la tarea S1. Los cálculos de la tarea 5 ya están en src/lib/.
 
 // ---------------------------------------------------------------------------
 // Presets ilustrativos del módulo (se mueven a src/sim/lander.ts en S1)

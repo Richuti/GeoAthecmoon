@@ -174,11 +174,24 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **En la app:** el panel de viabilidad ya usa la librería. Muestra el resumen, los avisos y la marca "Más resta" en el factor que más baja el puntaje.
 - **Commit:** `Tarea 5.4: viabilidad con pesos, factor limitante y avisos`
 
-### 5.5 Recomendación · MVP
+### 5.5 Recomendación · MVP · [x]
 - **Archivo:** `src/lib/recommend.ts`.
-- **Mejor fecha de inicio** dentro del periodo, para una misión de N días (por defecto 14).
-- **Mejor sitio alternativo:** el de mayor viabilidad entre los otros sitios.
-- **Commit de la tarea 5 (puede ir en uno o dos):** `Tarea 5: cálculos de luz, comunicación, viabilidad y recomendación`
+- **La viabilidad es de la misión, no del periodo.** Se calcula para una misión de N días (7, 14 o 28; 14 por defecto) que empieza en la fecha de la línea de tiempo. `missionWindow` adelanta el inicio si la misión no entra completa en los datos, y la interfaz lo avisa.
+- **Funciones:**
+  - `scanStartDates`: la viabilidad de cada fecha de inicio posible, cada 6 h. Le sirve también a la barra de "fechas que funcionan" (SU3).
+  - `bestStartDate`: la mejor fecha; si hay empate, la más temprana.
+  - `bestAlternativeSite`: el mejor de los otros sitios en las mismas fechas. Solo compara sitios con el mismo periodo.
+  - `recommend`: junta todo y arma frases listas para mostrar. Solo recomienda si la mejora es de **3 puntos o más**.
+- **Estado:** `missionDays` en el estado global (de 1 día a la duración del periodo) y la acción `setMissionDays`.
+- **En la app:**
+  - El panel "Viabilidad de la misión" muestra el rango de fechas, el selector 7 / 14 / 28 días y la recomendación, con los botones "Probar esa fecha" y "Ver {sitio}".
+  - La lista de sitios usa la misma ventana, así que todos los números de la pantalla son de la misma misión.
+  - Ejemplo real: en Mons Mouton, desde el 1 de enero la viabilidad es 44 % (noche lunar). Desde el 12 de enero a las 12:00 sube a 98 %.
+- **Probado:**
+  - `tests/recommend.test.ts` y `tests/appState.test.ts` (137 pruebas en total).
+  - 25 pruebas en el navegador, entre ellas que "Probar esa fecha" mueve la línea de tiempo y sube la viabilidad.
+- `src/design/preview.ts` ya solo tiene los presets del módulo, que se van a `src/sim/lander.ts` en S1.
+- **Commit:** `Tarea 5.5: recomendación de fecha y sitio para una misión de N días`
 
 ### 5.6 Pruebas de los cálculos · Extra
 - Con `node --test` (`npm test`), como en 5.1: ventanas al borde del periodo, pesos en cero y periodos sin cambios. Cada paso de la tarea 5 trae sus propias pruebas.
@@ -325,6 +338,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - Instalar `three`, `@react-three/fiber` y `@react-three/drei`.
 - **Archivo:** `src/components/Viewer3D.tsx`. Un Canvas que carga `public/models/terrain/{id}.glb` según el sitio elegido, con OrbitControls limitados (sin meterse bajo el suelo) y carga progresiva.
 - Mientras no exista el modelo, muestra un estado vacío bien diseñado ("Modelo 3D en preparación") en lugar de una figura generada.
+- **Carga diferida:** cada `.glb` se pide solo cuando se va a ver, y mientras tanto se muestra el progreso. Hay modelos de varios MB (`gateway.glb` pesa unos 11 MB) y la primera pantalla no debe esperarlos.
 
 ### 9.2 Luz del Sol desde los datos · MVP
 - Una luz direccional en la dirección `(sin az·cos el, sin el, -cos az·cos el)`, con el norte en -Z y el este en +X. Cambia con el slider de tiempo.
@@ -408,10 +422,17 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 ### 11.1 Conectar con el backend real · MVP
 - Configurar `VITE_API_URL`, revisar el checklist de `docs/CONTRATO_DATOS.md` con los datos reales y mostrar un aviso cuando se usan datos de prueba.
 
-### 11.2 Fuentes de datos · MVP · NASA
+### 11.2 Fuentes de datos y créditos · MVP · NASA
 - Panel "Fuentes" que acredita a JPL Horizons, Moon Trek, Quickmap (datos del LRO) y CSA Moon Exploration.
 - Cada sitio tiene enlaces "Ver en Quickmap" y "Ver en Moon Trek".
+- **Créditos de modelos y texturas,** tomados de `docs/CREDITOS.md` (la fuente única: si cambia, se actualiza el panel):
+  - **NASA 3D Resources** (dominio público): `lander.glb` (Apollo Lunar Module, adaptado con panel solar y antena), `rover.glb` (Space Exploration Vehicle), `astronaut.glb`, `lro.glb`, `gateway.glb`, `dsn_34m.glb` y `stars.jpg` (Tycho Star Map).
+  - **NASA Visible Earth / Goddard** (dominio público): Blue Marble Next Generation, en `earth.glb`.
+  - **NASA Earth Observatory** (dominio público): Black Marble, en `earth_night.jpg`.
+  - **Solar System Scope, CC BY 4.0: dar crédito es obligatorio.** Son las texturas de la Luna (`moon.glb`, basada en datos de NASA LRO) y del Sol (`sun.glb`). Texto: *"Texturas de la Luna y el Sol: Solar System Scope (solarsystemscope.com), CC BY 4.0"*, con enlace a la licencia.
+- **Aviso:** "NASA no avala este proyecto". El material de NASA se usa según las NASA Images and Media Usage Guidelines, sin insignias que den a entender un aval.
 - **Términos de uso:** Quickmap es de Arizona State University, no del gobierno de EE. UU. Hay que respetar sus condiciones de uso y no presentarlo como aval de la NASA.
+- **Commit:** `Tarea 11.2: panel de fuentes y créditos`
 
 ### 11.3 Deploy en Vercel · MVP
 - Build estático de `frontend/` con las variables de entorno configuradas.
@@ -433,46 +454,38 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ## Lo que Richard crea en 3D
 
-Todo el 3D lo modela Richard (en Blender o la herramienta que prefieras) y lo exporta a **glTF binario (`.glb`)** en `frontend/public/models/`. El código solo los carga.
+Todo el 3D lo prepara Richard y lo exporta a **glTF binario (`.glb`)** en `frontend/public/models/`. Las texturas sueltas van en `frontend/public/textures/`. El código solo los carga. Los créditos de cada archivo están en `docs/CREDITOS.md`.
 
 ### Reglas para todos los modelos
 - **Ejes:** en Blender, Z hacia arriba y el **norte hacia +Y** (el este hacia +X). Al exportar con *+Y Up*, queda como la escena espera: Y arriba, norte en -Z y este en +X.
 - **Origen:** en el punto de apoyo (centro de la base o del terreno).
-- **Materiales:** PBR (Principled BSDF). Las texturas en potencias de 2 (1024 o 2048) y en JPG, salvo las que tienen transparencia.
 - **Sin luz horneada:** no hornear sombras ni luz del Sol en las texturas, porque el Sol se mueve con el slider y las sombras las calcula el código. La oclusión ambiental (AO) sí se puede hornear.
-- **Antes de exportar:** aplicar transformaciones (Ctrl+A → All Transforms) y borrar cámaras y luces de la escena.
-- **Exportar:** File → Export → glTF 2.0 → *glTF Binary (.glb)*, con *+Y Up*, *Apply Modifiers* y compresión *Draco* si pasa de 5 MB.
+- **Sin límite de triángulos.** Para que la página cargue rápido, los modelos se cargan de forma diferida (ver 9.1).
+- **Créditos:** todo archivo nuevo se anota en `docs/CREDITOS.md`, con su origen y su licencia.
 
-### M0. Terrenos de los 6 sitios · MVP (para el paso 9.1)
-- **Archivos:** `public/models/terrain/{id}.glb`, uno por sitio: `shackleton-rim`, `connecting-ridge`, `de-gerlache-rim`, `mons-mouton`, `malapert-massif` y `nobile-rim`.
-- **Base obligatoria:** empezar desde `assets-src/terrain/{id}.obj` o desde el PNG del paso 3.4. **No cambies la forma grande** (montañas, cráteres, crestas), porque de ella salen las sombras que se ven en 3D y deben coincidir con los % de luz. Sí puedes sumar detalle fino: rocas, regolito, cráteres chicos de menos de 200 m, materiales y color.
-- **Escala:** 1 unidad = 1 km, tanto en lo ancho como en las alturas. El terreno mide 20 × 20 unidades, con el sitio en el centro exacto (0, 0). El OBJ del paso 3.4 ya viene así.
-- **Límites:** menos de 200 000 triángulos y menos de 8 MB por terreno.
-- **Nombres:** el objeto del suelo se llama `Ground`, porque recibe las sombras.
+### Lo que ya está
 
-### M1. Módulo de alunizaje · MVP (para el paso 9.4)
-- **Archivo:** `public/models/lander.glb`.
-- **Diseño:** un módulo **genérico y propio**, que no copie ninguno real. Cuerpo, 3 o 4 patas, un panel solar y una antena parabólica. La silueta se tiene que reconocer de lejos.
-- **Escala:** en metros (1 unidad = 1 m), unos 4 m de alto. El código lo agranda como símbolo en la escena de 1 unidad = 1 km.
-- **Partes con nombre exacto** (objetos separados, para que el código los mueva):
-  - `SolarPanel`: con el pivote en la bisagra. Se gira en Y (azimut) y en X (inclinación).
-  - `Antenna`: con el pivote en la base del plato.
-  - `Body`: todo lo demás.
-  - `StatusLight` (opcional): una luz pequeña con material emisivo. El código cambia su color según el modo de la misión: verde nominal, ámbar supervivencia y rojo falla.
-- **Límites:** menos de 15 000 triángulos, menos de 1 MB y máximo 3 materiales.
+| Archivo | Qué es | Uso previsto |
+|---|---|---|
+| `lander.glb` | Apollo Lunar Module (NASA 3D Resources), adaptado con `SolarPanel` y `Antenna` orientables. Unos 102 000 triángulos y escala real de unos 7 m. | Paso 9.4 y SU2: el panel sigue al Sol y la antena a la Tierra. |
+| `rover.glb` | Space Exploration Vehicle (NASA), 3 m de alto. | Por definir: otro tipo de misión o referencia de escala. |
+| `astronaut.glb` | Astronauta (NASA), 1.85 m. | Por definir: referencia de escala junto al módulo. |
+| `lro.glb` | Lunar Reconnaissance Orbiter (NASA). | Portada (C3) o panel de fuentes: la nave que midió el relieve (LOLA). |
+| `gateway.glb` | Gateway Core (NASA), unos 11 MB. | Por definir: contexto de Artemis en la portada. |
+| `dsn_34m.glb` | Antena de 34 m de la Deep Space Network (NASA). | Contacto con la Tierra en el simulador: el supuesto de la DSN siempre disponible. |
+| `earth.glb` | Esfera con Blue Marble (NASA). | 9.3: la Tierra en el cielo. |
+| `sun.glb` | Esfera con textura de Solar System Scope (CC BY 4.0). | 9.3: el Sol en el cielo. |
+| `moon.glb` | Esfera con textura de Solar System Scope (CC BY 4.0), con *empties* `site-{id}`. | Portada: globo lunar con los 6 sitios. |
+| `textures/stars.jpg` | Tycho Star Map (NASA), equirectangular. | Fondo del cielo en 3D. Desde el suelo iluminado, una cámara real casi no vería estrellas, así que conviene usarlo tenue. |
+| `textures/earth_night.jpg` | Black Marble (NASA): luces nocturnas. | Lado oscuro de la Tierra en 9.3. |
 
-### M2. Sol · MVP (para el paso 9.3)
-- **Archivo:** `public/models/sun.glb`. Una esfera de 1 unidad de radio con material emisivo ámbar (`#ffb547` o parecido), sin textura obligatoria. El código le pone el brillo.
-
-### M3. Tierra · MVP (para el paso 9.3) · NASA
-- **Archivo:** `public/models/earth.glb`. Una esfera de 1 unidad de radio con textura **Blue Marble** de NASA Visible Earth (visibleearth.nasa.gov), en 2048×1024.
-
-### M4. Globo lunar para la portada · Extra · NASA
-- **Archivo:** `public/models/moon.glb`. Una esfera con el color y el relieve del **CGI Moon Kit** de NASA SVS (svs.gsfc.nasa.gov), en 2048 px.
-- Va el polo sur hacia la cámara y un *empty* por sitio llamado `site-{id}` (por ejemplo `site-shackleton-rim`) en su posición, para que el código ponga ahí los marcadores interactivos.
-
-### Orden sugerido
-M0 (primero un solo terreno, por ejemplo Shackleton, para probar el flujo), luego M1, M2 y M3, y al final M4.
+### Lo que falta
+- **M0. Terrenos de los 6 sitios** (`public/models/terrain/{id}.glb`, para el paso 9.1).
+  - Se parte de `assets-src/terrain/{id}.obj` o del PNG del paso 3.4.
+  - **No cambies la forma grande**, porque de ella salen las sombras que deben coincidir con los % de luz.
+  - 1 unidad = 1 km, y el objeto del suelo se llama `Ground`.
+- **`StatusLight`** (opcional) en `lander.glb`: una luz pequeña con material emisivo que el código pinta según el modo de la misión (SU2).
+- **Luna con CGI Moon Kit** (pendiente en `docs/CREDITOS.md`): si se reemplaza la textura de Solar System Scope por la de NASA SVS, que es de dominio público, ya no hace falta el crédito CC BY de la Luna.
 
 ---
 

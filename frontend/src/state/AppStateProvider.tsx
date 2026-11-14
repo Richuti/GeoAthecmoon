@@ -87,6 +87,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       togglePlay: () => dispatch({ type: 'play/toggle' }),
       setSpeed: (speed) => dispatch({ type: 'speed', speed }),
       setMode: (mode) => dispatch({ type: 'mode', mode }),
+      setMissionDays: (days) => dispatch({ type: 'missionDays', days }),
       reload: () => {
         clearDataCache()
         setReloadKey((k) => k + 1)

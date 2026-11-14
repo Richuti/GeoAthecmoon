@@ -82,12 +82,15 @@ La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un pas
 - **Hecho también:** C0 (sistema de diseño y layout final; `src/design/preview.ts` es temporal).
 - **Hecho:** 4.1 (cliente de datos `src/api.ts`, con caché y validación del contrato) y 4.2 (estado global en `src/state`, hook `useAppState()`).
 - **Hecho:** 4.3 (`SiteSelector`, con teclado, versión móvil plegable y enlace directo `?sitio=`).
-- **Hecho:** 5.1 (`src/lib/horizon.ts`), 5.2 (`src/lib/visibility.ts`), 5.3 (`src/lib/time.ts`, todo en UTC) y 5.4 (`src/lib/viability.ts`). **Siguiente:** 5.5 (recomendación: mejor fecha de inicio y mejor sitio alternativo).
+- **Hecho:** tarea 5 completa: 5.1 (`horizon.ts`), 5.2 (`visibility.ts`), 5.3 (`time.ts`, todo en UTC), 5.4 (`viability.ts`) y 5.5 (`recommend.ts`).
+  - La viabilidad es de **la misión** (`missionDays` en el estado, 14 por defecto) desde la fecha de la línea de tiempo, no del periodo completo.
+- **Siguiente:** S1 (`src/sim/lander.ts`: modelo del módulo y presets).
+- **Ramas:** se trabaja en la rama `frontend` (Richard la creó desde `main`).
 - **Medios:** ya están todos en el escritorio de Richard (fuera del repo). Su revisión está en `docs/MEDIOS_VISUALES.md`. Se procesan en la tarea C3.
 - **Orden:** 3 → 4 → 5 → S1 → S2 → 6 → 8 → SU1 → SU2 → SU3 → 7 → 9 → S3 → 11. El C0 se cierra antes del 4. El 3.3 es manual y lo hace el equipo.
 - **Pendiente pequeño:** agregar `TIME_TYPE='UT'` a `fetch-horizons.mjs` y volver a descargar.
 - **Diseño:** el paso C0 (sistema de diseño) va antes de la primera pantalla. La calidad visual tiene que ser de primer nivel.
-- **3D: lo modela todo Richard** (`.glb` en `frontend/public/models/`, especificaciones en "Lo que Richard crea en 3D" de `docs/TAREAS.md`). **No generes geometría 3D en código**: nada de mallas procedurales, esferas ni marcadores hechos con primitivas. El código solo carga los modelos, controla la cámara, mueve la luz del Sol según los datos y anima las piezas con nombre (`SolarPanel`, `Antenna`). Si falta un modelo, se muestra un estado vacío bien diseñado.
+- **3D: lo prepara todo Richard** (`.glb` en `frontend/public/models/` y texturas en `frontend/public/textures/`, lista en "Lo que Richard crea en 3D" de `docs/TAREAS.md`). Ya están `lander` (Apolo adaptado, con `SolarPanel` y `Antenna`), `rover`, `astronaut`, `lro`, `gateway`, `dsn_34m`, `earth`, `moon` (con *empties* `site-{id}`), `sun`, `stars.jpg` y `earth_night.jpg`. Sin límite de triángulos: se cargan de forma diferida. **Créditos en `docs/CREDITOS.md`; Solar System Scope (Luna y Sol) es CC BY 4.0 y su crédito es obligatorio en el panel "Fuentes" (11.2).** **No generes geometría 3D en código**: nada de mallas procedurales, esferas ni marcadores hechos con primitivas. El código solo carga los modelos, controla la cámara, mueve la luz del Sol según los datos y anima las piezas con nombre (`SolarPanel`, `Antenna`). Si falta un modelo, se muestra un estado vacío bien diseñado.
 
 ## Recursos de NASA del reto (usarlos siempre que se pueda)
 **Regla:** cuando un dato pueda salir de un recurso de NASA, se usa ese recurso y se cita en la app (panel "Fuentes"). Lo sintético es solo de respaldo y se marca con `mock: true`.

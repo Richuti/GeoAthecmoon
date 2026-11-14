@@ -3,19 +3,15 @@ import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
 import { WindowsBar } from './components/WindowsBar'
 import { Badge, Button, EmptyState, InfoTip, Panel, Segmented, Slider, Stat, StatGrid, cx, type Tone } from './components/ui'
-import {
-  PRESETS,
-  buildPreview,
-  type LanderPreview,
-  type PresetId,
-  type SitePreview,
-} from './design/preview'
+import { PRESETS, type LanderPreview, type PresetId } from './design/preview'
 import { formatCoords, formatLat, formatLon } from './lib/format'
 import { CATEGORY_LABEL } from './lib/sites'
-import { dayNumber, formatDate, formatDateTime, formatDuration, formatTime, sampleTime, totalDays } from './lib/time'
-import { VERDICT_LABEL, type Verdict } from './lib/viability'
-import { nextChange } from './lib/visibility'
+import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, sampleTime, totalDays } from './lib/time'
+import { missionWindow, recommend, type Recommendation } from './lib/recommend'
+import { DEFAULT_WEIGHTS, VERDICT_LABEL, siteViability, type Verdict, type ViabilityResult } from './lib/viability'
+import { nextChange, visibility } from './lib/visibility'
 import { useAppState, type Speed } from './state'
+import type { SiteData } from './types'
 
 const MODES = [
   { value: 'explore', label: 'Explorar sitio' },
@@ -29,16 +25,57 @@ const SPEEDS = [
   { value: '24', label: '1 d/s' },
 ] as const
 
+const MISSION_LENGTHS = [
+  { value: '7', label: '7 d' },
+  { value: '14', label: '14 d' },
+  { value: '28', label: '28 d' },
+] as const
+
+/** Lo que la interfaz necesita de cada sitio: datos, visibilidad y viabilidad de la misión elegida. */
+interface SiteView {
+  data: SiteData
+  lit: boolean[]
+  contact: boolean[]
+  /** % de luz y de contacto dentro de la ventana de la misión */
+  lightPct: number
+  contactPct: number
+  result: ViabilityResult
+  viability: number
+}
+
 export default function App() {
   const { state, actions } = useAppState()
   const { sites, selectedId, index: i, mode } = state
 
-  // Un preview por sitio cargado. Se recalcula solo cuando llega un sitio nuevo.
-  const previews = useMemo(
-    () => Object.fromEntries(Object.values(state.data).map((d) => [d.site.id, buildPreview(d)])) as Record<string, SitePreview>,
-    [state.data],
+  const { missionDays } = state
+
+  // Visibilidad de cada sitio cargado: se calcula una vez por sitio.
+  const contexts = useMemo(() => Object.values(state.data).map((data) => ({ data, vis: visibility(data) })), [state.data])
+
+  // Viabilidad de una misión de `missionDays` días que empieza en la fecha de la línea de tiempo.
+  const views = useMemo(() => {
+    const out: Record<string, SiteView> = {}
+    for (const { data, vis } of contexts) {
+      const result = siteViability(data, vis, DEFAULT_WEIGHTS, missionWindow(data, i, missionDays))
+      out[data.site.id] = {
+        data,
+        lit: vis.lit,
+        contact: vis.contact,
+        lightPct: result.factors.light.score,
+        contactPct: result.factors.contact.score,
+        result,
+        viability: result.score,
+      }
+    }
+    return out
+  }, [contexts, i, missionDays])
+
+  const current = contexts.find((c) => c.data.site.id === selectedId)
+  const rec = useMemo(
+    () => (current ? recommend(current, contexts, { startIndex: i, missionDays }) : null),
+    [current, contexts, i, missionDays],
   )
-  const p = selectedId ? previews[selectedId] : undefined
+  const p = selectedId ? views[selectedId] : undefined
   const siteError = selectedId ? state.dataErrors[selectedId] : undefined
 
   return (
@@ -77,7 +114,7 @@ export default function App() {
             <SiteSelector
               sites={sites}
               selectedId={p.data.site.id}
-              summaries={previews}
+              summaries={views}
               errors={state.dataErrors}
               onSelect={actions.select}
             />
@@ -98,7 +135,16 @@ export default function App() {
             <div className="flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5">
               {mode === 'explore' ? (
                 <>
-                  <Viability p={p} previews={previews} onSelect={actions.select} />
+                  {rec && (
+                    <Viability
+                      p={p}
+                      rec={rec}
+                      missionDays={missionDays}
+                      onMissionDays={actions.setMissionDays}
+                      onSelect={actions.select}
+                      onSeek={actions.setIndex}
+                    />
+                  )}
                   <Now p={p} index={i} />
                 </>
               ) : (
@@ -173,7 +219,7 @@ function Loading() {
 // Vista 3D (los modelos los crea Richard; aquí solo el marco y el estado vacío)
 // ---------------------------------------------------------------------------
 
-function Viewer({ p }: { p: SitePreview }) {
+function Viewer({ p }: { p: SiteView }) {
   const s = p.data.site
   return (
     <Panel
@@ -213,7 +259,7 @@ function Timeline({
   onTogglePlay,
   onSpeed,
 }: {
-  p: SitePreview
+  p: SiteView
   index: number
   playing: boolean
   speed: Speed
@@ -304,34 +350,56 @@ const VERDICT_TONE: Record<Verdict, Tone> = { good: 'ok', fair: 'caution', poor:
 
 function Viability({
   p,
-  previews,
+  rec,
+  missionDays,
+  onMissionDays,
   onSelect,
+  onSeek,
 }: {
-  p: SitePreview
-  previews: Record<string, SitePreview>
+  p: SiteView
+  rec: Recommendation
+  missionDays: number
+  onMissionDays: (days: number) => void
   onSelect: (id: string) => void
+  onSeek: (index: number) => void
 }) {
   const r = p.result
   const v = Math.round(r.score)
   // Se marca el factor que más resta solo si de verdad pesa (igual que en el resumen).
   const limit = r.factors[r.limiting].lost >= 5 ? r.limiting : null
-  const best = Object.values(previews)
-    .filter((o) => o.data.site.id !== p.data.site.id)
-    .sort((a, b) => b.viability - a.viability)[0]
-  const better = best && best.viability > p.viability + 0.5
+  const from = sampleTime(p.data, rec.window.from)
+  const to = sampleTime(p.data, rec.window.to)
+  const lengthKey = String(missionDays)
+  const lengths = MISSION_LENGTHS.some((o) => o.value === lengthKey)
+    ? MISSION_LENGTHS
+    : [...MISSION_LENGTHS, { value: lengthKey, label: `${missionDays} d` }]
 
   return (
     <Panel
-      label="Viabilidad del periodo"
+      label="Viabilidad de la misión"
       actions={
         <InfoTip label="Viabilidad" align="end">
           Combina el % de tiempo con luz solar, el % con contacto directo con la Tierra y la pendiente del terreno
-          (hasta 5° es cómoda; desde 10° la mayoría de los módulos no puede alunizar). El número junto a cada factor es
-          cuánto pesa.
+          (hasta 5° es cómoda; desde 10° la mayoría de los módulos no puede alunizar), durante los días de la misión.
+          El número junto a cada factor es cuánto pesa. Mueve la línea de tiempo para cambiar la fecha de alunizaje.
         </InfoTip>
       }
     >
-      <div className="flex items-end gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <p className="text-xs leading-relaxed text-ink-muted">
+          <span className="text-ink">{formatShortDateTime(from)}</span> → <span className="text-ink">{formatShortDateTime(to)}</span>
+          {rec.window.shifted && <span className="block text-ink-faint">Se adelantó el inicio para que la misión entre en los datos.</span>}
+        </p>
+        <Segmented
+          label="Duración de la misión"
+          size="sm"
+          options={lengths}
+          value={lengthKey}
+          onChange={(d) => onMissionDays(Number(d))}
+        />
+      </div>
+
+      <div className="mt-4 flex items-end gap-3">
         <p className="flex items-baseline">
           <span className="font-display text-8xl font-black leading-[0.8]">{v}</span>
           <span className="ml-1 font-display text-3xl font-bold text-ink-muted">%</span>
@@ -379,20 +447,38 @@ function Viability({
         />
       </div>
 
-      {better && (
-        <div className="mt-5 border-t border-seam pt-4">
-          <p className="instrument-label">Mejor alternativa</p>
-          <p className="mt-1.5 text-sm text-ink-muted">
-            <span className="text-ink">{best.data.site.name}</span> llega a{' '}
-            <span className="font-mono text-ink">{Math.round(best.viability)} %</span> en el mismo periodo.
-          </p>
-          <Button size="sm" className="mt-3" onClick={() => onSelect(best.data.site.id)}>
-            Ver {best.data.site.name}
-          </Button>
-        </div>
-      )}
+      <div className="mt-5 border-t border-seam pt-4">
+        <p className="instrument-label">Recomendación</p>
+        {rec.betterDate || rec.betterSite ? (
+          <ul className="mt-2 flex flex-col gap-4">
+            {rec.betterDate && rec.dateMessage && (
+              <li>
+                <p className="text-sm leading-relaxed text-ink-muted">{rec.dateMessage}</p>
+                <Button size="sm" className="mt-2" onClick={() => onSeek(rec.betterDate!.startIndex)}>
+                  Probar esa fecha
+                </Button>
+              </li>
+            )}
+            {rec.betterSite && rec.siteMessage && (
+              <li>
+                <p className="text-sm leading-relaxed text-ink-muted">{rec.siteMessage}</p>
+                <Button size="sm" className="mt-2" onClick={() => onSelect(rec.betterSite!.siteId)}>
+                  Ver {rec.betterSite.name}
+                </Button>
+              </li>
+            )}
+          </ul>
+        ) : (
+          <p className="mt-2 text-sm leading-relaxed text-ink-muted">{rec.message}</p>
+        )}
+      </div>
     </Panel>
   )
+}
+
+/** "18 ene, 06:00" para rangos cortos dentro del mismo periodo. */
+function formatShortDateTime(d: Date): string {
+  return `${formatShortDate(d)}, ${formatTime(d)}`
 }
 
 function Factor({
@@ -431,7 +517,7 @@ function Factor({
 // Ahora
 // ---------------------------------------------------------------------------
 
-function Now({ p, index }: { p: SitePreview; index: number }) {
+function Now({ p, index }: { p: SiteView; index: number }) {
   const d = p.data
   const lit = p.lit[index]
   const contact = p.contact[index]

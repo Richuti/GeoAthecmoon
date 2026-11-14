@@ -25,6 +25,8 @@ export interface AppState {
   playing: boolean
   speed: Speed
   mode: Mode
+  /** Duración de la misión en días: la viabilidad y la recomendación se calculan para esa ventana */
+  missionDays: number
 }
 
 /** Sitio que se abre primero si existe en la lista. */
@@ -41,6 +43,7 @@ export const initialState: AppState = {
   playing: false,
   speed: 6,
   mode: 'explore',
+  missionDays: 14,
 }
 
 export type Action =
@@ -56,6 +59,7 @@ export type Action =
   | { type: 'play/toggle' }
   | { type: 'speed'; speed: Speed }
   | { type: 'mode'; mode: Mode }
+  | { type: 'missionDays'; days: number }
 
 /** Datos del sitio elegido, si ya llegaron. */
 export function selectedData(state: AppState): SiteData | null {
@@ -139,5 +143,13 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case 'mode':
       return { ...state, mode: action.mode }
+
+    case 'missionDays': {
+      // Entre 1 día y la duración del periodo (si ya se conoce).
+      const data = selectedData(state)
+      const maxDays = data ? Math.max(1, Math.floor((data.sun.el.length * data.stepHours) / 24)) : 365
+      const days = Math.min(maxDays, Math.max(1, Math.round(action.days)))
+      return days === state.missionDays ? state : { ...state, missionDays: days }
+    }
   }
 }

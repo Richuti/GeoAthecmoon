@@ -1,6 +1,30 @@
-# Créditos de modelos y datos
+# Créditos de modelos, texturas y datos
 
-- **Módulo Lunar del Apolo** (`frontend/public/models/lander.glb`, cuerpo `ApolloLM`): NASA 3D Resources — https://science.nasa.gov/3d-resources/ (espejo: github.com/nasa/NASA-3D-Resources). Material de NASA, libre de uso según las NASA Images and Media Usage Guidelines. NASA no avala este proyecto.
-  - Adaptación del equipo GeoAthectum: escalado a tamaño real (~7 m), orientado con la escotilla al norte, y con un panel solar orientable (`SolarPanel`) y una antena orientable (`Antenna`) agregados para el simulador. El Apolo original no tenía panel solar: es una adaptación para la demo.
-  - Scripts: `assets-src/models/apollo/`.
+NASA no avala este proyecto. El material de NASA se usa según las NASA Images and Media Usage Guidelines (reconocer a NASA como fuente, sin usar sus insignias para dar a entender aval).
+
+## Modelos 3D (`frontend/public/models/`)
+
+| Archivo | Origen | Licencia | Cambios del equipo |
+|---|---|---|---|
+| `lander.glb` | Apollo Lunar Module — NASA 3D Resources | Dominio público (NASA) | Escala real (~7 m), escotilla al norte, + panel solar y antena orientables (adaptación: el Apolo real no tenía panel solar). Scripts en `assets-src/models/apollo/` |
+| `rover.glb` | Space Exploration Vehicle — NASA 3D Resources | Dominio público (NASA) | Escala real (3 m de alto), geometría simplificada, texturas a 1024 px |
+| `astronaut.glb` | Astronaut — NASA 3D Resources | Dominio público (NASA) | Escala real (1.85 m) |
+| `lro.glb` | Lunar Reconnaissance Orbiter (A) — NASA 3D Resources | Dominio público (NASA) | Escala aproximada (3.9 m) |
+| `gateway.glb` | Gateway Core — NASA 3D Resources | Dominio público (NASA) | Texturas reducidas a 512 px |
+| `dsn_34m.glb` | Deep Space Network 34-meter — NASA 3D Resources | Dominio público (NASA) | Texturas a JPEG |
+| `earth.glb` | Esfera con **Blue Marble Next Generation** (NASA Visible Earth / Goddard), vía el repositorio geovista-data | Dominio público (NASA) | Generado con `assets-src/models/tools/build_bodies.py` |
+| `moon.glb` | Esfera con textura de la Luna de **Solar System Scope** (basada en datos de NASA LRO), vía pyvista/vtk-data | **CC BY 4.0** — dar crédito a Solar System Scope | Incluye marcadores `site-{id}` |
+| `sun.glb` | Esfera con textura del Sol de **Solar System Scope** | **CC BY 4.0** — dar crédito a Solar System Scope | Textura emisiva |
+
+## Texturas (`frontend/public/textures/`)
+
+| Archivo | Origen | Licencia |
+|---|---|---|
+| `stars.jpg` | Tycho Star Map — NASA 3D Resources | Dominio público (NASA) |
+| `earth_night.jpg` | Black Marble — NASA Earth Observatory, vía geovista-data | Dominio público (NASA) |
+
+## Datos
 - **Posiciones del Sol y la Tierra:** JPL Horizons (NASA/JPL).
+- **Relieve:** LOLA / LRO (NASA), vía Moon Trek.
+
+> Pendiente: reemplazar la textura de la Luna por el **CGI Moon Kit** de NASA SVS (LROC color), que es dominio público, cuando se pueda descargar.
