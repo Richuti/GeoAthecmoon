@@ -234,7 +234,14 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 - **Commit:** `Tarea S1: modelo del módulo y presets`
 
-### S2. Motor de simulación · MVP
+### S2. Motor de simulación · MVP · [x]
+- **Hecho:** `src/sim/simulate.ts` y `tests/simulate.test.ts` (15 casos, 164 en total).
+  - Firma: `simulate(data, config, { startIndex, missionDays })`. El plan va aparte del módulo, porque la duración vive en el estado.
+  - `sunFraction` usa un radio solar de 0.2665°.
+  - Los eventos llevan el reloj de misión ("Día 1, 15:00 UTC: vuelve el Sol.").
+  - Las ventanas de comunicación dicen cuánto duran; si siguen al terminar la misión, agregan "o más".
+  - **Comprobado con datos reales:** Mons Mouton con el Explorador ligero falla desde el 1 de enero (noche lunar) y sobrevive desde la mejor fecha.
+  - Todavía sin interfaz: el botón "Simular misión" se conecta en SU1–SU3.
 - **Archivo:** `src/sim/simulate.ts`, con `simulate(data, config, startIndex)`. Es una función pura que avanza en pasos de `stepHours`.
 - **Generación (W)** = `1361 × panelAreaM2 × panelEfficiency × fracciónDeSol`.
   - La fracción es la parte del disco solar visible sobre el relieve: 1 si está completo, 0 si está tapado, y lineal mientras el disco (radio ≈ 0.27°) cruza el borde.

@@ -85,7 +85,8 @@ La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un pas
 - **Hecho:** tarea 5 completa: 5.1 (`horizon.ts`), 5.2 (`visibility.ts`), 5.3 (`time.ts`, todo en UTC), 5.4 (`viability.ts`) y 5.5 (`recommend.ts`).
   - La viabilidad es de **la misión** (`missionDays` en el estado, 14 por defecto) desde la fecha de la línea de tiempo, no del periodo completo.
 - **Hecho:** S1 (`src/sim/lander.ts`). `src/design/preview.ts` ya no existe.
-- **Siguiente:** S2 (`src/sim/simulate.ts`: motor de simulación hora por hora).
+- **Hecho:** S2 (`src/sim/simulate.ts`, motor puro con eventos y resumen).
+- **Siguiente:** 6 (línea de tiempo), según el orden. Alternativa: adelantar la C3 (portada con los videos) si Richard lo pide.
 - **Ramas:** se trabaja en la rama `frontend` (Richard la creó desde `main`).
 - **Medios:** ya están todos en el escritorio de Richard (fuera del repo). Su revisión está en `docs/MEDIOS_VISUALES.md`. Se procesan en la tarea C3.
 - **Orden:** 3 → 4 → 5 → S1 → S2 → 6 → 8 → SU1 → SU2 → SU3 → 7 → 9 → S3 → 11. El C0 se cierra antes del 4. El 3.3 es manual y lo hace el equipo.
