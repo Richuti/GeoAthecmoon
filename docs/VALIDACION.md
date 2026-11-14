@@ -59,3 +59,24 @@ Nobile         |               |                  |                |            
 - Ojo: el LAT/LON y el "valor en el cursor" de cada captura son la posición del mouse, no la del punto. Dilan lo aclara en el PDF.
 
 **Opcional (solo si sobra tiempo, Dilan):** anotar la altura que da QuickMap **en cada marcador**, con el mouse encima del punto. Para Mons Mouton, Malapert y Nobile hay que usar una capa de LOLA que llegue más allá de 87° S. Nuestras alturas para comparar son: Shackleton 1670 m, Connecting Ridge 1957 m, de Gerlache 1812 m, Mons Mouton 5354 m, Malapert 5172 m y Nobile 6036 m.
+
+## Fuentes publicadas: cómo compararlas (Joshua)
+**Qué es:** estudios que ya calcularon, con los mismos datos LOLA de la NASA, qué porcentaje del tiempo recibe sol cada punto del polo sur. Si coinciden con nosotros, la diapositiva de validación pasa de "usamos datos de NASA" a "coincidimos con lo que publicaron los expertos".
+
+**Qué buscar:**
+- Mazarico et al. 2011, *Icarus*: iluminación de los polos con LOLA. Es la fuente de la capa de iluminación de QuickMap.
+- Gläser et al. 2014, *Icarus*: el polo sur con DEM de LOLA de alta resolución. Nombra sitios como Connecting Ridge y el borde de Shackleton.
+- Speyerer y Robinson 2013, *Icarus*: las regiones persistentemente iluminadas, con imágenes LROC.
+- Las regiones candidatas de Artemis III (páginas de NASA): confirman que nuestros sitios son de los que la NASA considera.
+
+En cada sitio hay que anotar cuatro cosas: **el dato, el enlace, el periodo que promedia y la altura sobre el suelo** (2 m, 10 m…).
+
+**Por qué los % no van a ser iguales (y está bien):**
+- Los artículos promedian años completos. Nosotros calculamos solo enero y febrero de 2027, con el observador a 2 m.
+- Esos 60 días caen al **final del verano del polo sur**. En nuestros datos, el Sol más alto de cada periodo de 10 días baja de 1.3° (inicio de enero) a −0.4° (fin de febrero), según `backend/out/sites/shackleton-rim.json`.
+- Por eso nuestros porcentajes salen **más altos** que los promedios de varios años.
+
+**Qué sí debe coincidir:** el **orden** de los sitios. Nosotros tenemos Connecting Ridge > de Gerlache > Malapert > Shackleton > Mons Mouton > Nobile. Además, Connecting Ridge y los bordes de Shackleton y de Gerlache tienen que salir entre los más iluminados del polo.
+
+**Respuesta para el jurado** ("¿por qué ustedes dan 98 % y el artículo da menos?"):
+> "Los artículos promedian varios años; nosotros calculamos las fechas exactas de la misión, enero y febrero de 2027, que caen al final del verano del polo sur. Por eso nuestros porcentajes son más altos, pero el orden de los sitios coincide. Eso es justo lo que hace útil la herramienta: la iluminación depende de la fecha, no solo del lugar."
