@@ -58,15 +58,16 @@ describe('con los datos de prueba', () => {
 
   test('hay 6 sitios', () => assert.equal(sites.length, 6))
 
-  // `npm run mock` calcula el % de luz con esta misma regla (Sol sobre el horizonte interpolado).
+  // Datos reales (LOLA + Horizons, `python backend/export.py`). El backend calcula el % de luz con
+  // esta misma regla (backend/sim_demo.py) y da los mismos valores: validación cruzada TS ↔ Python.
   // Si estos números cambian, cambió la interpolación o cambiaron los datos.
   const expectedLightPct: Record<string, number> = {
-    'connecting-ridge': 82.5,
-    'shackleton-rim': 73.3,
-    'de-gerlache-rim': 69.9,
-    'malapert-massif': 56.1,
-    'mons-mouton': 46.8,
-    'nobile-rim': 38.3,
+    'connecting-ridge': 97.5,
+    'shackleton-rim': 68.9,
+    'de-gerlache-rim': 94.3,
+    'malapert-massif': 78,
+    'mons-mouton': 46.9,
+    'nobile-rim': 24.8,
   }
   for (const d of sites) {
     test(`% de luz de ${d.site.id} coincide con el generador`, () => {

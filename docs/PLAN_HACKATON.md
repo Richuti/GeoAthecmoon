@@ -11,7 +11,10 @@
 |---|---|---|---|
 | 3.2 Sol y Tierra reales (JPL Horizons) | Richard | ✅ | — |
 | B1 DEM LOLA 80 m: lector y prueba de cordura | Rafael | ✅ (coincide con QuickMap ±80 m) | sáb 12:00 |
-| ⚠ Richard: modelar en Blender sobre el relieve **real** (no el sintético) | Richard | ⏳ espera B3 | sáb 14:00 |
+| Datos LOLA en la app (`python backend/export.py`) y terreno real para Blender (`npm run export-terrain`) | Rafael | ✅ (85/85 pruebas; % de luz TS = Python) | sáb 14:00 |
+| ⚠ Richard: modelar en Blender sobre el relieve **real** (no el sintético) | Richard | ⏳ | sáb 16:00 |
+| Richard: actualizar `frontend/scripts/sites.mjs` con las coordenadas de `backend/sites_verified.json` y correr `npm run horizons` (hoy hay un desfase de hasta 0.07°); luego Rafael corre `build.py` + `export.py` | Richard → Rafael | ⏳ | sáb 17:00 |
+| Borrador del pitch (`docs/PITCH.md`) | Rafael | ✅ v1 | sáb 14:00 |
 | B2 Horizonte, pendiente y terreno reales | Rafael | ✅ | sáb 13:00 |
 | B3 JSON finales (LOLA + Horizons) en `backend/out/`, con 4 sitios movidos a la cresta | Rafael | ✅ | sáb 14:00 |
 | B5 Caso de la demo (`docs/CASO_DEMO.md`, réplica del simulador S2/S3 en Python) | Rafael | ✅ | sáb 17:00 |
