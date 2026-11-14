@@ -76,10 +76,16 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ## Fase B · Carga de datos y cálculos
 
-### 4.1 Cliente de datos · MVP
-- **Archivo:** `src/api.ts` con `getSites()` y `getSiteData(id)`.
-- Si `VITE_API_URL` tiene valor, usa `${VITE_API_URL}/sites`; si está vacío, usa `/data/sites.json`.
-- Guarda en memoria los sitios ya pedidos y lanza errores con un mensaje claro.
+### 4.1 Cliente de datos · MVP · [x]
+- **Archivos:** `src/api.ts` y `src/env.d.ts` (tipo de `VITE_API_URL`).
+- **Funciones:** `getSites()`, `getSiteData(id)`, `getAllSiteData(sites)` y `clearDataCache()`.
+- **Origen de los datos:** si `VITE_API_URL` tiene valor, usa `${VITE_API_URL}/sites` y `/sites/{id}`. Si está vacío, usa `/data/sites.json` y `/data/sites/{id}.json`. `usingLocalData` dice cuál se está usando.
+- **Caché:** en memoria, compartida entre pedidos iguales. Si un pedido falla, se olvida para poder reintentar.
+- **Validación del contrato** (`validateSites` y `validateSiteData`): largos de `sun` y `earth`, 360 valores de horizonte, `size × size` del terreno, rangos de lat, lon y azimut, categoría, fecha, pendiente e id.
+  - Los errores (`DataError`) dicen exactamente qué está mal, por ejemplo: "sun.az tiene 1440 valores y sun.el tiene 1439".
+  - Con datos locales, el error sugiere correr `npm run mock`.
+- **Probado:** los 7 archivos actuales pasan, y 12 casos rotos a propósito se detectan con su mensaje.
+- `src/design/preview.ts` ya carga a través de `api.ts`.
 - **Commit:** `Tarea 4.1: cliente de datos (API o archivos de prueba)`
 
 ### 4.2 Estado de la app · MVP

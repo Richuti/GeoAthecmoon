@@ -1,12 +1,13 @@
 // TEMPORAL (paso C0): carga los datos de prueba y hace cálculos mínimos para revisar el diseño con
 // datos reales del generador. Se reemplaza así:
-//   - carga y estado          → src/api.ts (4.1) y estado de la app (4.2)
+//   - carga                   → ya usa src/api.ts (4.1); el estado pasa a la app en 4.2
 //   - luz, contacto, viabilidad → src/lib/ (tarea 5), con interpolación y pruebas
 //   - presets del módulo       → src/sim/lander.ts (S1)
 // No agregues lógica nueva aquí: va en esos pasos.
 
 import { useEffect, useState } from 'react'
-import type { Site, SiteData, SitesResponse } from '../types'
+import { DataError, getAllSiteData, getSites } from '../api'
+import type { Site, SiteData } from '../types'
 
 export interface SitePreview {
   data: SiteData
@@ -54,15 +55,13 @@ export function usePreviewData() {
     let cancelled = false
     ;(async () => {
       try {
-        const list = (await (await fetch('/data/sites.json')).json()) as SitesResponse
-        const all = await Promise.all(
-          list.sites.map(async (s) => (await (await fetch(`/data/sites/${s.id}.json`)).json()) as SiteData),
-        )
+        const list = await getSites()
+        const all = await getAllSiteData(list.sites)
         if (cancelled) return
         setSites(list.sites)
         setPreviews(Object.fromEntries(all.map((d) => [d.site.id, buildPreview(d)])))
-      } catch {
-        if (!cancelled) setError('No se pudieron cargar los datos de los sitios. Revisa que exista public/data (npm run mock).')
+      } catch (err) {
+        if (!cancelled) setError(err instanceof DataError ? err.message : 'No se pudieron cargar los datos de los sitios.')
       }
     })()
     return () => {
