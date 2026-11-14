@@ -1,13 +1,11 @@
 // TEMPORAL (paso C0): carga los datos de prueba y hace cálculos mínimos para revisar el diseño con
 // datos reales del generador. Se reemplaza así:
-//   - carga                   → ya usa src/api.ts (4.1); el estado pasa a la app en 4.2
+//   - carga y estado          → ya están en src/api.ts (4.1) y src/state (4.2)
 //   - luz, contacto, viabilidad → src/lib/ (tarea 5), con interpolación y pruebas
 //   - presets del módulo       → src/sim/lander.ts (S1)
 // No agregues lógica nueva aquí: va en esos pasos.
 
-import { useEffect, useState } from 'react'
-import { DataError, getAllSiteData, getSites } from '../api'
-import type { Site, SiteData } from '../types'
+import type { SiteData } from '../types'
 
 export interface SitePreview {
   data: SiteData
@@ -26,7 +24,7 @@ function horizonNearest(h: number[], az: number): number {
   return h[Math.round(((az % 360) + 360) % 360) % 360]
 }
 
-function buildPreview(data: SiteData): SitePreview {
+export function buildPreview(data: SiteData): SitePreview {
   const h = data.horizon.elevationDeg
   const lit = data.sun.el.map((el, i) => el > horizonNearest(h, data.sun.az[i]))
   const contact = data.earth.el.map((el, i) => el > horizonNearest(h, data.earth.az[i]))
@@ -46,42 +44,10 @@ function buildPreview(data: SiteData): SitePreview {
   }
 }
 
-export function usePreviewData() {
-  const [sites, setSites] = useState<Site[] | null>(null)
-  const [previews, setPreviews] = useState<Record<string, SitePreview>>({})
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const list = await getSites()
-        const all = await getAllSiteData(list.sites)
-        if (cancelled) return
-        setSites(list.sites)
-        setPreviews(Object.fromEntries(all.map((d) => [d.site.id, buildPreview(d)])))
-      } catch (err) {
-        if (!cancelled) setError(err instanceof DataError ? err.message : 'No se pudieron cargar los datos de los sitios.')
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return { sites, previews, error }
-}
-
 /** Muestras hasta que la bandera cambia, o null si no cambia en lo que queda del periodo. */
 export function stepsUntilChange(flags: boolean[], i: number): number | null {
   for (let k = i + 1; k < flags.length; k++) if (flags[k] !== flags[i]) return k - i
   return null
-}
-
-/** Primera muestra con Sol y Tierra visibles (para abrir en un instante representativo). */
-export function firstGoodIndex(p: SitePreview): number {
-  const i = p.lit.findIndex((l, k) => l && p.contact[k])
-  return i >= 0 ? i : 0
 }
 
 // ---------------------------------------------------------------------------

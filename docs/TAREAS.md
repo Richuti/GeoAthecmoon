@@ -88,8 +88,22 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - `src/design/preview.ts` ya carga a través de `api.ts`.
 - **Commit:** `Tarea 4.1: cliente de datos (API o archivos de prueba)`
 
-### 4.2 Estado de la app · MVP
-- **Archivos:** `src/state/` (o un hook `useSiteData`), con el sitio elegido, los datos cargados, el índice de tiempo actual y los estados de carga y error.
+### 4.2 Estado de la app · MVP · [x]
+- **Archivos:**
+  - `src/state/appState.ts`: reductor puro, sin React.
+  - `src/state/AppStateProvider.tsx`: carga y reproducción.
+  - `src/state/context.ts`: hook `useAppState()`.
+  - `src/state/index.ts`.
+- **Estado:** lista de sitios, datos cargados por id, errores por sitio, sitio elegido, instante (`index`), reproducción, velocidad (1, 6 o 24 h/s) y modo (explorar o simular).
+- **Acciones:** `select`, `setIndex`, `setPlaying`, `togglePlay`, `setSpeed`, `setMode` y `reload` (para "Reintentar").
+- **Reglas:**
+  - Al cambiar de sitio se mantiene la fecha y se pausa la reproducción.
+  - El índice siempre queda dentro del rango.
+  - Al llegar al final se pausa, y play desde el final vuelve a empezar.
+  - Abre en `shackleton-rim` si existe y, si no, en el primero de la lista.
+- **Carga:** primero la lista, después el sitio elegido y luego el resto en paralelo. Los errores se muestran con "Reintentar"; en la lista, un sitio que falló dice "Error".
+- **Probado:** 19 casos del reductor en Node. En el navegador: la carga normal y un backend caído (`VITE_API_URL` a un puerto vacío), que muestra el error con "Reintentar".
+- `src/design/preview.ts` ya no carga ni guarda estado: solo calcula y da formato (lo reemplazan la tarea 5 y S1).
 - **Commit:** `Tarea 4.2: estado de sitio y tiempo`
 
 ### 4.3 Selector de sitios · MVP

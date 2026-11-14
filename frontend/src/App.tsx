@@ -1,13 +1,14 @@
-// Layout final de GeoAthectum (paso C0). Los datos y cálculos vienen de src/design/preview.ts, que es
-// temporal: las tareas 4, 5 y S1 lo reemplazan sin cambiar este layout.
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+// Layout final de GeoAthectum. El estado (sitios, sitio elegido, tiempo, reproducción) viene de src/state.
+// Los cálculos de luz, contacto y viabilidad todavía vienen de src/design/preview.ts, que es temporal:
+// la tarea 5 y S1 lo reemplazan sin cambiar este layout.
+import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
 import { WindowsBar } from './components/WindowsBar'
 import { Badge, Button, EmptyState, InfoTip, Panel, Segmented, Slider, Stat, StatGrid, cx, type Tone } from './components/ui'
 import {
   PRESETS,
   WEIGHTS,
-  firstGoodIndex,
+  buildPreview,
   formatDate,
   formatDuration,
   formatLat,
@@ -15,21 +16,19 @@ import {
   formatTime,
   sampleDate,
   stepsUntilChange,
-  usePreviewData,
   type LanderPreview,
   type PresetId,
   type SitePreview,
 } from './design/preview'
+import { useAppState, type Speed } from './state'
 import type { Site, SiteCategory } from './types'
-
-type Mode = 'explore' | 'simulate'
-type Speed = '1' | '6' | '24'
 
 const MODES = [
   { value: 'explore', label: 'Explorar sitio' },
   { value: 'simulate', label: 'Simular misión' },
 ] as const
 
+type SpeedKey = '1' | '6' | '24'
 const SPEEDS = [
   { value: '1', label: '1 h/s' },
   { value: '6', label: '6 h/s' },
@@ -45,46 +44,36 @@ const CATEGORY_LABEL: Record<SiteCategory, string> = {
 }
 
 export default function App() {
-  const { sites, previews, error } = usePreviewData()
-  const [siteId, setSiteId] = useState('shackleton-rim')
-  const [mode, setMode] = useState<Mode>('explore')
-  const [index, setIndex] = useState<number | null>(null)
-  const [playing, setPlaying] = useState(false)
-  const [speed, setSpeed] = useState<Speed>('6')
+  const { state, actions } = useAppState()
+  const { sites, selectedId, index: i, mode } = state
 
-  const p = previews[siteId]
-  const n = p?.data.sun.el.length ?? 0
-  const i = Math.min(index ?? (p ? firstGoodIndex(p) : 0), Math.max(0, n - 1))
-
-  // Reproducción: avanza `speed` horas por segundo.
-  useEffect(() => {
-    if (!playing || !p) return
-    const perSecond = Number(speed) / p.data.stepHours
-    const id = window.setInterval(() => {
-      setIndex((prev) => {
-        const next = (prev ?? firstGoodIndex(p)) + 1
-        if (next >= n - 1) setPlaying(false)
-        return Math.min(next, n - 1)
-      })
-    }, 1000 / perSecond)
-    return () => window.clearInterval(id)
-  }, [playing, speed, p, n])
+  // Un preview por sitio cargado. Se recalcula solo cuando llega un sitio nuevo.
+  const previews = useMemo(
+    () => Object.fromEntries(Object.values(state.data).map((d) => [d.site.id, buildPreview(d)])) as Record<string, SitePreview>,
+    [state.data],
+  )
+  const p = selectedId ? previews[selectedId] : undefined
+  const siteError = selectedId ? state.dataErrors[selectedId] : undefined
 
   return (
     <div className="flex min-h-dvh flex-col lg:h-dvh">
       <header className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-5">
         <Brand />
-        <Segmented label="Modo" options={MODES} value={mode} onChange={setMode} />
+        <Segmented label="Modo" options={MODES} value={mode} onChange={actions.setMode} />
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
-          {p?.data.sources?.ephemeris === 'jpl-horizons' && (
-            <Badge>Sol y Tierra: JPL Horizons (NASA)</Badge>
-          )}
+          {p?.data.sources?.ephemeris === 'jpl-horizons' && <Badge>Sol y Tierra: JPL Horizons (NASA)</Badge>}
           {p?.data.sources?.terrain === 'synthetic' && <Badge tone="caution">Terreno de prueba</Badge>}
         </div>
       </header>
 
-      {error ? (
-        <EmptyState title="No hay datos para mostrar">{error}</EmptyState>
+      {state.listStatus === 'error' ? (
+        <LoadError title="No se pudo cargar la lista de sitios" onRetry={actions.reload}>
+          {state.listError}
+        </LoadError>
+      ) : siteError ? (
+        <LoadError title="No se pudieron cargar los datos de este sitio" onRetry={actions.reload}>
+          {siteError}
+        </LoadError>
       ) : !p || !sites ? (
         <Loading />
       ) : (
@@ -99,34 +88,25 @@ export default function App() {
           />
 
           <main className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-5 p-3 pt-5 sm:p-5 lg:min-h-0 lg:flex-1 lg:grid-cols-[16.5rem_minmax(0,1fr)_22rem] xl:grid-cols-[17.5rem_minmax(0,1fr)_24rem]">
-            <SiteList
-              sites={sites}
-              previews={previews}
-              selected={siteId}
-              onSelect={(id) => {
-                setSiteId(id)
-                setIndex(null)
-                setPlaying(false)
-              }}
-            />
+            <SiteList sites={sites} previews={previews} errors={state.dataErrors} selected={p.data.site.id} onSelect={actions.select} />
 
             <div className="flex min-h-0 min-w-0 flex-col gap-5">
               <Viewer p={p} />
               <Timeline
                 p={p}
                 index={i}
-                playing={playing}
-                speed={speed}
-                onIndex={(k) => setIndex(k)}
-                onPlaying={setPlaying}
-                onSpeed={setSpeed}
+                playing={state.playing}
+                speed={state.speed}
+                onIndex={actions.setIndex}
+                onTogglePlay={actions.togglePlay}
+                onSpeed={actions.setSpeed}
               />
             </div>
 
             <div className="flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5">
               {mode === 'explore' ? (
                 <>
-                  <Viability p={p} previews={previews} onSelect={setSiteId} />
+                  <Viability p={p} previews={previews} onSelect={actions.select} />
                   <Now p={p} index={i} />
                 </>
               ) : (
@@ -143,6 +123,21 @@ export default function App() {
           </main>
         </>
       )}
+    </div>
+  )
+}
+
+/** Error de carga: dice qué pasó y deja reintentar. */
+function LoadError({ title, children, onRetry }: { title: string; children: ReactNode; onRetry: () => void }) {
+  return (
+    <div className="flex flex-1 items-center justify-center p-6">
+      <div role="alert" className="max-w-lg border border-critical/40 p-6">
+        <p className="instrument-label text-critical">{title}</p>
+        <p className="mt-3 text-sm leading-relaxed text-ink-muted">{children}</p>
+        <Button className="mt-5" onClick={onRetry}>
+          Reintentar
+        </Button>
+      </div>
     </div>
   )
 }
@@ -189,11 +184,13 @@ function Loading() {
 function SiteList({
   sites,
   previews,
+  errors,
   selected,
   onSelect,
 }: {
   sites: Site[]
   previews: Record<string, SitePreview>
+  errors: Record<string, string>
   selected: string
   onSelect: (id: string) => void
 }) {
@@ -239,7 +236,15 @@ function SiteList({
                     >
                       <span className="flex w-full items-baseline justify-between gap-2">
                         <span className={cx('text-sm font-medium', active ? 'text-ink' : 'text-ink-muted')}>{s.name}</span>
-                        {pv && <span className="font-mono text-xs text-ink">{Math.round(pv.viability)}%</span>}
+                        {pv ? (
+                          <span className="font-mono text-xs text-ink">{Math.round(pv.viability)}%</span>
+                        ) : errors[s.id] ? (
+                          <span className="font-mono text-xs text-critical" title={errors[s.id]}>
+                            Error
+                          </span>
+                        ) : (
+                          <span className="font-mono text-xs text-ink-faint motion-safe:animate-pulse">…</span>
+                        )}
                       </span>
                       <span className="font-mono text-[0.625rem] text-ink-faint">
                         {formatLat(s.lat)} · {formatLon(s.lon)}
@@ -313,7 +318,7 @@ function Timeline({
   playing,
   speed,
   onIndex,
-  onPlaying,
+  onTogglePlay,
   onSpeed,
 }: {
   p: SitePreview
@@ -321,7 +326,7 @@ function Timeline({
   playing: boolean
   speed: Speed
   onIndex: (i: number) => void
-  onPlaying: (v: boolean) => void
+  onTogglePlay: () => void
   onSpeed: (v: Speed) => void
 }) {
   const n = p.data.sun.el.length
@@ -338,7 +343,7 @@ function Timeline({
           size="md"
           className="w-10 px-0"
           aria-label={playing ? 'Pausar' : 'Reproducir'}
-          onClick={() => onPlaying(!playing)}
+          onClick={onTogglePlay}
         >
           {playing ? <PauseIcon /> : <PlayIcon />}
         </Button>
@@ -349,7 +354,14 @@ function Timeline({
         <span className="font-mono text-xs text-ink-faint">
           Día {day} de {totalDays}
         </span>
-        <Segmented label="Velocidad" size="sm" className="sm:ml-auto" options={SPEEDS} value={speed} onChange={onSpeed} />
+        <Segmented
+          label="Velocidad"
+          size="sm"
+          className="sm:ml-auto"
+          options={SPEEDS}
+          value={String(speed) as SpeedKey}
+          onChange={(v) => onSpeed(Number(v) as Speed)}
+        />
       </div>
       <input
         type="range"

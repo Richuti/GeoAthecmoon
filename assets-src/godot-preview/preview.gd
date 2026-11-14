@@ -6,7 +6,7 @@ extends Node3D
 var panel: Node3D
 var antenna: Node3D
 var sun: DirectionalLight3D
-var sun_ball: MeshInstance3D
+var sun_ball: Node3D
 var cam: Camera3D
 var t := 0.0
 var yaw := 0.7
@@ -42,8 +42,8 @@ func _ready() -> void:
 	ground.material_override = gm
 	add_child(ground)
 
-	sun_ball = _ball(Color(1.0, 0.71, 0.28))
-	var earth_ball := _ball(Color(0.23, 0.51, 0.96))
+	sun_ball = _model("res://sun.glb", Color(1.0, 0.71, 0.28))
+	var earth_ball := _model("res://earth.glb", Color(0.23, 0.51, 0.96))
 	earth_ball.position = _dir(0.25, 12.0) * 12.0 + Vector3(0, 2, 0)
 
 	var lander: Node3D = load("res://lander.glb").instantiate()
@@ -51,6 +51,15 @@ func _ready() -> void:
 	panel = lander.find_child("SolarPanel", true, false)
 	antenna = lander.find_child("Antenna", true, false)
 	print("SolarPanel encontrado: ", panel != null, " | Antenna encontrada: ", antenna != null)
+
+## Carga un .glb (escalado 0.4); si no existe, usa una esfera de color.
+func _model(path: String, c: Color) -> Node3D:
+	if ResourceLoader.exists(path):
+		var n: Node3D = load(path).instantiate()
+		n.scale = Vector3.ONE * 0.4
+		add_child(n)
+		return n
+	return _ball(c)
 
 func _ball(c: Color) -> MeshInstance3D:
 	var m := MeshInstance3D.new()
