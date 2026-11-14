@@ -40,13 +40,15 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 - **Resultado (luz / comunicación):** Connecting Ridge 87/45, Shackleton 82/39, de Gerlache 69/61, Malapert 62/75, Mons Mouton 55/61, Nobile 36/38. La luz cambia por quincena (noche lunar en los sitios más alejados del polo).
 - **Commit:** `Tarea 3.1: script de datos de prueba`
 
-### 3.2 Sol y Tierra reales desde JPL Horizons · MVP · NASA
+### 3.2 Sol y Tierra reales desde JPL Horizons · MVP · NASA · [x]
 - **Archivos:** `scripts/fetch-horizons.mjs` y `public/data/horizons/{id}.json` (caché).
 - **Qué hace:** pide a la **API de JPL Horizons** (`https://ssd.jpl.nasa.gov/api/horizons.api`) el azimut y la elevación del Sol (`COMMAND='10'`) y de la Tierra (`'399'`) vistos desde cada sitio. Parámetros: `CENTER='coord@301'`, `COORD_TYPE='GEODETIC'`, `SITE_COORD='lon,lat,0'`, `QUANTITIES='4'`, `ANG_FORMAT='DEG'`, `CSV_FORMAT='YES'`, cada 1 h y 60 días desde 2027-01-01.
 - **Uso:** `generate-mock-data.mjs` usa la caché de Horizons si existe, y si no, el modelo simplificado. Así, aunque el terreno siga siendo sintético, **las posiciones del Sol y de la Tierra son reales**.
 - **Por qué en Node:** el navegador podría bloquear la API por CORS. El script se corre una vez y el resultado queda guardado en el repo.
 - **Coordinar con backend:** usar exactamente los mismos parámetros que el integrante de Python.
 - **Listo cuando:** en Shackleton, la elevación del Sol se mantiene en ±2°. En Malapert, la Tierra casi siempre está sobre el horizonte. Los dos JSON tienen 1440 valores.
+- **Resultado:** `npm run horizons` descarga los 12 pedidos (6 sitios × Sol y Tierra) y `npm run mock` los usa. Cada archivo indica `sources.ephemeris = "jpl-horizons"`. Con el Sol real, el relieve se recalibró: la luz queda en Connecting Ridge 82 %, Shackleton 73 %, de Gerlache 70 %, Malapert 56 %, Mons Mouton 47 % y Nobile 38 %. Los sitios del polo tienen horizontes un poco bajo 0°, como los bordes altos reales.
+- **Contrato:** se agregó el campo opcional `sources` (`src/types.ts` y `docs/CONTRATO_DATOS.md`).
 - **Commit:** `Tarea 3.2: posiciones reales de Sol y Tierra con JPL Horizons`
 
 ### 3.3 Verificar los sitios con Quickmap y NASA · MVP · NASA (manual, con el equipo)
@@ -54,6 +56,15 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 - Ver cada sitio también en **Moon Trek (trek.nasa.gov/moon)**: relieve 3D y cómo el terreno vecino tapa el horizonte. Anotar si los resultados del script tienen sentido (por ejemplo, si un sitio rodeado de montañas debería tener menos luz).
 - Ajustar los nombres, categorías y descripciones (regiones de Artemis III, IM-2 de CLPS) según lo que muestran Quickmap y Moon Trek.
 - **Commit:** `Tarea 3.3: coordenadas de sitios verificadas con Quickmap`
+
+### 3.4 Exportar el relieve para Blender · MVP
+- **Archivos:** `scripts/export-terrain.mjs` y `assets-src/terrain/{id}.obj` + `{id}.png` + `{id}.json`.
+- **Qué hace:** saca el relieve de cada sitio (el mismo `terrain.heightsM` con que se calculan la luz y el horizonte) en dos formatos:
+  - **OBJ**, para importarlo directo en Blender.
+  - **PNG de 16 bits**, como mapa de alturas para el modificador *Displace*.
+  - El JSON lleva la altura mínima y máxima en metros y el tamaño en km, para poner la escala exacta.
+- **Por qué:** Richard modela los terrenos encima de esta forma. Así las sombras del modelo coinciden con los % de luz que calcula la app.
+- **Commit:** `Tarea 3.4: exportar relieve de cada sitio para Blender`
 
 ---
 
@@ -152,25 +163,27 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 - Tooltips en cada métrica.
 - **Commit:** `Tarea 8.3: ayuda y glosario`
 
-### 9.1 Escena 3D base · MVP
+### 9. Vista 3D con los modelos de Richard
+
+> **Regla:** el código **no genera geometría**. Todo lo que se ve en 3D (terrenos, módulo, Sol, Tierra, cielo y marcadores) lo modela Richard y llega como `.glb`. El código solo carga los modelos, pone la cámara, mueve la luz del Sol según los datos y anima las piezas con nombre.
+
+### 9.1 Visor 3D · MVP
 - Instalar `three`, `@react-three/fiber` y `@react-three/drei`.
-- **Archivo:** `src/components/Terrain3D.tsx`, con un Canvas, un plano y OrbitControls.
+- **Archivo:** `src/components/Viewer3D.tsx`. Un Canvas que carga `public/models/terrain/{id}.glb` según el sitio elegido, con OrbitControls limitados (sin meterse bajo el suelo) y carga progresiva.
+- Mientras no exista el modelo, muestra un estado vacío bien diseñado ("Modelo 3D en preparación") en lugar de una figura generada.
 
-### 9.2 Malla del terreno · MVP
-- Geometría desde `terrain.heightsM`, donde 1 unidad = 1 km. La fila 0 es el norte (-Z) y la columna 0 el oeste (-X).
-- Colores por altura y un control de exageración vertical. Si no llega `terrain`, se dibuja un plano.
+### 9.2 Luz del Sol desde los datos · MVP
+- Una luz direccional en la dirección `(sin az·cos el, sin el, -cos az·cos el)`, con el norte en -Z y el este en +X. Cambia con el slider de tiempo.
+- Las sombras salen en tiempo real del propio modelo.
+- **Comprobar:** el sitio queda en sombra en 3D exactamente cuando `isLit` es falso.
 
-### 9.3 Luz del Sol y sombras · MVP
-- Luz direccional en la dirección `(sin az·cos el, sin el, -cos az·cos el)`, con sombras.
-- **Comprobar:** el sitio está en sombra en 3D exactamente cuando `isLit` es falso.
+### 9.3 Sol y Tierra en el cielo · MVP
+- Se cargan `sun.glb` y `earth.glb` y se colocan en el cielo según su azimut y elevación actuales, a una distancia fija de la cámara.
 
-### 9.4 Marcadores · MVP
-- Un pin en el sitio y marcadores del Sol y de la Tierra en el cielo.
-- Si ya está `public/models/lander.glb` (ver "Lo que Richard crea en 3D"), se pone el módulo en el sitio. Su panel gira hacia el Sol y su antena hacia la Tierra.
-- **Commit:** `Tarea 9: vista 3D del terreno con luz solar`
-
-### 9.5 Imagen real de la NASA sobre el terreno · Extra · NASA
-- Textura de un mosaico LRO (WAC o el relieve sombreado de LOLA) desde **Moon Trek (trek.nasa.gov/moon)**, si su servicio de mosaicos se puede usar desde el navegador. Si no, se exporta una imagen del recorte desde Moon Trek y se guarda en `public/`.
+### 9.4 Módulo de alunizaje · MVP
+- Se carga `lander.glb` en el centro del terreno (el sitio).
+- El código gira `SolarPanel` hacia el Sol y `Antenna` hacia la Tierra en cada instante.
+- **Commit de la tarea 9:** `Tarea 9: visor 3D con modelos, luz solar y módulo animado`
 
 ### 10. Comparador · Extra (MVP si hay tiempo)
 - Dos sitios lado a lado, con las mismas fechas, las mismas métricas y la viabilidad de cada uno.
@@ -201,32 +214,45 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 ## Lo que Richard crea en 3D
 
-Se hacen en Blender (o la herramienta que prefieras) y se exportan a **glTF binario (`.glb`)** en `frontend/public/models/`. La escena 3D ya funciona sin estos modelos; cuando los subes, se cargan solos.
+Todo el 3D lo modela Richard (en Blender o la herramienta que prefieras) y lo exporta a **glTF binario (`.glb`)** en `frontend/public/models/`. El código solo los carga.
+
+### Reglas para todos los modelos
+- **Ejes:** en Blender, Z hacia arriba y el **norte hacia +Y** (el este hacia +X). Al exportar con *+Y Up*, queda como la escena espera: Y arriba, norte en -Z y este en +X.
+- **Origen:** en el punto de apoyo (centro de la base o del terreno).
+- **Materiales:** PBR (Principled BSDF). Las texturas en potencias de 2 (1024 o 2048) y en JPG, salvo las que tienen transparencia.
+- **Sin luz horneada:** no hornear sombras ni luz del Sol en las texturas, porque el Sol se mueve con el slider y las sombras las calcula el código. La oclusión ambiental (AO) sí se puede hornear.
+- **Antes de exportar:** aplicar transformaciones (Ctrl+A → All Transforms) y borrar cámaras y luces de la escena.
+- **Exportar:** File → Export → glTF 2.0 → *glTF Binary (.glb)*, con *+Y Up*, *Apply Modifiers* y compresión *Draco* si pasa de 5 MB.
+
+### M0. Terrenos de los 6 sitios · MVP (para el paso 9.1)
+- **Archivos:** `public/models/terrain/{id}.glb`, uno por sitio: `shackleton-rim`, `connecting-ridge`, `de-gerlache-rim`, `mons-mouton`, `malapert-massif` y `nobile-rim`.
+- **Base obligatoria:** empezar desde `assets-src/terrain/{id}.obj` o desde el PNG del paso 3.4. **No cambies la forma grande** (montañas, cráteres, crestas), porque de ella salen el horizonte y los % de luz. Sí puedes sumar detalle fino: rocas, regolito, cráteres chicos de menos de 200 m, materiales y color.
+- **Escala:** 1 unidad = 1 km, tanto en lo ancho como en las alturas. El terreno mide 20 × 20 unidades, con el sitio en el centro exacto (0, 0). El OBJ del paso 3.4 ya viene así.
+- **Límites:** menos de 200 000 triángulos y menos de 8 MB por terreno.
+- **Nombres:** el objeto del suelo se llama `Ground`, porque recibe las sombras.
 
 ### M1. Módulo de alunizaje · MVP (para el paso 9.4)
 - **Archivo:** `public/models/lander.glb`.
-- **Diseño:** un módulo **genérico y propio**, que no copie ninguno real. Cuerpo, 3 o 4 patas, un panel solar y una antena parabólica. La silueta se tiene que reconocer de lejos, porque en la escena se ve chico.
-- **Escala:** 1 unidad de Blender = 1 metro. Unos 4 m de alto. En la escena (1 unidad = 1 km) se agranda como un símbolo.
-- **Ejes:** Y hacia arriba y el frente mirando a -Z (el norte). El origen va en el centro de la base, a la altura del suelo.
+- **Diseño:** un módulo **genérico y propio**, que no copie ninguno real. Cuerpo, 3 o 4 patas, un panel solar y una antena parabólica. La silueta se tiene que reconocer de lejos.
+- **Escala:** en metros (1 unidad = 1 m), unos 4 m de alto. El código lo agranda como símbolo en la escena de 1 unidad = 1 km.
 - **Partes con nombre exacto** (objetos separados, para que el código los mueva):
-  - `SolarPanel`: con el pivote en la bisagra. El código lo gira en el eje Y (azimut) y en X (inclinación) hacia el Sol.
-  - `Antenna`: con el pivote en la base del plato. El código la gira hacia la Tierra.
+  - `SolarPanel`: con el pivote en la bisagra. Se gira en Y (azimut) y en X (inclinación).
+  - `Antenna`: con el pivote en la base del plato.
   - `Body`: todo lo demás.
-- **Materiales:** PBR (Principled BSDF), máximo 3 materiales. Colores neutros (blanco, gris y dorado del aislante térmico), sin texturas grandes.
-- **Límites:** menos de 15 000 triángulos y menos de 1 MB. Aplica las transformaciones antes de exportar (Ctrl+A → All Transforms).
-- **Exportar:** File → Export → glTF 2.0, formato *glTF Binary*, con *+Y Up* activado.
+- **Límites:** menos de 15 000 triángulos, menos de 1 MB y máximo 3 materiales.
 
-### M2. Globo lunar para la portada · Extra · NASA
-- **Archivo:** `public/textures/moon_color.jpg` (2048×1024) y `moon_height.jpg`.
-- **Fuente:** el **CGI Moon Kit** de NASA SVS (buscar "CGI Moon Kit" en svs.gsfc.nasa.gov). Es un mapa de color del LRO (LROC) y de alturas (LOLA). Reducirlo a 2048 px y exportarlo en JPG de calidad 85.
-- **Uso:** una esfera que gira en la portada, con el polo sur resaltado y los 6 sitios marcados, que da paso a la vista del sitio.
+### M2. Sol · MVP (para el paso 9.3)
+- **Archivo:** `public/models/sun.glb`. Una esfera de 1 unidad de radio con material emisivo ámbar (`#ffb547` o parecido), sin textura obligatoria. El código le pone el brillo.
 
-### M3. Tierra en el cielo · Extra · NASA
-- **Archivo:** `public/textures/earth.jpg` (1024×512).
-- **Fuente:** **Blue Marble** de NASA Visible Earth (visibleearth.nasa.gov).
-- **Uso:** la textura del marcador de la Tierra en la vista 3D.
+### M3. Tierra · MVP (para el paso 9.3) · NASA
+- **Archivo:** `public/models/earth.glb`. Una esfera de 1 unidad de radio con textura **Blue Marble** de NASA Visible Earth (visibleearth.nasa.gov), en 2048×1024.
 
-> El terreno, el Sol, el cielo y las sombras los genera el código. No hace falta modelarlos.
+### M4. Globo lunar para la portada · Extra · NASA
+- **Archivo:** `public/models/moon.glb`. Una esfera con el color y el relieve del **CGI Moon Kit** de NASA SVS (svs.gsfc.nasa.gov), en 2048 px.
+- Va el polo sur hacia la cámara y un *empty* por sitio llamado `site-{id}` (por ejemplo `site-shackleton-rim`) en su posición, para que el código ponga ahí los marcadores interactivos.
+
+### Orden sugerido
+M0 (primero un solo terreno, por ejemplo Shackleton, para probar el flujo), luego M1, M2 y M3, y al final M4.
 
 ---
 

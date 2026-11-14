@@ -54,6 +54,14 @@ export interface Terrain {
   heightsM: number[]
 }
 
+/** De dónde salió cada parte de los datos. La app lo muestra en el panel de fuentes. */
+export interface DataSources {
+  /** Posiciones del Sol y la Tierra: 'jpl-horizons' (NASA/JPL) o 'model' (modelo simplificado) */
+  ephemeris: 'jpl-horizons' | 'model'
+  /** Terreno, horizonte y pendiente: 'lola' (DEM LOLA, Moon Trek) o 'synthetic' (de prueba) */
+  terrain: 'lola' | 'synthetic'
+}
+
 /** GET /sites/{id} */
 export interface SiteData {
   site: Site
@@ -67,6 +75,8 @@ export interface SiteData {
   earth: BodyTrack
   /** Opcional: si no viene, la vista 3D usa un plano */
   terrain?: Terrain
+  /** Opcional: origen de los datos. Si no viene, la app no muestra la fuente */
+  sources?: DataSources
   /** true cuando son datos de prueba */
   mock?: boolean
 }

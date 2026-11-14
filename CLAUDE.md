@@ -26,7 +26,7 @@ Con eso da un **porcentaje de viabilidad** y, si no conviene, **recomienda un si
 
 ## Stack del frontend
 - React 19 + Vite + TypeScript + Tailwind CSS v4 (plugin `@tailwindcss/vite`; `@import "tailwindcss"` en `src/index.css`).
-- 3D: **React Three Fiber** + drei + three (instalar en la tarea 9).
+- 3D: **React Three Fiber** + drei + three (instalar en la tarea 9), solo para **cargar** los `.glb` de Richard.
 - Sin librerías de gráficos: el gráfico polar y la barra de ventanas se hacen en **SVG**.
 - Estética: oscura (fondo `#05070d`), Sol en ámbar y Tierra en azul.
 
@@ -55,10 +55,10 @@ GeoAthectum/
 ## Tareas del frontend
 La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un paso a la vez**, en el orden de ese archivo, y se marca con `[x]` cuando Richard lo sube.
 
-- **Hecho:** 1 (base), 2 (contrato) y 3.1 (datos de prueba: `npm run mock`).
-- **Siguiente:** 3.2, Sol y Tierra reales desde JPL Horizons (`frontend/scripts/fetch-horizons.mjs`).
+- **Hecho:** 1 (base), 2 (contrato), 3.1 (datos de prueba: `npm run mock`) y 3.2 (Sol y Tierra reales: `npm run horizons`, luego `npm run mock`).
+- **Siguiente:** 3.4 (exportar el relieve para que Richard modele los terrenos), luego 3.3 (manual) y 4.1 (cliente de datos).
 - **Diseño:** el paso C0 (sistema de diseño) va antes de la primera pantalla. La calidad visual tiene que ser de primer nivel.
-- **Modelos 3D:** los hace Richard (sección "Lo que Richard crea en 3D" en `docs/TAREAS.md`). El código tiene que funcionar sin ellos y cargarlos cuando existan.
+- **3D: lo modela todo Richard** (`.glb` en `frontend/public/models/`, especificaciones en "Lo que Richard crea en 3D" de `docs/TAREAS.md`). **No generes geometría 3D en código**: nada de mallas procedurales, esferas ni marcadores hechos con primitivas. El código solo carga los modelos, controla la cámara, mueve la luz del Sol según los datos y anima las piezas con nombre (`SolarPanel`, `Antenna`). Si falta un modelo, se muestra un estado vacío bien diseñado.
 
 ## Recursos de NASA del reto (usarlos siempre que se pueda)
 **Regla:** cuando un dato pueda salir de un recurso de NASA, se usa ese recurso y se cita en la app (panel "Fuentes"). Lo sintético es solo de respaldo y se marca con `mock: true`.

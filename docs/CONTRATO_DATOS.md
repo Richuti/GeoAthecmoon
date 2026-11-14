@@ -61,16 +61,32 @@ Pueden ser archivos JSON estáticos o una API. El frontend usa las mismas rutas 
     "size": 96,
     "extentKm": 20,
     "heightsM": [1520, 1518, "... size × size valores ..."]
-  }
+  },
+  "sources": { "ephemeris": "jpl-horizons", "terrain": "lola" }
 }
 ```
 
 ### Campo por campo
 
 - **`start` y `stepHours`:** la muestra `i` corresponde a `start + i × stepHours`. Se sugiere 1 hora durante 60 días (1440 muestras).
-- **`sun` y `earth`:** `az` y `el` deben tener **la misma cantidad de valores**, una por muestra de tiempo. Salen de **JPL Horizons** con `COMMAND='10'` (Sol) y `'399'` (Tierra), `CENTER='coord@301'`, `SITE_COORD='lon,lat,alt_km'` y `QUANTITIES='4'`.
+- **`sun` y `earth`:** `az` y `el` deben tener **la misma cantidad de valores**, una por muestra de tiempo. Salen de **JPL Horizons** (`https://ssd.jpl.nasa.gov/api/horizons.api`) con estos parámetros, que son los mismos que usa `frontend/scripts/fetch-horizons.mjs`:
+
+  | Parámetro | Valor |
+  |---|---|
+  | `COMMAND` | `'10'` (Sol) o `'399'` (Tierra) |
+  | `EPHEM_TYPE` | `'OBSERVER'` |
+  | `CENTER` | `'coord@301'` (un punto sobre la Luna) |
+  | `COORD_TYPE` | `'GEODETIC'` |
+  | `SITE_COORD` | `'lon,lat,0'` (longitud este, latitud, altura en km) |
+  | `START_TIME` / `STOP_TIME` | `'2027-01-01 00:00'` / `'2027-03-01 23:00'` (1440 muestras) |
+  | `STEP_SIZE` | `'1 h'` |
+  | `QUANTITIES` | `'4'` (azimut y elevación aparentes, sin atmósfera) |
+  | `ANG_FORMAT` / `CSV_FORMAT` | `'DEG'` / `'YES'` |
+
+  La tabla viene entre `$$SOE` y `$$EOE`. Las columnas 4 y 5 son el azimut (desde el norte, en sentido horario) y la elevación.
 - **`horizon.elevationDeg`:** para cada azimut, el ángulo más alto que tapa el relieve visto desde el sitio. Se calcula con el DEM LOLA recorriendo rayos desde el punto. Se recomienda medir desde unos 2 m sobre el suelo, la altura de un panel o una antena. Con `azimuthStepDeg = 1` son 360 valores.
 - **`slope`:** pendiente del DEM en el punto (`atSiteDeg`) y la máxima en un radio de 100 m (`max100mDeg`). Como referencia, los módulos de alunizaje suelen pedir menos de 8–10°.
+- **`sources` (opcional):** de dónde sale cada dato. `ephemeris` es `"jpl-horizons"` o `"model"`, y `terrain` es `"lola"` o `"synthetic"`. El backend real debería mandar `{ "ephemeris": "jpl-horizons", "terrain": "lola" }`. La app lo usa en el panel de fuentes.
 - **`terrain` (opcional):** recorte del DEM centrado en el sitio, para la vista 3D. Fila 0 es el borde **norte** y columna 0 el borde **oeste**. Unos 96×96 puntos sobre 20 km es suficiente. Si no viene, el frontend dibuja un plano.
 
 ## Cómo lo usa el frontend
