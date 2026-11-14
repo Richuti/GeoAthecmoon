@@ -1,6 +1,3 @@
-// Layout final de GeoAthectum. El estado (sitios, sitio elegido, tiempo, reproducción) viene de src/state.
-// Los cálculos de luz, contacto y viabilidad todavía vienen de src/design/preview.ts, que es temporal:
-// la tarea 5 y S1 lo reemplazan sin cambiar este layout.
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
@@ -14,13 +11,13 @@ import {
   formatDuration,
   formatTime,
   sampleDate,
-  stepsUntilChange,
   type LanderPreview,
   type PresetId,
   type SitePreview,
 } from './design/preview'
 import { formatCoords, formatLat, formatLon } from './lib/format'
 import { CATEGORY_LABEL } from './lib/sites'
+import { nextChange } from './lib/visibility'
 import { useAppState, type Speed } from './state'
 
 const MODES = [
@@ -416,8 +413,8 @@ function Now({ p, index }: { p: SitePreview; index: number }) {
   const d = p.data
   const lit = p.lit[index]
   const contact = p.contact[index]
-  const toLight = stepsUntilChange(p.lit, index)
-  const toContact = stepsUntilChange(p.contact, index)
+  const toLight = nextChange(p.lit, index)
+  const toContact = nextChange(p.contact, index)
   const date = sampleDate(d, index)
   const maxSlope = d.slope.max100mDeg
 

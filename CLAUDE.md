@@ -82,7 +82,7 @@ La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un pas
 - **Hecho también:** C0 (sistema de diseño y layout final; `src/design/preview.ts` es temporal).
 - **Hecho:** 4.1 (cliente de datos `src/api.ts`, con caché y validación del contrato) y 4.2 (estado global en `src/state`, hook `useAppState()`).
 - **Hecho:** 4.3 (`SiteSelector`, con teclado, versión móvil plegable y enlace directo `?sitio=`).
-- **Hecho:** 5.1 (`src/lib/horizon.ts`). **Siguiente:** 5.2 (visibilidad: `isLit`, `hasContact`, porcentajes, ventanas y próximo cambio).
+- **Hecho:** 5.1 (`src/lib/horizon.ts`) y 5.2 (`src/lib/visibility.ts`). **Siguiente:** 5.3 (tiempo: índice ↔ fecha y formato de fechas y duraciones en español).
 - **Orden:** 3 → 4 → 5 → S1 → S2 → 6 → 8 → SU1 → SU2 → SU3 → 7 → 9 → S3 → 11. El C0 se cierra antes del 4. El 3.3 es manual y lo hace el equipo.
 - **Pendiente pequeño:** agregar `TIME_TYPE='UT'` a `fetch-horizons.mjs` y volver a descargar.
 - **Diseño:** el paso C0 (sistema de diseño) va antes de la primera pantalla. La calidad visual tiene que ser de primer nivel.

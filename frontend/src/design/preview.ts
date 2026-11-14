@@ -5,7 +5,7 @@
 //   - presets del módulo       → src/sim/lander.ts (S1)
 // No agregues lógica nueva aquí: va en esos pasos.
 
-import { clearanceDeg } from '../lib/horizon'
+import { visibility } from '../lib/visibility'
 import type { SiteData } from '../types'
 
 export interface SitePreview {
@@ -22,14 +22,10 @@ export interface SitePreview {
 export const WEIGHTS = { light: 0.45, contact: 0.35, slope: 0.2 }
 
 export function buildPreview(data: SiteData): SitePreview {
-  // Ya usa el horizonte interpolado de src/lib/horizon.ts (5.1). isLit/hasContact llegan en 5.2.
-  const lit = data.sun.el.map((el, i) => clearanceDeg(data.horizon, data.sun.az[i], el) > 0)
-  const contact = data.earth.el.map((el, i) => clearanceDeg(data.horizon, data.earth.az[i], el) > 0)
-  const pct = (flags: boolean[]) => (100 * flags.filter(Boolean).length) / flags.length
+  // Luz y contacto ya salen de src/lib/visibility.ts (5.2). La viabilidad pasa a src/lib en 5.4.
+  const { lit, contact, lightPct, contactPct } = visibility(data)
   const s = data.slope.max100mDeg
   const slopeScore = s <= 5 ? 100 : s >= 10 ? 0 : (100 * (10 - s)) / 5
-  const lightPct = pct(lit)
-  const contactPct = pct(contact)
   return {
     data,
     lit,
@@ -39,12 +35,6 @@ export function buildPreview(data: SiteData): SitePreview {
     slopeScore,
     viability: WEIGHTS.light * lightPct + WEIGHTS.contact * contactPct + WEIGHTS.slope * slopeScore,
   }
-}
-
-/** Muestras hasta que la bandera cambia, o null si no cambia en lo que queda del periodo. */
-export function stepsUntilChange(flags: boolean[], i: number): number | null {
-  for (let k = i + 1; k < flags.length; k++) if (flags[k] !== flags[i]) return k - i
-  return null
 }
 
 // ---------------------------------------------------------------------------

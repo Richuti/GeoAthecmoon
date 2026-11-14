@@ -1,4 +1,5 @@
 import type { MouseEvent } from 'react'
+import { windows, type TimeWindow } from '../lib/visibility'
 import { cx } from './ui'
 
 interface WindowsBarProps {
@@ -12,21 +13,6 @@ interface WindowsBarProps {
   stepHours: number
   /** Al hacer clic en la barra se salta a esa muestra */
   onSeek?: (index: number) => void
-}
-
-/** Convierte banderas en rangos continuos [inicio, fin). */
-function runs(flags: boolean[]): Array<[number, number]> {
-  const out: Array<[number, number]> = []
-  let from = -1
-  flags.forEach((f, i) => {
-    if (f && from < 0) from = i
-    if (!f && from >= 0) {
-      out.push([from, i])
-      from = -1
-    }
-  })
-  if (from >= 0) out.push([from, flags.length])
-  return out
 }
 
 const dayLabel = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', timeZone: 'UTC' })
@@ -47,9 +33,9 @@ export function WindowsBar({ lit, contact, index, start, stepHours, onSeek }: Wi
   return (
     <div className="grid grid-cols-[4.5rem_1fr] items-center gap-x-3 gap-y-1.5">
       <Row label="Luz" />
-      <Track runs={runs(lit)} n={n} className="fill-sun" index={index} onClick={seek} />
+      <Track runs={windows(lit)} n={n} className="fill-sun" index={index} onClick={seek} />
       <Row label="Contacto" />
-      <Track runs={runs(contact)} n={n} className="fill-earth" index={index} onClick={seek} />
+      <Track runs={windows(contact)} n={n} className="fill-earth" index={index} onClick={seek} />
       <span />
       <div className="relative h-4">
         {weeks.map((i) => (
@@ -77,7 +63,7 @@ function Track({
   index,
   onClick,
 }: {
-  runs: Array<[number, number]>
+  runs: TimeWindow[]
   n: number
   className: string
   index: number
@@ -86,8 +72,8 @@ function Track({
   return (
     <div className="relative h-3 cursor-pointer overflow-hidden bg-hull-raised" onClick={onClick} aria-hidden>
       <svg className="absolute inset-0 size-full" viewBox={`0 0 ${n} 1`} preserveAspectRatio="none">
-        {segments.map(([a, b]) => (
-          <rect key={a} x={a} y={0} width={b - a} height={1} className={cx(className, 'opacity-85')} />
+        {segments.map((s) => (
+          <rect key={s.start} x={s.start} y={0} width={s.end - s.start} height={1} className={cx(className, 'opacity-85')} />
         ))}
       </svg>
       <span className="absolute inset-y-0 w-px bg-ink" style={{ left: `${(index / (n - 1)) * 100}%` }} />

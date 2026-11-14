@@ -137,12 +137,16 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - `src/design/preview.ts` ya usa el horizonte interpolado.
 - **Commit:** `Tarea 5.1: horizonte interpolado y pruebas con node --test`
 
-### 5.2 Visibilidad · MVP
+### 5.2 Visibilidad · MVP · [x]
 - **Archivo:** `src/lib/visibility.ts`.
-- `isLit(data, i)` y `hasContact(data, i)`.
-- `percent(data, from, to)` para el Sol y para la Tierra.
-- `windows()`, que devuelve rangos continuos `{ start, end }`.
-- `nextChange(i)`, el tiempo hasta que el Sol o la Tierra se ocultan o vuelven a salir.
+- **De un instante:** `isLit(data, i)` y `hasContact(data, i)`, con el horizonte interpolado.
+- **Del periodo:** `litSeries`, `contactSeries` y `visibility(data)`, que calcula todo una vez.
+- **Porcentajes:** `percent(flags, from, to)`, del periodo completo o de un rango.
+- **Ventanas:** `windows(flags)` devuelve tramos `{ start, end, openStart, openEnd }`. `openStart` y `openEnd` dicen si el tramo ya venía antes del periodo o sigue después, para no decir "dura 3 h" cuando en realidad no se sabe.
+- **Tramo y cambio:** `windowAt(flags, i)` da el tramo de luz o de sombra que contiene la muestra; `nextChange(flags, i)` da las muestras hasta el próximo cambio, o `null`.
+- **Probado:** `tests/visibility.test.ts`, 28 casos. Incluye el borde exacto (elevación = horizonte no cuenta como luz) y comprueba con los 6 sitios que las ventanas suman lo mismo que el porcentaje.
+- La app ya los usa: `preview.ts`, el panel "Ahora" y la barra de ventanas (`WindowsBar`).
+- **Commit:** `Tarea 5.2: visibilidad, ventanas y próximo cambio`
 
 ### 5.3 Tiempo · MVP
 - **Archivo:** `src/lib/time.ts`. Convierte de índice a fecha y de fecha a índice, y formatea en español: fechas en UTC y duraciones como "3 d 4 h".
