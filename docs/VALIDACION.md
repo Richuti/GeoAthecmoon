@@ -52,4 +52,6 @@ Nobile         |               |                  |                |            
 
 **Para el pitch:** "En 4 puntos, nuestro DEM coincide con el de 5 m de QuickMap con una diferencia de entre 4 y 77 m." No se usan las capturas de Malapert y Nobile: su cursor quedó fuera de la cobertura de la capa `SP LOLA DEM 5M 87S`, que solo llega a 87° S.
 
+**Marcadores:** de Gerlache ✅. El punto azul de Dilan cae a 1 km o menos de donde debe estar nuestro sitio, sobre la cresta (rojo = alto). En las otras 5 capturas no aparece ningún punto.
+
 **Lo que falta (Dilan):** en cada sitio, poner un **marcador** en la coordenada exacta, con el zoom a unos 2 km, y anotar la altura que da QuickMap **en el marcador**. Para Mons Mouton, Malapert y Nobile hay que usar una capa de LOLA que llegue más allá de 87° S. Nuestras alturas para comparar son: Shackleton 1670 m, Connecting Ridge 1957 m, de Gerlache 1812 m, Mons Mouton 5354 m, Malapert 5172 m y Nobile 6036 m.
