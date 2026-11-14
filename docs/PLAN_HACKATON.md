@@ -21,7 +21,8 @@
 | Confirmar en QuickMap las 6 coordenadas (`backend/sites_verified.json`) con marcador visible | Dilan y Joshua | ⏳ | sáb 16:00 |
 | Decidir con Richard si el repo será público para el jurado | Rafael y Richard | ⏳ | sáb 18:00 |
 | Entregar el terreno real a Richard para Blender | Rafael → Richard | ⏳ | sáb 14:00 |
-| C0, 4, 5, S1, S2 (diseño, datos, cálculos, simulador) | Richard | ⏳ | sáb noche |
+| C0, 4, 5, S1, S2 (diseño, datos, cálculos, simulador) | Richard | ✅ en la rama `frontend` (sáb 13:11); S2 verificado contra `CASO_DEMO.md` con datos reales | sáb noche |
+| Integrar en `main`: PR #1 (`backend`) y la rama `frontend` (sin conflictos entre sí, probado con `git merge-tree`) | Richard | ⏳ | sáb 16:00 |
 | 3.3 Verificar coordenadas en Quickmap (`docs/VERIFICACION_SITIOS.md`) | Dilan y Joshua | ⏳ | sáb 15:00 |
 | B4 Validación con Quickmap y Moon Trek (`docs/VALIDACION.md`; nuestros valores en `docs/validacion/`) | Rafael, Joshua y Dilan | ⏳ | sáb 18:00 |
 | Fuentes publicadas de iluminación de los 6 sitios (artículos o páginas de NASA con su enlace) para la diapositiva de validación | Joshua | ⏳ | sáb 20:00 |

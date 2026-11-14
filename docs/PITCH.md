@@ -16,7 +16,7 @@ Todos los números salen de `docs/CASO_DEMO.md`. Si la app muestra otros número
 1. **Elegir el sitio:** "Elegimos el Macizo Malapert, una montaña de cara a la Tierra. Aquí está su relieve real en 3D."
 2. **Plan original, 15 de enero, Explorador ligero:** "Viabilidad del 95 %. Sol el 100 % del tiempo, la Tierra visible el 85 %. Simulamos los 14 días hora por hora: la batería nunca baja."
 3. **El retraso, mover la fecha al 20 de enero:** "Ahora el lanzamiento se atrasa cinco días. Volvemos a simular… El 1 de febrero el Sol se esconde detrás del relieve. La batería entra en modo supervivencia y falla el 2 de febrero, a 17 horas de terminar la misión. La viabilidad cae al 40 %."
-4. **La recomendación:** "La app no solo dice que falla, también propone salidas: ir a Connecting Ridge, que tiene sol todo el tiempo pero ve la Tierra solo el 28 %, o esperar a Malapert hasta el 11 de febrero. Es el compromiso real entre energía y comunicación."
+4. **La recomendación:** "La app no solo dice que falla, también propone salidas: ir a Connecting Ridge, que tiene sol todo el tiempo pero ve la Tierra solo el 28 %, o esperar a Malapert hasta el 12 de febrero. Es el compromiso real entre energía y comunicación."
 
 ### 2:05–2:30 · Ciencia y datos (diapositiva 3: logos de NASA y capturas de Quickmap)
 > "Nada de esto es inventado. Las posiciones del Sol y la Tierra vienen de JPL Horizons, hora por hora. El relieve viene del altímetro LOLA del Lunar Reconnaissance Orbiter: calculamos el horizonte en 360 direcciones, hasta 150 kilómetros y con la curvatura de la Luna. Validamos alturas, pendientes e iluminación contra Quickmap. ¿Qué no modelamos? La temperatura, el polvo y los satélites de relevo. Ese es nuestro siguiente paso."
