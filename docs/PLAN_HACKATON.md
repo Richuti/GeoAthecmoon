@@ -27,7 +27,7 @@
 | Integrar en `main` la rama `frontend` (dueña de `public/data` desde que existe `build_terrains.py`) y del PR #1 solo `backend/` y `docs/`. Hoy chocan los 7 JSON de `public/data` y `horizon.test.ts`: en el conflicto gana la versión de `frontend` **regenerada con las coordenadas nuevas** | Richard | ⏳ | sáb 18:00 |
 | 3.3 Verificar coordenadas en Quickmap (`docs/VERIFICACION_SITIOS.md`) | Dilan y Joshua | ⏳ | sáb 15:00 |
 | B4 Validación con Quickmap y Moon Trek (`docs/VALIDACION.md`; nuestros valores en `docs/validacion/`) | Rafael, Joshua y Dilan | ⏳ | sáb 18:00 |
-| Fuentes publicadas de iluminación de los 6 sitios (artículos o páginas de NASA con su enlace) para la diapositiva de validación | Joshua | ⏳ | sáb 20:00 |
+| Fuentes publicadas de iluminación de los 6 sitios (artículos o páginas de NASA con su enlace) para la diapositiva de validación | Joshua | ✅ (`docs/validacion/informe_iluminacion_joshua.pdf`; comparación en `VALIDACION.md`) | sáb 20:00 |
 | Explicar en 30 s el panorama del horizonte (`docs/validacion/malapert-massif_horizonte.png`) y el caso de la demo (`docs/CASO_DEMO.md`) | Joshua | ⏳ | sáb 21:00 |
 | Storyboard del video de respaldo de 60 s con los clics de `docs/CASO_DEMO.md` | Odelmy | ⏳ | sáb 20:00 |
 | Esqueleto de las diapositivas (problema, demo, validación, limitaciones, equipo) | Odelmy | ⏳ | sáb 22:00 |
