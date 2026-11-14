@@ -3,6 +3,7 @@
 // la tarea 5 y S1 lo reemplazan sin cambiar este layout.
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
+import { SiteSelector } from './components/SiteSelector'
 import { WindowsBar } from './components/WindowsBar'
 import { Badge, Button, EmptyState, InfoTip, Panel, Segmented, Slider, Stat, StatGrid, cx, type Tone } from './components/ui'
 import {
@@ -11,8 +12,6 @@ import {
   buildPreview,
   formatDate,
   formatDuration,
-  formatLat,
-  formatLon,
   formatTime,
   sampleDate,
   stepsUntilChange,
@@ -20,8 +19,9 @@ import {
   type PresetId,
   type SitePreview,
 } from './design/preview'
+import { formatCoords, formatLat, formatLon } from './lib/format'
+import { CATEGORY_LABEL } from './lib/sites'
 import { useAppState, type Speed } from './state'
-import type { Site, SiteCategory } from './types'
 
 const MODES = [
   { value: 'explore', label: 'Explorar sitio' },
@@ -34,14 +34,6 @@ const SPEEDS = [
   { value: '6', label: '6 h/s' },
   { value: '24', label: '1 d/s' },
 ] as const
-
-const CATEGORY_LABEL: Record<SiteCategory, string> = {
-  artemis: 'Artemis',
-  clps: 'CLPS',
-  apollo: 'Apolo',
-  international: 'Internacional',
-  custom: 'Personalizados',
-}
 
 export default function App() {
   const { state, actions } = useAppState()
@@ -88,9 +80,15 @@ export default function App() {
           />
 
           <main className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-5 p-3 pt-5 sm:p-5 lg:min-h-0 lg:flex-1 lg:grid-cols-[16.5rem_minmax(0,1fr)_22rem] xl:grid-cols-[17.5rem_minmax(0,1fr)_24rem]">
-            <SiteList sites={sites} previews={previews} errors={state.dataErrors} selected={p.data.site.id} onSelect={actions.select} />
+            <SiteSelector
+              sites={sites}
+              selectedId={p.data.site.id}
+              summaries={previews}
+              errors={state.dataErrors}
+              onSelect={actions.select}
+            />
 
-            <div className="flex min-h-0 min-w-0 flex-col gap-5">
+            <div className="flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5">
               <Viewer p={p} />
               <Timeline
                 p={p}
@@ -178,104 +176,6 @@ function Loading() {
 }
 
 // ---------------------------------------------------------------------------
-// Sitios
-// ---------------------------------------------------------------------------
-
-function SiteList({
-  sites,
-  previews,
-  errors,
-  selected,
-  onSelect,
-}: {
-  sites: Site[]
-  previews: Record<string, SitePreview>
-  errors: Record<string, string>
-  selected: string
-  onSelect: (id: string) => void
-}) {
-  const groups: Array<[SiteCategory, Site[]]> = []
-  for (const s of sites) {
-    const g = groups.find(([c]) => c === s.category)
-    if (g) g[1].push(s)
-    else groups.push([s.category, [s]])
-  }
-
-  return (
-    <Panel
-      label={`Sitios · ${sites.length}`}
-      className="max-lg:max-h-80"
-      bodyClassName="overflow-y-auto p-2"
-      actions={
-        <InfoTip label="Viabilidad de cada sitio" align="end">
-          El número es la viabilidad de todo el periodo. Las barras muestran el % del tiempo con luz (ámbar) y con contacto
-          con la Tierra (azul).
-        </InfoTip>
-      }
-    >
-      <nav aria-label="Sitios de alunizaje" className="flex flex-col gap-3">
-        {groups.map(([category, list]) => (
-          <div key={category}>
-            <h3 className="instrument-label px-3 pb-1 pt-1">
-              {CATEGORY_LABEL[category]}
-            </h3>
-            <ul className="flex flex-col gap-0.5">
-              {list.map((s) => {
-                const pv = previews[s.id]
-                const active = s.id === selected
-                return (
-                  <li key={s.id}>
-                    <button
-                      type="button"
-                      aria-current={active ? 'true' : undefined}
-                      onClick={() => onSelect(s.id)}
-                      className={cx(
-                        'flex w-full flex-col gap-1 px-3 py-2.5 text-left transition-colors duration-150',
-                        active ? 'bg-hull-raised shadow-[inset_2px_0_0_var(--color-ink)]' : 'hover:bg-hull-raised/60',
-                      )}
-                    >
-                      <span className="flex w-full items-baseline justify-between gap-2">
-                        <span className={cx('text-sm font-medium', active ? 'text-ink' : 'text-ink-muted')}>{s.name}</span>
-                        {pv ? (
-                          <span className="font-mono text-xs text-ink">{Math.round(pv.viability)}%</span>
-                        ) : errors[s.id] ? (
-                          <span className="font-mono text-xs text-critical" title={errors[s.id]}>
-                            Error
-                          </span>
-                        ) : (
-                          <span className="font-mono text-xs text-ink-faint motion-safe:animate-pulse">…</span>
-                        )}
-                      </span>
-                      <span className="font-mono text-[0.625rem] text-ink-faint">
-                        {formatLat(s.lat)} · {formatLon(s.lon)}
-                      </span>
-                      {pv && (
-                        <span className="mt-0.5 grid grid-cols-2 gap-1.5" aria-hidden>
-                          <MiniBar pct={pv.lightPct} className="bg-sun" />
-                          <MiniBar pct={pv.contactPct} className="bg-earth" />
-                        </span>
-                      )}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        ))}
-      </nav>
-    </Panel>
-  )
-}
-
-function MiniBar({ pct, className }: { pct: number; className: string }) {
-  return (
-    <span className="block h-0.5 overflow-hidden bg-seam">
-      <span className={cx('block h-full opacity-80', className)} style={{ width: `${pct}%` }} />
-    </span>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // Vista 3D (los modelos los crea Richard; aquí solo el marco y el estado vacío)
 // ---------------------------------------------------------------------------
 
@@ -284,17 +184,15 @@ function Viewer({ p }: { p: SitePreview }) {
   return (
     <Panel
       label={`Terreno 3D · ${p.data.terrain?.extentKm ?? 20} × ${p.data.terrain?.extentKm ?? 20} km`}
-      className="min-h-[19rem] flex-1 lg:min-h-[17rem]"
+      className="min-h-[19rem] flex-1 lg:min-h-fit"
       bodyClassName="flex flex-col justify-between p-0"
     >
       <div className="p-5 sm:p-6">
         <Badge>{CATEGORY_LABEL[s.category]}</Badge>
-        <h1 className="mt-3 max-w-2xl font-display text-5xl font-extrabold uppercase leading-[0.9] tracking-[0.01em] sm:text-6xl">
+        <h1 className="mt-3 max-w-2xl font-display text-5xl font-extrabold uppercase leading-[0.9] tracking-[0.01em] sm:text-6xl lg:text-5xl xl:text-6xl">
           {s.name}
         </h1>
-        <p className="mt-2 font-mono text-xs text-ink-muted">
-          {formatLat(s.lat)} · {formatLon(s.lon)}
-        </p>
+        <p className="mt-2 font-mono text-xs text-ink-muted">{formatCoords(s)}</p>
         {s.description && <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-muted">{s.description}</p>}
       </div>
       <div className="flex items-start gap-3 border-t border-dashed border-seam px-5 py-4 sm:px-6">

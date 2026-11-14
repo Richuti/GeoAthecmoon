@@ -106,10 +106,23 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - `src/design/preview.ts` ya no carga ni guarda estado: solo calcula y da formato (lo reemplazan la tarea 5 y S1).
 - **Commit:** `Tarea 4.2: estado de sitio y tiempo`
 
-### 4.3 Selector de sitios · MVP
-- **Archivo:** `src/components/SiteSelector.tsx`.
-- Lista agrupada por categoría (Artemis, CLPS…), con el nombre y las coordenadas legibles (`89.67° S, 197.0° E`).
-- Muestra cuál sitio está elegido, y estados de "cargando" y de error.
+### 4.3 Selector de sitios · MVP · [x]
+- **Archivos:**
+  - `src/components/SiteSelector.tsx`.
+  - `src/lib/format.ts`: coordenadas.
+  - `src/lib/sites.ts`: categorías, su explicación y la agrupación.
+- **Lista:** agrupada por categoría, con un "?" que explica qué es Artemis y qué es CLPS en lenguaje simple.
+- **Cada sitio:** nombre, coordenadas (`89.67° S · 197.0° E`), viabilidad y barras de luz y contacto. También tiene texto para lectores de pantalla y los estados "cargando" y "Error".
+- **Teclado:** ↑ ↓ Inicio Fin recorren la lista, cruzando categorías, y Enter elige.
+- **Móvil:** la lista se pliega y muestra solo el sitio elegido, con el botón "Cambiar sitio (6)". Al elegir uno, se vuelve a plegar.
+- **Enlace directo:** `?sitio=nobile-rim` abre ese sitio, y la URL sigue al sitio elegido (con `replaceState`, sin llenar el historial). Si el id no existe, abre Shackleton.
+- **Mejoras generales hechas en este paso:**
+  - `InfoTip` usa posición fija: no lo recortan los paneles con scroll y se abre hacia arriba si no hay lugar.
+  - Las barras de scroll son finas.
+  - En pantallas bajas, la columna central se puede desplazar.
+- **Probado:**
+  - 23 casos del reductor.
+  - 21 pruebas en el navegador real (Edge por CDP): URL, teclado, móvil a 390 px sin desborde, y laptop de 1366×768 sin superposiciones y con las explicaciones enteras.
 - **Commit:** `Tarea 4.3: selector de sitios por categoría`
 
 ### 5.1 Horizonte interpolado · MVP

@@ -76,14 +76,6 @@ export function formatDuration(hours: number): string {
   return h === 0 ? `${d} d` : `${d} d ${h} h`
 }
 
-export function formatLat(lat: number): string {
-  return `${Math.abs(lat).toFixed(2)}° ${lat < 0 ? 'S' : 'N'}`
-}
-
-export function formatLon(lon: number): string {
-  return `${lon.toFixed(1)}° E`
-}
-
 // ---------------------------------------------------------------------------
 // Presets ilustrativos del módulo (se mueven a src/sim/lander.ts en S1)
 // ---------------------------------------------------------------------------

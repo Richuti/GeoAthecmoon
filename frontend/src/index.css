@@ -71,6 +71,12 @@
     outline-offset: 2px;
   }
 
+  /* Barras de desplazamiento finas, del color de los marcos */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-seam-strong) transparent;
+  }
+
   ::selection {
     background: color-mix(in oklab, var(--color-earth) 35%, transparent);
   }

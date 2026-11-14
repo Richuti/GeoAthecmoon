@@ -75,7 +75,8 @@ La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un pas
 - **Hecho:** 1 (base), 2 (contrato), 3.1 (datos de prueba: `npm run mock`), 3.2 (Sol y Tierra reales: `npm run horizons`, luego `npm run mock`) y 3.4 (relieve para Blender: `npm run export-terrain`).
 - **Hecho también:** C0 (sistema de diseño y layout final; `src/design/preview.ts` es temporal).
 - **Hecho:** 4.1 (cliente de datos `src/api.ts`, con caché y validación del contrato) y 4.2 (estado global en `src/state`, hook `useAppState()`).
-- **Siguiente:** 4.3 (selector de sitios). La lista ya existe en `App.tsx` desde el C0; el 4.3 la pasa a su propio componente y la completa.
+- **Hecho:** 4.3 (`SiteSelector`, con teclado, versión móvil plegable y enlace directo `?sitio=`).
+- **Siguiente:** tarea 5 (cálculos en `src/lib/`), empezando por 5.1 (horizonte interpolado).
 - **Orden:** 3 → 4 → 5 → S1 → S2 → 6 → 8 → SU1 → SU2 → SU3 → 7 → 9 → S3 → 11. El C0 se cierra antes del 4. El 3.3 es manual y lo hace el equipo.
 - **Pendiente pequeño:** agregar `TIME_TYPE='UT'` a `fetch-horizons.mjs` y volver a descargar.
 - **Diseño:** el paso C0 (sistema de diseño) va antes de la primera pantalla. La calidad visual tiene que ser de primer nivel.

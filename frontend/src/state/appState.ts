@@ -45,7 +45,7 @@ export const initialState: AppState = {
 
 export type Action =
   | { type: 'list/loading' }
-  | { type: 'list/loaded'; sites: Site[] }
+  | { type: 'list/loaded'; sites: Site[]; preferredId?: string | null }
   | { type: 'list/failed'; error: string }
   | { type: 'site/loaded'; data: SiteData }
   | { type: 'site/failed'; id: string; error: string }
@@ -81,8 +81,9 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case 'list/loaded': {
       const ids = action.sites.map((s) => s.id)
-      const keep = state.selectedId && ids.includes(state.selectedId) ? state.selectedId : null
-      const selectedId = keep ?? (ids.includes(DEFAULT_SITE_ID) ? DEFAULT_SITE_ID : (ids[0] ?? null))
+      // Prioridad: el sitio ya elegido, el pedido en la URL (?sitio=), el de por defecto y el primero.
+      const candidates = [state.selectedId, action.preferredId, DEFAULT_SITE_ID, ids[0]]
+      const selectedId = candidates.find((id): id is string => !!id && ids.includes(id)) ?? null
       return { ...state, sites: action.sites, listStatus: 'ready', listError: null, selectedId }
     }
 
