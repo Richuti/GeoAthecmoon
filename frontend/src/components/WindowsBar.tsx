@@ -1,4 +1,5 @@
 import type { MouseEvent } from 'react'
+import { formatShortDate, sampleTime } from '../lib/time'
 import { windows, type TimeWindow } from '../lib/visibility'
 import { cx } from './ui'
 
@@ -15,12 +16,9 @@ interface WindowsBarProps {
   onSeek?: (index: number) => void
 }
 
-const dayLabel = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', timeZone: 'UTC' })
-
 /** Franjas de luz (ámbar) y contacto (azul) a lo largo del periodo, con el instante actual. */
 export function WindowsBar({ lit, contact, index, start, stepHours, onSeek }: WindowsBarProps) {
   const n = lit.length
-  const startMs = Date.parse(start)
   const samplesPerWeek = (7 * 24) / stepHours
   const weeks = Array.from({ length: Math.floor((n - 1) / samplesPerWeek) + 1 }, (_, k) => k * samplesPerWeek)
 
@@ -44,7 +42,7 @@ export function WindowsBar({ lit, contact, index, start, stepHours, onSeek }: Wi
             className="absolute top-0.5 -translate-x-1/2 whitespace-nowrap font-mono text-[0.625rem] text-ink-faint first:translate-x-0 max-sm:odd:hidden"
             style={{ left: `${(i / (n - 1)) * 100}%` }}
           >
-            {dayLabel.format(new Date(startMs + i * stepHours * 3600_000))}
+            {formatShortDate(sampleTime({ start, stepHours }, i))}
           </span>
         ))}
       </div>

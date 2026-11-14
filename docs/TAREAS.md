@@ -148,8 +148,17 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - La app ya los usa: `preview.ts`, el panel "Ahora" y la barra de ventanas (`WindowsBar`).
 - **Commit:** `Tarea 5.2: visibilidad, ventanas y próximo cambio`
 
-### 5.3 Tiempo · MVP
-- **Archivo:** `src/lib/time.ts`. Convierte de índice a fecha y de fecha a índice, y formatea en español: fechas en UTC y duraciones como "3 d 4 h".
+### 5.3 Tiempo · MVP · [x]
+- **Archivo:** `src/lib/time.ts`. Todo es UTC, y los meses están escritos a mano (`ene`, `feb`…) para que el texto salga igual en todos los navegadores.
+- **Muestra ↔ fecha:** `sampleTime`, `indexAt` (la muestra más cercana, recortada al periodo), `hoursBetween`, `samplesFor`, `dayNumber` (día del periodo o de la misión) y `totalDays`.
+- **Formato:**
+  - `formatDate` ("11 ene 2027"), `formatShortDate` ("8 ene"), `formatTime` ("13:00") y `formatDateTime` ("11 ene 2027, 13:00 UTC").
+  - `formatDuration` ("45 min", "3 d 4 h") y `formatDurationLong` ("3 días y 4 horas", para frases y lectores de pantalla).
+  - `formatMissionClock` ("Día 4, 13:00 UTC", para los eventos del simulador).
+- **Inputs de fecha:** `toInputValue` y `fromInputValue`, para `<input type="datetime-local">` interpretado como UTC (servirán en 6.1 y SU1).
+- **Probado:** `tests/time.test.ts`, 36 casos (85 en total). Pasan igual en Ciudad de México y en Tokio, así que no dependen de la zona horaria.
+- La app ya lo usa: la línea de tiempo, el panel "Ahora", la barra de ventanas y el alunizaje en el simulador. `preview.ts` ya no tiene formato.
+- **Commit:** `Tarea 5.3: tiempo y formato de fechas y duraciones`
 
 ### 5.4 Viabilidad · MVP
 - **Archivo:** `src/lib/viability.ts`.

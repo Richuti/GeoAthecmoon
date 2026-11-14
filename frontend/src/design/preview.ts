@@ -38,32 +38,6 @@ export function buildPreview(data: SiteData): SitePreview {
 }
 
 // ---------------------------------------------------------------------------
-// Formato
-// ---------------------------------------------------------------------------
-
-const dateFmt = new Intl.DateTimeFormat('es', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })
-const timeFmt = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' })
-
-export function sampleDate(data: SiteData, i: number): Date {
-  return new Date(Date.parse(data.start) + i * data.stepHours * 3600_000)
-}
-
-export function formatDate(d: Date): string {
-  return dateFmt.format(d).replace('.', '')
-}
-
-export function formatTime(d: Date): string {
-  return timeFmt.format(d)
-}
-
-export function formatDuration(hours: number): string {
-  const d = Math.floor(hours / 24)
-  const h = Math.round(hours % 24)
-  if (d === 0) return `${h} h`
-  return h === 0 ? `${d} d` : `${d} d ${h} h`
-}
-
-// ---------------------------------------------------------------------------
 // Presets ilustrativos del módulo (se mueven a src/sim/lander.ts en S1)
 // ---------------------------------------------------------------------------
 

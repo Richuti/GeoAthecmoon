@@ -7,16 +7,13 @@ import {
   PRESETS,
   WEIGHTS,
   buildPreview,
-  formatDate,
-  formatDuration,
-  formatTime,
-  sampleDate,
   type LanderPreview,
   type PresetId,
   type SitePreview,
 } from './design/preview'
 import { formatCoords, formatLat, formatLon } from './lib/format'
 import { CATEGORY_LABEL } from './lib/sites'
+import { dayNumber, formatDate, formatDateTime, formatDuration, formatTime, sampleTime, totalDays } from './lib/time'
 import { nextChange } from './lib/visibility'
 import { useAppState, type Speed } from './state'
 
@@ -106,7 +103,7 @@ export default function App() {
                 </>
               ) : (
                 <>
-                  <MissionSetup landingDate={sampleDate(p.data, i)} />
+                  <MissionSetup landingDate={sampleTime(p.data, i)} />
                   <Panel label="Resultado de la misión">
                     <EmptyState title="Todavía no simulaste esta misión">
                       Elige un módulo, ajusta sus valores y pulsa «Simular misión» para ver si sobrevive hora por hora.
@@ -225,9 +222,9 @@ function Timeline({
   onSpeed: (v: Speed) => void
 }) {
   const n = p.data.sun.el.length
-  const date = sampleDate(p.data, index)
-  const day = Math.floor((index * p.data.stepHours) / 24) + 1
-  const totalDays = Math.round((n * p.data.stepHours) / 24)
+  const date = sampleTime(p.data, index)
+  const day = dayNumber(p.data, index)
+  const days = totalDays(p.data, n)
   const fill = (index / (n - 1)) * 100
 
   return (
@@ -247,7 +244,7 @@ function Timeline({
           <span className="font-mono text-lg tracking-tight text-ink-muted">{formatTime(date)} UTC</span>
         </div>
         <span className="font-mono text-xs text-ink-faint">
-          Día {day} de {totalDays}
+          Día {day} de {days}
         </span>
         <Segmented
           label="Velocidad"
@@ -261,7 +258,7 @@ function Timeline({
       <input
         type="range"
         aria-label="Fecha y hora"
-        aria-valuetext={`${formatDate(date)}, ${formatTime(date)} UTC`}
+        aria-valuetext={formatDateTime(date)}
         className="range mt-3"
         style={{ '--fill': `${fill}%` } as CSSProperties}
         min={0}
@@ -415,11 +412,11 @@ function Now({ p, index }: { p: SitePreview; index: number }) {
   const contact = p.contact[index]
   const toLight = nextChange(p.lit, index)
   const toContact = nextChange(p.contact, index)
-  const date = sampleDate(d, index)
+  const date = sampleTime(d, index)
   const maxSlope = d.slope.max100mDeg
 
   return (
-    <Panel label={`Ahora · ${formatDate(date)}, ${formatTime(date)} UTC`}>
+    <Panel label={`Ahora · ${formatDateTime(date)}`}>
       <StatGrid>
         <Stat
           label="Sol"
@@ -513,7 +510,7 @@ function MissionSetup({ landingDate }: { landingDate: Date }) {
         <p className="mt-1 instrument-label">Misión</p>
         <Slider label="Duración" unit="días" min={1} max={30} value={cfg.missionDays} onChange={set('missionDays')} />
         <p className="text-sm text-ink-muted">
-          Alunizaje: <span className="font-mono text-ink">{formatDate(landingDate)}, {formatTime(landingDate)} UTC</span>
+          Alunizaje: <span className="font-mono text-ink">{formatDateTime(landingDate)}</span>
           <span className="mt-0.5 block text-xs text-ink-faint">Cámbialo moviendo la línea de tiempo.</span>
         </p>
       </div>
