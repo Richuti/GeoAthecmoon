@@ -125,8 +125,17 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
   - 21 pruebas en el navegador real (Edge por CDP): URL, teclado, móvil a 390 px sin desborde, y laptop de 1366×768 sin superposiciones y con las explicaciones enteras.
 - **Commit:** `Tarea 4.3: selector de sitios por categoría`
 
-### 5.1 Horizonte interpolado · MVP
-- **Archivo:** `src/lib/horizon.ts` con `horizonAt(mask, az)`. Interpola entre los grados vecinos y da la vuelta de 359° a 0°.
+### 5.1 Horizonte interpolado · MVP · [x]
+- **Archivo:** `src/lib/horizon.ts`.
+- **Funciones:**
+  - `horizonAt(mask, az)`: interpola entre los grados vecinos y da la vuelta de 359° a 0°. Funciona con cualquier `azimuthStepDeg`.
+  - `normalizeAz`, `clearanceDeg` (cuánto sobresale un cuerpo sobre el relieve) y `horizonExtremes`.
+- **Pruebas en el repo:** `npm test` (`node --test`, sin dependencias) con `tests/horizon.test.ts`.
+  - 21 casos: interpolación, vuelta 359° → 0°, azimuts negativos, paso de 2° y horizonte vacío.
+  - Además, comprueba que el % de luz de los 6 sitios coincide con el del generador.
+- `tsconfig.test.json`: `npm run build` también revisa los tipos de las pruebas.
+- `src/design/preview.ts` ya usa el horizonte interpolado.
+- **Commit:** `Tarea 5.1: horizonte interpolado y pruebas con node --test`
 
 ### 5.2 Visibilidad · MVP
 - **Archivo:** `src/lib/visibility.ts`.
@@ -151,7 +160,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Commit de la tarea 5 (puede ir en uno o dos):** `Tarea 5: cálculos de luz, comunicación, viabilidad y recomendación`
 
 ### 5.6 Pruebas de los cálculos · Extra
-- Vitest con unos 10 casos: el cruce de 359° a 0°, ventanas al borde del periodo y pesos en cero.
+- Con `node --test` (`npm test`), como en 5.1: ventanas al borde del periodo, pesos en cero y periodos sin cambios. Cada paso de la tarea 5 trae sus propias pruebas.
 
 ---
 
@@ -224,7 +233,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Commit:** `Tarea S3: búsqueda de fechas y sitios viables`
 
 ### S4. Pruebas del simulador · Extra
-- Con Vitest:
+- Con `node --test` (`npm test`):
   - Siempre con luz → no falla.
   - Siempre en sombra → falla al llegar al 20 %, en `0.60 × B × 0.90 / (base + instrumentos) + 0.20 × B × 0.90 / base` horas, con `B` = `batteryKWh` en Wh (nominal del 100 al 40 %, supervivencia del 40 al 20 %).
   - Con Sol pleno, la generación es exactamente `1361 × área × eficiencia`.

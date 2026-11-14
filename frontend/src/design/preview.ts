@@ -5,6 +5,7 @@
 //   - presets del módulo       → src/sim/lander.ts (S1)
 // No agregues lógica nueva aquí: va en esos pasos.
 
+import { clearanceDeg } from '../lib/horizon'
 import type { SiteData } from '../types'
 
 export interface SitePreview {
@@ -20,14 +21,10 @@ export interface SitePreview {
 /** Pesos por defecto de la viabilidad (los mismos que propone la tarea 5.4). */
 export const WEIGHTS = { light: 0.45, contact: 0.35, slope: 0.2 }
 
-function horizonNearest(h: number[], az: number): number {
-  return h[Math.round(((az % 360) + 360) % 360) % 360]
-}
-
 export function buildPreview(data: SiteData): SitePreview {
-  const h = data.horizon.elevationDeg
-  const lit = data.sun.el.map((el, i) => el > horizonNearest(h, data.sun.az[i]))
-  const contact = data.earth.el.map((el, i) => el > horizonNearest(h, data.earth.az[i]))
+  // Ya usa el horizonte interpolado de src/lib/horizon.ts (5.1). isLit/hasContact llegan en 5.2.
+  const lit = data.sun.el.map((el, i) => clearanceDeg(data.horizon, data.sun.az[i], el) > 0)
+  const contact = data.earth.el.map((el, i) => clearanceDeg(data.horizon, data.earth.az[i], el) > 0)
   const pct = (flags: boolean[]) => (100 * flags.filter(Boolean).length) / flags.length
   const s = data.slope.max100mDeg
   const slopeScore = s <= 5 ? 100 : s >= 10 ? 0 : (100 * (10 - s)) / 5

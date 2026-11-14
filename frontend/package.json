@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "mock": "node scripts/generate-mock-data.mjs",
     "horizons": "node scripts/fetch-horizons.mjs",
-    "export-terrain": "node scripts/export-terrain.mjs"
+    "export-terrain": "node scripts/export-terrain.mjs",
+    "test": "node --experimental-strip-types --test \"tests/**/*.test.ts\""
   },
   "dependencies": {
     "react": "^19.3.1",
