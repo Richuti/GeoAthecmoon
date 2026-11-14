@@ -1,0 +1,6 @@
+; Proyecto de Godot 4 para revisar los modelos de GeoAthectum.
+config_version=5
+
+[application]
+config/name="GeoAthectum - Vista de modelos"
+run/main_scene="res://preview.tscn"

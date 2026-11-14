@@ -1,8 +1,156 @@
 @import "tailwindcss";
+@import "./fonts.css";
 
-:root {
-  color-scheme: dark;
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+/*
+ * Sistema de diseño "hardware de vuelo" · GeoAthectum
+ * Detalle y reglas de uso en docs/DISENO.md.
+ *
+ * - Big Shoulders Stencil: rotulación esténcil, como las marcas pintadas en el hardware espacial.
+ *   Solo para el nombre del sitio, la viabilidad y la marca.
+ * - B612: tipografía diseñada para pantallas de cabina (Airbus). Interfaz y números: sus dígitos
+ *   tienen todos el mismo ancho, así que funcionan como tabulares sin una fuente mono aparte.
+ * - Paneles como marcos de instrumento: línea fina, esquinas rectas y nombre incrustado en el borde.
+ * - El ámbar es SOLO el Sol (luz y energía) y el azul es SOLO la Tierra (comunicación).
+ */
+@theme {
+  /* Superficies */
+  --color-void: #05070d; /* fondo y cielo lunar: sin atmósfera, el cielo es negro */
+  --color-hull: #0b0e15; /* fondo de controles */
+  --color-hull-raised: #131824; /* hover, elementos elevados */
+  --color-seam: #222a38; /* marcos de los paneles */
+  --color-seam-strong: #343e52; /* bordes de controles */
+
+  /* Texto (contraste AA sobre --color-hull) */
+  --color-ink: #e8ebf1;
+  --color-ink-muted: #a3abbd;
+  --color-ink-faint: #7a8398;
+
+  /* Relieve */
+  --color-relief: #121826;
+  --color-relief-edge: #4a5468;
+
+  /* Datos */
+  --color-sun: #ffb547;
+  --color-earth: #5aa9ff;
+
+  /* Estados del simulador (el amarillo no se confunde con el ámbar del Sol) */
+  --color-ok: #45d49b;
+  --color-caution: #e9cf4a;
+  --color-critical: #ff6b6b;
+
+  /* Tipografía */
+  --font-display: "Big Shoulders Stencil", "Arial Narrow", sans-serif;
+  --font-sans: "B612", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  /* "mono" = datos. B612 ya tiene dígitos de ancho fijo y el punto decimal angosto. */
+  --font-mono: "B612", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1rem;
+
+  /* Esquinas de hardware: casi rectas */
+  --radius-hw: 3px;
+  --ease-console: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-body { margin: 0; background: #05070d; color: #e5e7eb; }
-input[type="range"] { accent-color: #fbbf24; }
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background: var(--color-void);
+  }
+
+  body {
+    background: var(--color-void);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-earth) 35%, transparent);
+  }
+}
+
+/* Rótulo de instrumento: B612 negrita, mayúsculas, pequeño. Nombra paneles y grupos. */
+@utility instrument-label {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+@layer components {
+  /* Slider: pista fina con el tramo recorrido en el color del dato (--tone). */
+  .range {
+    --fill: 50%;
+    --tone: var(--color-ink);
+    appearance: none;
+    width: 100%;
+    height: 1.5rem;
+    background: transparent;
+    cursor: pointer;
+  }
+  .range:focus-visible {
+    outline: none;
+  }
+  .range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--tone) var(--fill), var(--color-seam-strong) var(--fill));
+  }
+  .range::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: var(--color-void);
+    border: 2px solid var(--tone);
+    transition: transform 150ms var(--ease-console);
+  }
+  .range:hover::-webkit-slider-thumb {
+    transform: scale(1.15);
+  }
+  .range:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--color-void), 0 0 0 5px var(--color-ink);
+  }
+  .range::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--color-seam-strong);
+  }
+  .range::-moz-range-progress {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--tone);
+  }
+  .range::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-void);
+    border: 2px solid var(--tone);
+  }
+  .range:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 3px var(--color-void), 0 0 0 5px var(--color-ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

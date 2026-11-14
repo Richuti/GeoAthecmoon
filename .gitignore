@@ -27,3 +27,7 @@ Thumbs.db
 # Relieve exportado para Blender (se regenera con `npm run export-terrain`)
 frontend/assets-src/terrain/*
 !frontend/assets-src/terrain/README.md
+
+# Godot (vista de modelos)
+.godot/
+*.import
