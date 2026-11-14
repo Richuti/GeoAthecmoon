@@ -60,13 +60,14 @@ describe('con los datos de prueba', () => {
 
   // `npm run mock` calcula el % de luz con esta misma regla (Sol sobre el horizonte interpolado).
   // Si estos números cambian, cambió la interpolación o cambiaron los datos.
+  // Horizonte real LOLA (rayos de 150 km con curvatura) y Sol de JPL Horizons.
   const expectedLightPct: Record<string, number> = {
-    'connecting-ridge': 82.5,
-    'shackleton-rim': 73.3,
-    'de-gerlache-rim': 69.9,
-    'malapert-massif': 56.1,
-    'mons-mouton': 46.8,
-    'nobile-rim': 38.3,
+    'shackleton-rim': 68.4,
+    'de-gerlache-rim': 64.6,
+    'connecting-ridge': 51.5,
+    'mons-mouton': 46,
+    'nobile-rim': 24.8,
+    'malapert-massif': 20.8,
   }
   for (const d of sites) {
     test(`% de luz de ${d.site.id} coincide con el generador`, () => {

@@ -49,5 +49,5 @@
       "description": "Zona que exploraría VIPER. Relieve alto alrededor: menos horas de sol y pendientes fuertes."
     }
   ],
-  "mock": true
+  "mock": false
 }

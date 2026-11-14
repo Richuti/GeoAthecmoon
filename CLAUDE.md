@@ -87,7 +87,8 @@ La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un pas
 - **Hecho:** S1 (`src/sim/lander.ts`). `src/design/preview.ts` ya no existe.
 - **Hecho:** S2 (`src/sim/simulate.ts`, motor puro con eventos y resumen).
 - **Hecho:** C3.1 (portada con scroll: `src/components/Story.tsx`, medios en `public/media/`). La app abre en la portada; `#planificador` o `?sitio=` abren el planificador.
-- **Siguiente:** 6 (línea de tiempo).
+- **Datos reales:** `npm run mock` usa Horizons (Sol y Tierra) + LOLA (horizonte y pendiente de `assets-src/terrain/lola/{id}.json`). Los JSON ya no traen `terrain` y tienen `mock: false`. Terrenos 3D LOLA en `public/models/terrain/{id}.glb` (1 unidad = 1 km, objeto `Ground`, el sitio en (0, 0, 0)).
+- **Siguiente:** 9 (visor 3D). Ya están instalados `three` 0.187, `@react-three/fiber` 9.8 y `@react-three/drei` 10.7.
 - **Ramas:** se trabaja en la rama `frontend` (Richard la creó desde `main`).
 - **Medios:** ya están todos en el escritorio de Richard (fuera del repo). Su revisión está en `docs/MEDIOS_VISUALES.md`. Se procesan en la tarea C3.
 - **Orden:** 3 → 4 → 5 → S1 → S2 → 6 → 8 → SU1 → SU2 → SU3 → 7 → 9 → S3 → 11. El C0 se cierra antes del 4. El 3.3 es manual y lo hace el equipo.

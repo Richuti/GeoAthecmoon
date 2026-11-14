@@ -93,7 +93,7 @@ Pueden ser archivos JSON estáticos o una API. El frontend usa las mismas rutas 
 - **`slope`:** pendiente **regional**, a la resolución del DEM, en el punto (`atSiteDeg`) y la máxima en un radio de 100 m (`max100mDeg`). Sale del recorte de 20 km. No ve rocas ni cráteres más chicos que un píxel del DEM. Como referencia, los módulos de alunizaje suelen pedir menos de 8–10°.
 - **`sources` (opcional):** de dónde sale cada dato. `ephemeris` es `"jpl-horizons"` o `"model"`, y `terrain` es `"lola"` o `"synthetic"`. El backend real debería mandar `{ "ephemeris": "jpl-horizons", "terrain": "lola" }`. La app lo usa en el panel de fuentes.
 - **`terrain` (opcional):** recorte del DEM de **20 km** centrado en el sitio, solo para la vista 3D y la pendiente. Fila 0 es el borde **norte** y columna 0 el borde **oeste**. Unos 96×96 puntos es suficiente. Si no viene, la vista 3D muestra su estado vacío.
-- **Datos de prueba:** `npm run mock` calcula el horizonte con el mismo recorte sintético de 20 km y sin curvatura. Es una simplificación solo de los datos de prueba; el backend real sigue las reglas de arriba.
+- **Datos locales (`npm run mock`):** usan el horizonte y la pendiente reales de LOLA de `assets-src/terrain/lola/{id}.json` (rayos de 150 km con curvatura, DEM de 80 m) y el Sol y la Tierra de JPL Horizons. Ya no incluyen `terrain`: la vista 3D carga `public/models/terrain/{id}.glb`. Solo si falta el archivo LOLA de un sitio se usa un terreno sintético de respaldo, marcado con `sources.terrain = "synthetic"` y `mock: true`.
 
 ## Cómo lo usa el frontend
 
