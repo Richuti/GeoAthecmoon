@@ -102,9 +102,13 @@ export function formatDurationLong(hours: number): string {
   return `${plural(d, 'día', 'días')} y ${plural(h, 'hora', 'horas')}`
 }
 
-/** Para eventos de una misión: "Día 4, 13:00 UTC", contando desde la muestra de inicio. */
+/**
+ * Para eventos de una misión: "Día 4 · 4 ene, 13:00 UTC". El día cuenta desde el alunizaje y la fecha evita
+ * confusiones cuando la misión no empieza a medianoche.
+ */
 export function formatMissionClock(period: Period, i: number, startIndex: number): string {
-  return `Día ${dayNumber(period, i, startIndex)}, ${formatTime(sampleTime(period, i))} UTC`
+  const d = sampleTime(period, i)
+  return `Día ${dayNumber(period, i, startIndex)} · ${formatShortDate(d)}, ${formatTime(d)} UTC`
 }
 
 // ---------------------------------------------------------------------------

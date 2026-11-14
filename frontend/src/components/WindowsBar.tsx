@@ -14,10 +14,12 @@ interface WindowsBarProps {
   stepHours: number
   /** Al hacer clic en la barra se salta a esa muestra */
   onSeek?: (index: number) => void
+  /** Rango [from, to) a marcar (la misión simulada) */
+  highlight?: { from: number; to: number }
 }
 
 /** Franjas de luz (ámbar) y contacto (azul) a lo largo del periodo, con el instante actual. */
-export function WindowsBar({ lit, contact, index, start, stepHours, onSeek }: WindowsBarProps) {
+export function WindowsBar({ lit, contact, index, start, stepHours, onSeek, highlight }: WindowsBarProps) {
   const n = lit.length
   const samplesPerWeek = (7 * 24) / stepHours
   const weeks = Array.from({ length: Math.floor((n - 1) / samplesPerWeek) + 1 }, (_, k) => k * samplesPerWeek)
@@ -31,9 +33,9 @@ export function WindowsBar({ lit, contact, index, start, stepHours, onSeek }: Wi
   return (
     <div className="grid grid-cols-[4.5rem_1fr] items-center gap-x-3 gap-y-1.5">
       <Row label="Luz" />
-      <Track runs={windows(lit)} n={n} className="fill-sun" index={index} onClick={seek} />
+      <Track runs={windows(lit)} n={n} className="fill-sun" index={index} onClick={seek} highlight={highlight} />
       <Row label="Contacto" />
-      <Track runs={windows(contact)} n={n} className="fill-earth" index={index} onClick={seek} />
+      <Track runs={windows(contact)} n={n} className="fill-earth" index={index} onClick={seek} highlight={highlight} />
       <span />
       <div className="relative h-4">
         {weeks.map((i) => (
@@ -60,7 +62,9 @@ function Track({
   className,
   index,
   onClick,
+  highlight,
 }: {
+  highlight?: { from: number; to: number }
   runs: TimeWindow[]
   n: number
   className: string
@@ -74,6 +78,12 @@ function Track({
           <rect key={s.start} x={s.start} y={0} width={s.end - s.start} height={1} className={cx(className, 'opacity-85')} />
         ))}
       </svg>
+      {highlight && (
+        <span
+          className="pointer-events-none absolute inset-y-0 border-x border-ink/80 bg-ink/10"
+          style={{ left: `${(highlight.from / n) * 100}%`, width: `${((highlight.to - highlight.from) / n) * 100}%` }}
+        />
+      )}
       <span className="absolute inset-y-0 w-px bg-ink" style={{ left: `${(index / (n - 1)) * 100}%` }} />
     </div>
   )

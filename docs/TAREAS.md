@@ -385,7 +385,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 ## Fase C2 · Interfaz del simulador
 
 ### SU1. Panel "Configurar misión" · MVP
-- **Archivo:** `src/components/MissionSetup.tsx`.
+- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionSetup.tsx`. Módulo, fecha UTC y duración visibles; parámetros técnicos desplegables. Después de simular se pliega la configuración para dar prioridad al resultado. La fecha de alunizaje es independiente del cursor de reproducción.
+- **Archivo:** `src/components/sim/MissionSetup.tsx`.
 - Selector de preset, más sliders para cada parámetro con su unidad y un tooltip en lenguaje simple. También la fecha de alunizaje y la duración.
 - El panel se configura con **área** y **eficiencia**. Al lado se muestra la potencia pico calculada (`1361 W/m² × área × eficiencia`).
 - Avisos visibles:
@@ -396,6 +397,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Commit:** `Tarea SU1: panel de configuración de misión`
 
 ### SU2. Reproducción de la simulación · MVP
+- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionTrace.tsx`, línea de tiempo y estado global. La reproducción se limita a la misión y se detiene al terminar o fallar; al repetir comienza en el alunizaje. Incluye batería, modo, datos enviados y pendientes, eventos navegables y estado del módulo en el visor. Gráfica accesible con flechas, Inicio y Fin.
 - Usa la misma línea de tiempo (tarea 6) en "modo misión", desde el alunizaje hasta el final.
 - En el panel de métricas: batería en % (verde, ámbar o rojo), modo actual, y datos en cola y enviados.
 - **Gráfico SVG de la batería** a lo largo de la misión, con las franjas de luz y comunicación debajo.
@@ -404,6 +406,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Commit:** `Tarea SU2: reproducción de la misión`
 
 ### SU3. Resultado de la misión · MVP
+- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionResult.tsx` y búsquedas adelantadas de S3 (`src/sim/search.ts`). Resultado, tolerancia a atrasos, fechas que funcionan y recomendaciones. Distingue una falla de la falta de datos para comprobar atrasos. En modo simulación, la viabilidad de los sitios usa el alunizaje fijo y queda en 40 % como máximo si la misión falla. Comparación de sitios desplegable y selección de fechas por teclado.
+- **Verificación de esta entrega:** pruebas de cálculo y estado, compilación y recorrido en Edge con escritorio y móvil de 390 px; sin desborde horizontal ni excepciones de JavaScript.
 - Tarjeta final:
   - ✅ **Misión cumplida**, o ❌ **Falló el día X**, con la causa.
   - Datos enviados (%), batería mínima y horas en supervivencia.

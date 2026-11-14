@@ -1,32 +1,28 @@
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
+import { MissionResult } from './components/sim/MissionResult'
+import { MissionSetup } from './components/sim/MissionSetup'
+import { MissionTrace } from './components/sim/MissionTrace'
 import { Story } from './components/Story'
 import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
-import { Badge, Button, EmptyState, InfoTip, Panel, Segmented, Slider, Stat, StatGrid, cx, type Tone } from './components/ui'
+import { Badge, Button, EmptyState, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
 import { formatLat, formatLon } from './lib/format'
-import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, sampleTime, totalDays } from './lib/time'
+import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, totalDays } from './lib/time'
 import { missionWindow, recommend, type Recommendation } from './lib/recommend'
 import { storyFacts } from './lib/storyFacts'
 import { DEFAULT_WEIGHTS, VERDICT_LABEL, siteViability, type Verdict, type ViabilityResult } from './lib/viability'
 import { nextChange, visibility } from './lib/visibility'
-import {
-  DEFAULT_PRESET,
-  PARAMETER_RANGES,
-  PRESETS,
-  autonomyHours,
-  minSunFraction,
-  panelPeakW,
-  type LanderConfig,
-  type PresetId,
-} from './sim/lander'
+import { DEFAULT_PRESET, PRESETS, type LanderConfig, type PresetId } from './sim/lander'
+import { bestStart, compareSites, delayTolerance, scanStarts } from './sim/search'
+import { simulate } from './sim/simulate'
 import { useAppState, type Speed } from './state'
 import type { SiteData } from './types'
 
 const MODES = [
   { value: 'explore', label: 'Explorar sitio' },
-  { value: 'simulate', label: 'Simular misión' },
+  { value: 'simulate', label: 'Simulador' },
 ] as const
 
 type SpeedKey = '1' | '6' | '24'
@@ -88,6 +84,13 @@ function Planner() {
 
   const { missionDays } = state
 
+  const [preset, setPreset] = useState<PresetId | null>(DEFAULT_PRESET)
+  const [cfg, setCfg] = useState<LanderConfig>(PRESETS[DEFAULT_PRESET].config)
+  const [landing, setLanding] = useState<number | null>(null)
+  const [draftStart, setDraftStart] = useState<number | null>(null)
+  const simCfg = useDeferredValue(cfg)
+  const evaluationStart = mode === 'simulate' && landing !== null ? landing : i
+
   // Visibilidad de cada sitio cargado: se calcula una vez por sitio.
   const contexts = useMemo(() => Object.values(state.data).map((data) => ({ data, vis: visibility(data) })), [state.data])
 
@@ -95,7 +98,9 @@ function Planner() {
   const views = useMemo(() => {
     const out: Record<string, SiteView> = {}
     for (const { data, vis } of contexts) {
-      const result = siteViability(data, vis, DEFAULT_WEIGHTS, missionWindow(data, i, missionDays))
+      const missionSurvives = mode === 'simulate' && landing !== null
+        ? simulate(data, simCfg, { startIndex: evaluationStart, missionDays }, vis).summary.survived : undefined
+      const result = siteViability(data, vis, DEFAULT_WEIGHTS, missionWindow(data, evaluationStart, missionDays), { missionSurvives })
       out[data.site.id] = {
         data,
         lit: vis.lit,
@@ -107,7 +112,7 @@ function Planner() {
       }
     }
     return out
-  }, [contexts, i, missionDays])
+  }, [contexts, evaluationStart, missionDays, mode, landing, simCfg])
 
   const current = contexts.find((c) => c.data.site.id === selectedId)
   const rec = useMemo(
@@ -116,6 +121,41 @@ function Planner() {
   )
   const p = selectedId ? views[selectedId] : undefined
   const siteError = selectedId ? state.dataErrors[selectedId] : undefined
+
+  // Simulador: módulo, alunizaje (fijo al pulsar "Simular") y resultados.
+  const result = useMemo(
+    () => (current && landing !== null ? simulate(current.data, simCfg, { startIndex: landing, missionDays }, current.vis) : null),
+    [current, landing, missionDays, simCfg],
+  )
+  const scan = useMemo(
+    () => (current && landing !== null ? scanStarts(current.data, simCfg, missionDays, current.vis) : null),
+    [current, landing !== null, missionDays, simCfg], // eslint-disable-line react-hooks/exhaustive-deps
+  )
+  const tolerance = useMemo(
+    () => (current && result ? delayTolerance(current.data, simCfg, result.from, missionDays, current.vis) : null),
+    [current, result, missionDays, simCfg],
+  )
+  const alternatives = useMemo(
+    () => (current && result ? compareSites(contexts.map((c) => ({ data: c.data, series: c.vis })), current.data.site.id, simCfg, result.from, missionDays) : []),
+    [contexts, current, result, missionDays, simCfg],
+  )
+  const tryStart = (s: number) => {
+    actions.setPlaying(false)
+    setLanding(s)
+    setDraftStart(s)
+    actions.setIndex(s)
+  }
+  const missionEnd = result ? result.from + result.series.soc.length : null
+  useEffect(() => {
+    actions.setPlaybackRange(mode === 'simulate' && result && missionEnd !== null ? { from: result.from, to: missionEnd } : null)
+    return () => { actions.setPlaybackRange(null) }
+  }, [mode, selectedId, result?.from, missionEnd, actions])
+  const seek = (index: number) => {
+    actions.setPlaying(false)
+    actions.setIndex(index)
+  }
+  const plannedStart = current ? missionWindow(current.data, draftStart ?? landing ?? i, missionDays).from : 0
+  const missionSample = result && i >= result.from && i < result.from + result.series.soc.length ? i - result.from : null
 
   return (
     <div className="flex min-h-dvh flex-col lg:h-dvh">
@@ -158,20 +198,33 @@ function Planner() {
               onSelect={actions.select}
             />
 
-            <div className="flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5">
-              <ViewerPanel data={p.data} index={i} contact={p.contact[i]} />
+            <div className={cx('flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5', mode === 'simulate' && 'order-2 lg:order-none')}>
+              <ViewerPanel data={p.data} index={i} contact={p.contact[i]}
+                missionState={mode === 'simulate' && result && missionSample !== null ? result.series.mode[missionSample] : undefined} />
               <Timeline
                 p={p}
                 index={i}
                 playing={state.playing}
                 speed={state.speed}
-                onIndex={actions.setIndex}
+                onIndex={seek}
                 onTogglePlay={actions.togglePlay}
                 onSpeed={actions.setSpeed}
+                mission={mode === 'simulate' && result && missionEnd !== null ? { from: result.from, to: missionEnd } : undefined}
               />
+              {mode === 'simulate' && result && current && (
+                <MissionTrace
+                  data={current.data}
+                  result={result}
+                  lit={current.vis.lit}
+                  contact={current.vis.contact}
+                  survivalThreshold={simCfg.survivalThreshold}
+                  index={i}
+                  onSeek={seek}
+                />
+              )}
             </div>
 
-            <div className="flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5">
+            <div className={cx('flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5', mode === 'simulate' && 'order-1 lg:order-none')}>
               {mode === 'explore' ? (
                 <>
                   {rec && (
@@ -189,16 +242,47 @@ function Planner() {
               ) : (
                 <>
                   <MissionSetup
-                    landingDate={sampleTime(p.data, i)}
+                    preset={preset}
+                    cfg={cfg}
+                    onPreset={(id) => {
+                      setPreset(id)
+                      setCfg(PRESETS[id].config)
+                    }}
+                    onCfg={(c) => {
+                      setPreset(null)
+                      setCfg(c)
+                    }}
                     missionDays={missionDays}
                     maxDays={totalDays(p.data, p.data.sun.el.length)}
                     onMissionDays={actions.setMissionDays}
+                    timelineDate={sampleTime(p.data, plannedStart)}
+                    minDate={sampleTime(p.data, 0)}
+                    maxDate={sampleTime(p.data, Math.max(0, p.data.sun.el.length - samplesFor(p.data, missionDays * 24)))}
+                    onDate={(value) => {
+                      const date = fromInputValue(value)
+                      if (date) setDraftStart(indexAt(p.data, date, p.data.sun.el.length))
+                    }}
+                    landingDate={result ? sampleTime(p.data, result.from) : null}
+                    onSimulate={() => tryStart(plannedStart)}
                   />
-                  <Panel label="Resultado de la misión">
-                    <EmptyState title="Todavía no simulaste esta misión">
-                      Elige un módulo, ajusta sus valores y pulsa «Simular misión» para ver si sobrevive hora por hora.
-                    </EmptyState>
-                  </Panel>
+                  {result && tolerance && scan ? (
+                    <MissionResult
+                      data={p.data}
+                      result={result}
+                      tolerance={tolerance}
+                      scan={scan}
+                      best={bestStart(scan)}
+                      alternatives={alternatives}
+                      onTryStart={tryStart}
+                      onTrySite={actions.select}
+                    />
+                  ) : (
+                    <Panel label="Resultado de la misión">
+                      <EmptyState title="Todavía no simulaste esta misión">
+                        Elige un módulo, ajusta sus valores y pulsa «Simular misión» para ver si sobrevive hora por hora.
+                      </EmptyState>
+                    </Panel>
+                  )}
                 </>
               )}
             </div>
@@ -275,6 +359,7 @@ function Timeline({
   onIndex,
   onTogglePlay,
   onSpeed,
+  mission,
 }: {
   p: SiteView
   index: number
@@ -283,15 +368,19 @@ function Timeline({
   onIndex: (i: number) => void
   onTogglePlay: () => void
   onSpeed: (v: Speed) => void
+  /** Ventana de la misión simulada, para marcarla en la barra */
+  mission?: { from: number; to: number }
 }) {
   const n = p.data.sun.el.length
   const date = sampleTime(p.data, index)
   const day = dayNumber(p.data, index)
   const days = totalDays(p.data, n)
-  const fill = (index / (n - 1)) * 100
+  const min = mission?.from ?? 0
+  const max = mission ? mission.to - 1 : n - 1
+  const fill = max > min ? ((index - min) / (max - min)) * 100 : 0
 
   return (
-    <Panel label="Línea de tiempo">
+    <Panel label={mission ? 'Reproducir misión' : 'Línea de tiempo'}>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <Button
           variant="primary"
@@ -307,7 +396,7 @@ function Timeline({
           <span className="font-mono text-lg tracking-tight text-ink-muted">{formatTime(date)} UTC</span>
         </div>
         <span className="font-mono text-xs text-ink-faint">
-          Día {day} de {days}
+          {mission ? `Día ${dayNumber(p.data, index, mission.from)} de la misión` : `Día ${day} de ${days}`}
         </span>
         <Segmented
           label="Velocidad"
@@ -324,8 +413,8 @@ function Timeline({
         aria-valuetext={formatDateTime(date)}
         className="range mt-3"
         style={{ '--fill': `${fill}%` } as CSSProperties}
-        min={0}
-        max={n - 1}
+        min={min}
+        max={max}
         value={index}
         onChange={(e) => onIndex(Number(e.target.value))}
       />
@@ -336,7 +425,8 @@ function Timeline({
           index={index}
           start={p.data.start}
           stepHours={p.data.stepHours}
-          onSeek={onIndex}
+          onSeek={(index) => onIndex(Math.max(min, Math.min(max, index)))}
+          highlight={mission}
         />
       </div>
     </Panel>
@@ -584,121 +674,5 @@ function Now({ p, index }: { p: SiteView; index: number }) {
         />
       </StatGrid>
     </Panel>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Simulador: configuración (el motor llega en S2)
-// ---------------------------------------------------------------------------
-
-const PRESET_OPTIONS = (Object.keys(PRESETS) as PresetId[]).map((id) => ({ value: id, label: PRESETS[id].label }))
-
-function MissionSetup({
-  landingDate,
-  missionDays,
-  maxDays,
-  onMissionDays,
-}: {
-  landingDate: Date
-  missionDays: number
-  maxDays: number
-  onMissionDays: (days: number) => void
-}) {
-  const [preset, setPreset] = useState<PresetId>(DEFAULT_PRESET)
-  const [cfg, setCfg] = useState<LanderConfig>(PRESETS[DEFAULT_PRESET].config)
-  const set = (key: keyof LanderConfig) => (v: number) => setCfg((c) => ({ ...c, [key]: v }))
-  const range = (key: keyof LanderConfig) => PARAMETER_RANGES[key]
-  const peak = panelPeakW(cfg)
-  const minSun = minSunFraction(cfg)
-
-  return (
-    <Panel label="Configurar misión">
-      <Field label="Módulo">
-        <Segmented
-          label="Módulo"
-          size="sm"
-          className="w-full"
-          options={PRESET_OPTIONS}
-          value={preset}
-          onChange={(id) => {
-            setPreset(id)
-            setCfg(PRESETS[id].config)
-          }}
-        />
-        <p className="mt-2 text-xs leading-relaxed text-ink-muted">{PRESETS[preset].description}</p>
-      </Field>
-
-      <div className="mt-5 flex flex-col gap-4">
-        <p className="instrument-label">Energía</p>
-        <Slider label="Área del panel" unit="m²" tone="sun" {...range('panelAreaM2')} value={cfg.panelAreaM2} onChange={set('panelAreaM2')}
-          format={(v) => v.toFixed(2)} hint="Superficie de celdas solares. Más área, más energía." />
-        <Slider label="Eficiencia del panel" unit="%" tone="sun" {...range('panelEfficiency')} value={cfg.panelEfficiency}
-          onChange={set('panelEfficiency')} format={(v) => (v * 100).toFixed(0)} hint="Qué parte de la luz se convierte en electricidad. Las celdas espaciales rondan el 30 %." />
-        <Slider label="Batería" unit="kWh" tone="sun" {...range('batteryKWh')} value={cfg.batteryKWh} onChange={set('batteryKWh')}
-          format={(v) => v.toFixed(1)} hint="Energía guardada para pasar las horas sin Sol. Nunca baja del 20 %." />
-        <Slider label="Consumo de supervivencia" unit="W" {...range('baseLoadW')} value={cfg.baseLoadW} onChange={set('baseLoadW')}
-          hint="Lo mínimo para no congelarse: calefactores y computadora. Nunca se apaga." />
-        <Slider label="Consumo de instrumentos" unit="W" {...range('instrumentLoadW')} value={cfg.instrumentLoadW} onChange={set('instrumentLoadW')}
-          hint="Lo que gastan los instrumentos. Se apagan si la batería baja del umbral de supervivencia." />
-
-        <dl className="grid grid-cols-3 gap-3 border-y border-seam py-3">
-          <Derived label="Potencia pico" value={`${Math.round(peak)} W`} tone="text-sun" />
-          <Derived label="Autonomía sin Sol" value={formatDuration(autonomyHours(cfg))} />
-          <Derived label="Sol necesario" value={Number.isFinite(minSun) ? `${Math.round(minSun * 100)} %` : 'No alcanza'}
-            tone={Number.isFinite(minSun) ? undefined : 'text-critical'} />
-        </dl>
-
-        <p className="mt-1 instrument-label">Datos</p>
-        <Slider label="Datos generados" unit="Mb/día" tone="earth" {...range('dataPerDayMb')} value={cfg.dataPerDayMb}
-          onChange={set('dataPerDayMb')} format={(v) => v.toLocaleString('es')} hint="Cuántos datos producen los instrumentos por día." />
-        <Slider label="Velocidad de envío" unit="Mb/h" tone="earth" {...range('downlinkMbPerHour')} value={cfg.downlinkMbPerHour}
-          onChange={set('downlinkMbPerHour')} format={(v) => v.toLocaleString('es')} hint="Datos que se envían por hora mientras se ve la Tierra." />
-
-        <p className="mt-1 instrument-label">Misión</p>
-        <Slider label="Duración" unit="días" min={1} max={maxDays} value={missionDays} onChange={onMissionDays} />
-        <p className="text-sm text-ink-muted">
-          Alunizaje: <span className="font-mono text-ink">{formatDateTime(landingDate)}</span>
-          <span className="mt-0.5 block text-xs text-ink-faint">Cámbialo moviendo la línea de tiempo.</span>
-        </p>
-      </div>
-
-      <ul className="mt-5 flex flex-col gap-1.5 text-xs leading-relaxed text-ink-faint">
-        <Note>Valores ilustrativos: no corresponden a ningún módulo real.</Note>
-        <Note>Se asume una estación de la DSN siempre disponible cuando se ve la Tierra.</Note>
-        <Note>La batería no baja del 20 % (profundidad de descarga del 80 %).</Note>
-      </ul>
-
-      <Button variant="primary" size="lg" className="mt-6 w-full" disabled>
-        Simular misión
-      </Button>
-      <p className="mt-2 text-center text-xs text-ink-faint">Se activa en el paso S2 (motor de simulación).</p>
-    </Panel>
-  )
-}
-
-function Derived({ label, value, tone }: { label: string; value: string; tone?: string }) {
-  return (
-    <div className="min-w-0">
-      <dt className="instrument-label text-[0.625rem]">{label}</dt>
-      <dd className={cx('mt-1 font-mono text-sm text-ink', tone)}>{value}</dd>
-    </div>
-  )
-}
-
-function Note({ children }: { children: ReactNode }) {
-  return (
-    <li className="flex items-start gap-2">
-      <span aria-hidden className="mt-1.5 size-1.5 shrink-0 bg-caution" />
-      {children}
-    </li>
-  )
-}
-
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div>
-      <p className="mb-2 instrument-label">{label}</p>
-      {children}
-    </div>
   )
 }

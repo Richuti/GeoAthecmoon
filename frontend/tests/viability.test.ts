@@ -128,6 +128,12 @@ describe('con los datos de prueba', () => {
     assert.equal(order.at(-1), 'nobile-rim')
   })
   test('Nobile avisa por su pendiente', () => assert.ok(byId['nobile-rim'].warnings.some((w) => w.includes('pendiente'))))
+  test('un resultado de falla limita también la viabilidad del sitio mostrada en la interfaz', () => {
+    const d = sites.find((s) => s.site.id === 'mons-mouton')!
+    const r = siteViability(d, visibility(d), DEFAULT_WEIGHTS, undefined, { missionSurvives: false })
+    assert.ok(r.score <= MAX_SCORE_IF_MISSION_FAILS)
+    assert.ok(r.warnings.some((w) => w.includes('no sobrevive')))
+  })
   test('un rango de la misión usa solo esas muestras', () => {
     const d = sites.find((s) => s.site.id === 'mons-mouton')!
     const v = visibility(d)

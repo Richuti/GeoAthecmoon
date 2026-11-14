@@ -78,12 +78,12 @@ describe('modos y eventos', () => {
   test('avisa cuando vuelve el Sol', () => assert.ok(r.events.some((e) => e.type === 'sun-rise' && e.index === 15)))
   test('mensajes en español con día y hora de la misión', () => {
     const rise = r.events.find((e) => e.type === 'sun-rise')!
-    assert.equal(rise.message, 'Día 1, 15:00 UTC: vuelve el Sol.')
-    assert.match(r.events[0].message, /^Día 1, 00:00 UTC: alunizaje\./)
+    assert.equal(rise.message, 'Día 1 · 1 ene, 15:00 UTC: vuelve el Sol.')
+    assert.match(r.events[0].message, /^Día 1 · 1 ene, 00:00 UTC: alunizaje\./)
   })
   test('las ventanas de comunicación dicen cuánto duran', () => {
     const c = simulate(site(() => 2, (i) => (i >= 10 && i < 16 ? 5 : -5)), explorer, { startIndex: 0, missionDays: 2 })
-    assert.equal(c.events.find((e) => e.type === 'contact-open')!.message, 'Día 1, 10:00 UTC: se abre la ventana de comunicación (6 horas).')
+    assert.equal(c.events.find((e) => e.type === 'contact-open')!.message, 'Día 1 · 1 ene, 10:00 UTC: se abre la ventana de comunicación (6 horas).')
   })
   test('en supervivencia no se generan datos', () => {
     const cfg: LanderConfig = { ...explorer }

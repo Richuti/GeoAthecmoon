@@ -183,11 +183,13 @@ export function siteViability(
   vis: Visibility,
   weights: Weights = DEFAULT_WEIGHTS,
   range?: { from: number; to: number },
+  options: { missionSurvives?: boolean } = {},
 ): ViabilityResult {
   const from = range?.from ?? 0
   const to = range?.to ?? vis.lit.length
   return viability(
     { lightPct: percent(vis.lit, from, to), contactPct: percent(vis.contact, from, to), maxSlopeDeg: data.slope.max100mDeg },
     weights,
+    options,
   )
 }

@@ -99,7 +99,7 @@ describe('formatDurationLong', () => {
 describe('reloj de misión', () => {
   test('día y hora desde el inicio de la misión', () => {
     // La misión empieza en la muestra 10 (01 ene, 10:00). La muestra 85 es el 04 ene a las 13:00: día 4.
-    assert.equal(formatMissionClock(hourly, 85, 10), 'Día 4, 13:00 UTC')
+    assert.equal(formatMissionClock(hourly, 85, 10), 'Día 4 · 4 ene, 13:00 UTC')
   })
 })
 

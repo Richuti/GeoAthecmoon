@@ -22,6 +22,12 @@ export const SUN_RADIUS_DEG = 0.2665
 
 export type Mode = 'nominal' | 'survival' | 'failed'
 
+/** Banderas de luz y contacto por muestra (de lib/visibility). Se pueden pasar ya calculadas. */
+export interface Series {
+  lit: boolean[]
+  contact: boolean[]
+}
+
 export interface MissionPlan {
   /** Muestra de alunizaje */
   startIndex: number
@@ -93,14 +99,14 @@ export function sunFraction(clearance: number, radius = SUN_RADIUS_DEG): number 
 }
 
 /** Simula la misión. Función pura: mismos datos y parámetros, mismo resultado. */
-export function simulate(data: SiteData, cfg: LanderConfig, plan: MissionPlan): SimResult {
+export function simulate(data: SiteData, cfg: LanderConfig, plan: MissionPlan, precomputed?: Series): SimResult {
   const { from, to } = missionWindow(data, plan.startIndex, plan.missionDays)
   const dt = data.stepHours
   const capWh = cfg.batteryKWh * 1000
   const minWh = capWh * MIN_SOC
   const peak = panelPeakW(cfg)
-  const lit = litSeries(data)
-  const contact = contactSeries(data)
+  const lit = precomputed?.lit ?? litSeries(data)
+  const contact = precomputed?.contact ?? contactSeries(data)
   const clock = (i: number) => formatMissionClock(data, i, from)
 
   const series: SimResult['series'] = { index: [], soc: [], mode: [], generatedW: [], loadW: [], dataQueuedMb: [], dataSentMb: [] }

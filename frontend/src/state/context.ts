@@ -7,6 +7,7 @@ export interface AppActions {
   /** Salta a una muestra de tiempo (se ajusta al rango válido). */
   setIndex: (index: number) => void
   setPlaying: (playing: boolean) => void
+  setPlaybackRange: (range: AppState['playbackRange']) => void
   togglePlay: () => void
   setSpeed: (speed: Speed) => void
   setMode: (mode: Mode) => void

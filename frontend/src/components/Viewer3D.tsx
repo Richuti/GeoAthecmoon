@@ -171,7 +171,7 @@ function Stars() {
     tex.colorSpace = THREE.SRGBColorSpace
     scene.background = tex
     // Tenue: desde el suelo iluminado una cámara real casi no ve estrellas.
-    scene.backgroundIntensity = 0.18
+    scene.backgroundIntensity = 0.08
     return () => {
       scene.background = null
     }

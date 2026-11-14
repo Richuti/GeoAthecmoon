@@ -22,7 +22,7 @@ class ViewerError extends Component<{ children: ReactNode; fallback: ReactNode }
   }
 }
 
-export function ViewerPanel({ data, index, contact }: { data: SiteData; index: number; contact: boolean }) {
+export function ViewerPanel({ data, index, contact, missionState }: { data: SiteData; index: number; contact: boolean; missionState?: 'nominal' | 'survival' | 'failed' }) {
   const s = data.site
   const [ground, setGround] = useState<{ siteId: string; y: number } | null>(null)
   const [resetKey, setResetKey] = useState(0)
@@ -93,6 +93,9 @@ export function ViewerPanel({ data, index, contact }: { data: SiteData; index: n
           <Badge tone={contact ? 'earth' : 'neutral'}>
             Tierra {sky.earthEl.toFixed(2)}° · {contact ? 'con contacto' : 'sin contacto'}
           </Badge>
+          {missionState && <Badge tone={missionState === 'nominal' ? 'ok' : missionState === 'survival' ? 'caution' : 'critical'}>
+            Módulo: {missionState === 'nominal' ? 'operando' : missionState === 'survival' ? 'ahorrando energía' : 'sin energía'}
+          </Badge>}
         </div>
         <p className={cx('max-w-xs text-right text-[0.6875rem] leading-relaxed text-ink-faint')}>
           Relieve LOLA (NASA/LRO). Módulo agrandado ×30; Sol y Tierra agrandados. Arrastra para girar.
