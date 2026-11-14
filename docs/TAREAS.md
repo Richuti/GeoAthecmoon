@@ -202,7 +202,12 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 > **Regla:** el simulador **no inventa números**. Todo sale de `isLit`, `hasContact` y la elevación del Sol (tarea 5), más los parámetros que elige el usuario. Los valores de los presets son ilustrativos, y así lo dice la interfaz.
 
-### S1. Modelo del módulo y presets · MVP
+### S1. Modelo del módulo y presets · MVP · [x]
+- **Hecho:** `src/sim/lander.ts` y `tests/lander.test.ts` (12 casos, 149 en total).
+  - `missionDays` **no** va en `LanderConfig`: vive en el estado global (5.5) para que la viabilidad y el simulador usen la misma duración.
+  - Además de lo pedido: `autonomyHours` (horas sin Sol, desde el 100 % hasta el 20 %), `minSunFraction` (qué % del tiempo tiene que haber luz para que la energía alcance), `validateConfig`, `clampConfig`, `PARAMETER_RANGES` y la constante `RECOVERY_SOC = 0.6`.
+  - "Configurar misión" usa los sliders de área y eficiencia, muestra la potencia pico, la autonomía y el Sol necesario, y los tres avisos (presets ilustrativos, DSN y mínimo de 20 %).
+  - Se borró `src/design/preview.ts`.
 - **Archivo:** `src/sim/lander.ts`.
 - **Constantes físicas** (exportadas, con su fuente en un comentario):
   - `SOLAR_CONSTANT_W_M2 = 1361`: irradiancia solar a 1 UA. En la Luna no hay atmósfera que la reduzca.
