@@ -13,6 +13,11 @@ Con eso da un **porcentaje de viabilidad** y, si no conviene, **recomienda un si
 **Simulador de misión:** el usuario elige sitio, fecha y duración, y configura el módulo (batería, panel, consumo y datos). Después **simula la misión hora por hora** con los datos reales de luz y comunicación. Al final ve si la misión sobrevive, cuántos datos envió y qué fecha o sitio funcionaría mejor.
 - La pregunta central del reto es: *"Si la misión se atrasa, ¿todavía funciona?"*. Se mueve la fecha, se vuelve a simular y se ve.
 - **Regla: el simulador no inventa números.** Todo sale de `isLit`, `hasContact` y la elevación del Sol (tarea 5), más los parámetros que elige el usuario. Los valores de los presets son ilustrativos, y así lo dice la interfaz.
+- **Física:**
+  - Potencia del panel = `1361 W/m² × área × eficiencia (0.30 por defecto) × fracción del disco solar visible`.
+  - Batería con eficiencia de carga y de descarga de 0.90, y profundidad de descarga máxima de 0.80: nunca baja del 20 %, y llegar a ese mínimo es la falla.
+  - Supuesto escrito en la interfaz: siempre hay una estación de la DSN disponible cuando la Tierra es visible.
+- **Tolerancia a atrasos:** `delayTolerance` dice cuántos días se puede atrasar el alunizaje y la misión sigue sobreviviendo. El resultado lo muestra como "Tolera atrasos de hasta X días".
 - Detalle en las fases B2 y C2 de `docs/TAREAS.md`.
 
 **El reto premia la facilidad de uso:** las herramientas de NASA que ya existen (Quickmap, Moon Trek, Horizons) son complicadas. La app tiene que ser clara para ingenieros, estudiantes y público general.
@@ -33,7 +38,12 @@ Con eso da un **porcentaje de viabilidad** y, si no conviene, **recomienda un si
 - React 19 + Vite + TypeScript + Tailwind CSS v4 (plugin `@tailwindcss/vite`; `@import "tailwindcss"` en `src/index.css`).
 - 3D: **React Three Fiber** + drei + three (instalar en la tarea 9), solo para **cargar** los `.glb` de Richard.
 - Sin librerías de gráficos: el gráfico polar y la barra de ventanas se hacen en **SVG**.
-- Estética: oscura (fondo `#05070d`), Sol en ámbar y Tierra en azul.
+- Estética **"hardware de vuelo"** (ver `docs/DISENO.md`). Fondo `#05070d`; el ámbar es solo el Sol y el azul solo la Tierra.
+  - Big Shoulders Stencil solo en rótulos grandes. B612 (de cabina) para la interfaz y los números.
+  - Paneles como marcos finos con el nombre en el borde.
+  - Fuentes locales en `public/fonts`.
+- **Nada de diseño con cara de IA:** sin tarjetas redondeadas genéricas, etiquetas en mono espaciada, píldoras con punto ni gradientes. Antes de entregar una pantalla, capturas en escritorio y móvil.
+- **Imágenes y videos:** los genera Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son ilustraciones con la leyenda "Ilustración generada con IA"; ningún dato sale de ellas.
 
 ## Estructura
 ```
@@ -49,6 +59,8 @@ GeoAthectum/
 ```
 
 ## Contrato de datos (resumen; detalle en `docs/CONTRATO_DATOS.md`)
+- **Horizonte:** se calcula con un DEM LOLA de unos 150 km (alrededor de 240 m/px), restando la curvatura lunar `d²/(2R)` con R = 1737.4 km. El recorte de 20 km es solo para `terrain` y `slope`, y la pendiente es "regional" (a la resolución del DEM).
+- **En la vista 3D los datos mandan:** si `isLit` es falso, la luz del Sol se apaga o se atenúa aunque el modelo no proyecte sombra, porque el horizonte puede venir de montañas fuera del recorte.
 - `GET /sites` devuelve `{ sites: Site[] }` y `GET /sites/{id}` devuelve `SiteData`.
 - En modo prueba son archivos estáticos: `public/data/sites.json` y `public/data/sites/{id}.json`. Si `VITE_API_URL` está vacío, se usan esos archivos.
 - `SiteData` = `site`, `start` (ISO UTC), `stepHours`, `horizon` (360 elevaciones, desde el N en sentido horario), `slope` (`atSiteDeg`, `max100mDeg`), `sun` y `earth` (`az[]` y `el[]` por muestra), y `terrain` opcional (`size`, `extentKm`, `heightsM`, fila 0 = norte, columna 0 = oeste).
@@ -61,7 +73,12 @@ GeoAthectum/
 La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un paso a la vez**, en el orden de ese archivo, y se marca con `[x]` cuando Richard lo sube.
 
 - **Hecho:** 1 (base), 2 (contrato), 3.1 (datos de prueba: `npm run mock`), 3.2 (Sol y Tierra reales: `npm run horizons`, luego `npm run mock`) y 3.4 (relieve para Blender: `npm run export-terrain`).
-- **Siguiente:** lo elige Richard. El orden recomendado está en `docs/TAREAS.md`: C0 → 4 → 5 → S1 → S2 → 6 → 8 → SU1 → SU2 → SU3 → 7 → 9 → S3 → 11. El 3.3 es manual y lo hace el equipo.
+- **Hecho también:** C0 (sistema de diseño y layout final; `src/design/preview.ts` es temporal).
+- **Hecho:** 4.1 (cliente de datos `src/api.ts`, con caché y validación del contrato) y 4.2 (estado global en `src/state`, hook `useAppState()`).
+- **Hecho:** 4.3 (`SiteSelector`, con teclado, versión móvil plegable y enlace directo `?sitio=`).
+- **Siguiente:** tarea 5 (cálculos en `src/lib/`), empezando por 5.1 (horizonte interpolado).
+- **Orden:** 3 → 4 → 5 → S1 → S2 → 6 → 8 → SU1 → SU2 → SU3 → 7 → 9 → S3 → 11. El C0 se cierra antes del 4. El 3.3 es manual y lo hace el equipo.
+- **Pendiente pequeño:** agregar `TIME_TYPE='UT'` a `fetch-horizons.mjs` y volver a descargar.
 - **Diseño:** el paso C0 (sistema de diseño) va antes de la primera pantalla. La calidad visual tiene que ser de primer nivel.
 - **3D: lo modela todo Richard** (`.glb` en `frontend/public/models/`, especificaciones en "Lo que Richard crea en 3D" de `docs/TAREAS.md`). **No generes geometría 3D en código**: nada de mallas procedurales, esferas ni marcadores hechos con primitivas. El código solo carga los modelos, controla la cámara, mueve la luz del Sol según los datos y anima las piezas con nombre (`SolarPanel`, `Antenna`). Si falta un modelo, se muestra un estado vacío bien diseñado.
 

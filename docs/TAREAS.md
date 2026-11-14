@@ -15,7 +15,9 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 - **Extra:** solo si sobra tiempo.
 - **NASA:** usa uno de los recursos oficiales del reto: **Quickmap**, **Moon Trek**, **JPL Horizons** o **CSA Moon Exploration**. Son prioritarios.
 
-**Orden recomendado (camino a la demo):** 3 → C0 → 4 → 5 → **S1 → S2** → 6 → 8 → **SU1 → SU2 → SU3** → 7 → 9 → **S3** → 11. El 10, S4, SU4, SU5 y los extras van al final.
+**Orden recomendado (camino a la demo):** 3 → 4 → 5 → **S1 → S2** → 6 → 8 → **SU1 → SU2 → SU3** → 7 → 9 → **S3** → 11. El 10, S4, SU4, SU5 y los extras van al final.
+
+El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ---
 
@@ -49,6 +51,7 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 - **Listo cuando:** en Shackleton, la elevación del Sol se mantiene en ±2°. En Malapert, la Tierra casi siempre está sobre el horizonte. Los dos JSON tienen 1440 valores.
 - **Resultado:** `npm run horizons` descarga los 12 pedidos (6 sitios × Sol y Tierra) y `npm run mock` los usa. Cada archivo indica `sources.ephemeris = "jpl-horizons"`. Con el Sol real, el relieve se recalibró: la luz queda en Connecting Ridge 82 %, Shackleton 73 %, de Gerlache 70 %, Malapert 56 %, Mons Mouton 47 % y Nobile 38 %. Los sitios del polo tienen horizontes un poco bajo 0°, como los bordes altos reales.
 - **Contrato:** se agregó el campo opcional `sources` (`src/types.ts` y `docs/CONTRATO_DATOS.md`).
+- **Pendiente:** agregar `TIME_TYPE='UT'` a la consulta de `fetch-horizons.mjs` y volver a descargar con `npm run horizons -- --force`, como pide el contrato.
 - **Commit:** `Tarea 3.2: posiciones reales de Sol y Tierra con JPL Horizons`
 
 ### 3.3 Verificar los sitios con Quickmap y NASA · MVP · NASA (manual, con el equipo)
@@ -73,20 +76,53 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 ## Fase B · Carga de datos y cálculos
 
-### 4.1 Cliente de datos · MVP
-- **Archivo:** `src/api.ts` con `getSites()` y `getSiteData(id)`.
-- Si `VITE_API_URL` tiene valor, usa `${VITE_API_URL}/sites`; si está vacío, usa `/data/sites.json`.
-- Guarda en memoria los sitios ya pedidos y lanza errores con un mensaje claro.
+### 4.1 Cliente de datos · MVP · [x]
+- **Archivos:** `src/api.ts` y `src/env.d.ts` (tipo de `VITE_API_URL`).
+- **Funciones:** `getSites()`, `getSiteData(id)`, `getAllSiteData(sites)` y `clearDataCache()`.
+- **Origen de los datos:** si `VITE_API_URL` tiene valor, usa `${VITE_API_URL}/sites` y `/sites/{id}`. Si está vacío, usa `/data/sites.json` y `/data/sites/{id}.json`. `usingLocalData` dice cuál se está usando.
+- **Caché:** en memoria, compartida entre pedidos iguales. Si un pedido falla, se olvida para poder reintentar.
+- **Validación del contrato** (`validateSites` y `validateSiteData`): largos de `sun` y `earth`, 360 valores de horizonte, `size × size` del terreno, rangos de lat, lon y azimut, categoría, fecha, pendiente e id.
+  - Los errores (`DataError`) dicen exactamente qué está mal, por ejemplo: "sun.az tiene 1440 valores y sun.el tiene 1439".
+  - Con datos locales, el error sugiere correr `npm run mock`.
+- **Probado:** los 7 archivos actuales pasan, y 12 casos rotos a propósito se detectan con su mensaje.
+- `src/design/preview.ts` ya carga a través de `api.ts`.
 - **Commit:** `Tarea 4.1: cliente de datos (API o archivos de prueba)`
 
-### 4.2 Estado de la app · MVP
-- **Archivos:** `src/state/` (o un hook `useSiteData`), con el sitio elegido, los datos cargados, el índice de tiempo actual y los estados de carga y error.
+### 4.2 Estado de la app · MVP · [x]
+- **Archivos:**
+  - `src/state/appState.ts`: reductor puro, sin React.
+  - `src/state/AppStateProvider.tsx`: carga y reproducción.
+  - `src/state/context.ts`: hook `useAppState()`.
+  - `src/state/index.ts`.
+- **Estado:** lista de sitios, datos cargados por id, errores por sitio, sitio elegido, instante (`index`), reproducción, velocidad (1, 6 o 24 h/s) y modo (explorar o simular).
+- **Acciones:** `select`, `setIndex`, `setPlaying`, `togglePlay`, `setSpeed`, `setMode` y `reload` (para "Reintentar").
+- **Reglas:**
+  - Al cambiar de sitio se mantiene la fecha y se pausa la reproducción.
+  - El índice siempre queda dentro del rango.
+  - Al llegar al final se pausa, y play desde el final vuelve a empezar.
+  - Abre en `shackleton-rim` si existe y, si no, en el primero de la lista.
+- **Carga:** primero la lista, después el sitio elegido y luego el resto en paralelo. Los errores se muestran con "Reintentar"; en la lista, un sitio que falló dice "Error".
+- **Probado:** 19 casos del reductor en Node. En el navegador: la carga normal y un backend caído (`VITE_API_URL` a un puerto vacío), que muestra el error con "Reintentar".
+- `src/design/preview.ts` ya no carga ni guarda estado: solo calcula y da formato (lo reemplazan la tarea 5 y S1).
 - **Commit:** `Tarea 4.2: estado de sitio y tiempo`
 
-### 4.3 Selector de sitios · MVP
-- **Archivo:** `src/components/SiteSelector.tsx`.
-- Lista agrupada por categoría (Artemis, CLPS…), con el nombre y las coordenadas legibles (`89.67° S, 197.0° E`).
-- Muestra cuál sitio está elegido, y estados de "cargando" y de error.
+### 4.3 Selector de sitios · MVP · [x]
+- **Archivos:**
+  - `src/components/SiteSelector.tsx`.
+  - `src/lib/format.ts`: coordenadas.
+  - `src/lib/sites.ts`: categorías, su explicación y la agrupación.
+- **Lista:** agrupada por categoría, con un "?" que explica qué es Artemis y qué es CLPS en lenguaje simple.
+- **Cada sitio:** nombre, coordenadas (`89.67° S · 197.0° E`), viabilidad y barras de luz y contacto. También tiene texto para lectores de pantalla y los estados "cargando" y "Error".
+- **Teclado:** ↑ ↓ Inicio Fin recorren la lista, cruzando categorías, y Enter elige.
+- **Móvil:** la lista se pliega y muestra solo el sitio elegido, con el botón "Cambiar sitio (6)". Al elegir uno, se vuelve a plegar.
+- **Enlace directo:** `?sitio=nobile-rim` abre ese sitio, y la URL sigue al sitio elegido (con `replaceState`, sin llenar el historial). Si el id no existe, abre Shackleton.
+- **Mejoras generales hechas en este paso:**
+  - `InfoTip` usa posición fija: no lo recortan los paneles con scroll y se abre hacia arriba si no hay lugar.
+  - Las barras de scroll son finas.
+  - En pantallas bajas, la columna central se puede desplazar.
+- **Probado:**
+  - 23 casos del reductor.
+  - 21 pruebas en el navegador real (Edge por CDP): URL, teclado, móvil a 390 px sin desborde, y laptop de 1366×768 sin superposiciones y con las explicaciones enteras.
 - **Commit:** `Tarea 4.3: selector de sitios por categoría`
 
 ### 5.1 Horizonte interpolado · MVP
@@ -125,44 +161,54 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 ### S1. Modelo del módulo y presets · MVP
 - **Archivo:** `src/sim/lander.ts`.
+- **Constantes físicas** (exportadas, con su fuente en un comentario):
+  - `SOLAR_CONSTANT_W_M2 = 1361`: irradiancia solar a 1 UA. En la Luna no hay atmósfera que la reduzca.
+  - `CHARGE_EFFICIENCY = 0.90` y `DISCHARGE_EFFICIENCY = 0.90`.
+  - `MAX_DEPTH_OF_DISCHARGE = 0.80`: la batería nunca baja del 20 %.
 - Tipo `LanderConfig`:
-  - `panelPeakW`: potencia del panel con Sol pleno.
+  - `panelAreaM2`: área del panel.
+  - `panelEfficiency`: eficiencia de las celdas (por defecto 0.30).
   - `batteryKWh`: capacidad de la batería.
   - `baseLoadW`: consumo de supervivencia (calefactores y computadora).
   - `instrumentLoadW`: consumo de los instrumentos.
   - `dataPerDayMb`: datos que generan los instrumentos.
   - `downlinkMbPerHour`: velocidad de envío cuando la Tierra es visible.
-  - `survivalThreshold`: entra en modo supervivencia por debajo de este nivel (por defecto 0.2).
+  - `survivalThreshold`: entra en modo supervivencia por debajo de este nivel (por defecto 0.40, porque el mínimo es 0.20).
   - `missionDays`: duración (por defecto 14).
-- 3 presets ilustrativos y genéricos, sin copiar ningún módulo real:
+- `panelPeakW(config) = 1361 × panelAreaM2 × panelEfficiency`. **No es un campo**: se calcula, y la interfaz lo muestra junto a los sliders.
+- 3 presets ilustrativos y genéricos, sin copiar ningún módulo real (con eficiencia 0.30):
 
-  | Preset | Panel | Batería | Consumo base + instrumentos | Datos | Envío |
-  |---|---|---|---|---|---|
-  | **Explorador ligero** | 300 W | 3 kWh | 60 W + 90 W | 1500 Mb/día | 400 Mb/h |
-  | **Estación científica** | 800 W | 10 kWh | 150 W + 250 W | 6000 Mb/día | 1200 Mb/h |
-  | **Rover de corta duración** | 200 W | 1.5 kWh | 40 W + 120 W | 800 Mb/día | 300 Mb/h |
+  | Preset | Panel | Potencia pico | Batería | Consumo base + instrumentos | Datos | Envío |
+  |---|---|---|---|---|---|---|
+  | **Explorador ligero** | 0.75 m² | ≈ 306 W | 3 kWh | 60 W + 90 W | 1500 Mb/día | 400 Mb/h |
+  | **Estación científica** | 2.0 m² | ≈ 817 W | 10 kWh | 150 W + 250 W | 6000 Mb/día | 1200 Mb/h |
+  | **Rover de corta duración** | 0.5 m² | ≈ 204 W | 1.5 kWh | 40 W + 120 W | 800 Mb/día | 300 Mb/h |
 
 - **Commit:** `Tarea S1: modelo del módulo y presets`
 
 ### S2. Motor de simulación · MVP
 - **Archivo:** `src/sim/simulate.ts`, con `simulate(data, config, startIndex)`. Es una función pura que avanza en pasos de `stepHours`.
-- **Energía, en cada paso:**
-  - Generación = `panelPeakW × fracciónDeSol`. La fracción es 1 si el Sol está completo sobre el horizonte, 0 si está tapado, y lineal mientras el disco solar (radio ≈ 0.27°) cruza el borde del relieve. El panel sigue al Sol, así que no hace falta otro factor de ángulo.
-  - Consumo = `baseLoadW`, más `instrumentLoadW` si está en modo nominal.
-  - `SoC += (generación − consumo) × horas`, limitado entre 0 y `batteryKWh`. Empieza al 100 %.
+- **Generación (W)** = `1361 × panelAreaM2 × panelEfficiency × fracciónDeSol`.
+  - La fracción es la parte del disco solar visible sobre el relieve: 1 si está completo, 0 si está tapado, y lineal mientras el disco (radio ≈ 0.27°) cruza el borde.
+  - El panel sigue al Sol, así que no hace falta otro factor de ángulo.
+- **Consumo (W)** = `baseLoadW`, más `instrumentLoadW` si está en modo nominal.
+- **Batería (Wh):** empieza al 100 % y tiene como tope `batteryKWh`.
+  - Si sobra energía: `carga += (generación − consumo) × horas × 0.90` (eficiencia de carga).
+  - Si falta: `carga −= (consumo − generación) × horas / 0.90` (eficiencia de descarga).
 - **Modos:**
   - **Nominal.**
-  - **Supervivencia:** con SoC por debajo del umbral apaga los instrumentos, y vuelve a nominal por encima del 40 %.
-  - **Falla:** SoC = 0. La misión termina ahí.
+  - **Supervivencia:** por debajo de `survivalThreshold` (40 % por defecto) apaga los instrumentos, y vuelve a nominal por encima del 60 %.
+  - **Falla:** la carga llega al **20 %**, el mínimo que permite la profundidad de descarga máxima de 0.80. La misión termina ahí.
+- **Comunicación:** se asume que **siempre hay una estación de la DSN** (Deep Space Network) disponible cuando la Tierra es visible. Este supuesto se escribe en la interfaz (SU1 y SU3).
 - **Datos:** en modo nominal se acumulan `dataPerDayMb / 24` por hora. Con contacto con la Tierra se envían hasta `downlinkMbPerHour`.
 - **Devuelve:**
   - Series por paso: `soc`, `mode`, `generatedW`, `loadW`, `dataQueuedMb` y `dataSentMb`.
   - `events[]` con `{ index, type, message }` en español, por ejemplo:
     - *"Día 4, 13:00 UTC: el Sol se oculta tras el relieve"*
-    - *"Batería al 18 %: modo supervivencia"*
+    - *"Batería al 38 %: modo supervivencia"*
     - *"Se abre la ventana de comunicación (6 h)"*
-    - *"Falla: batería agotada"*
-  - `summary`: `survived`, `failedAtIndex`, `minSocPct`, `hoursInSurvival`, `dataSentPct` y `energyMarginKWh`.
+    - *"Falla: la batería llegó a su mínimo (20 %)"*
+  - `summary`: `survived`, `failedAtIndex`, `minSocPct`, `hoursInSurvival`, `dataSentPct` y `energyMarginKWh` (energía por encima del mínimo del 20 % en el peor momento).
 - **Listo cuando:** con el mismo sitio y el mismo preset, una fecha con noche larga falla y otra con mucha luz sobrevive.
 - **Commit:** `Tarea S2: motor de simulación de energía y datos`
 
@@ -170,13 +216,18 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 - **Archivo:** `src/sim/search.ts`.
 - `scanStartDates(data, config)`: simula empezando cada 6 h dentro del periodo, siempre que quepa la misión completa, y devuelve qué fechas sobreviven y con qué margen.
 - `bestAlternative(allSites, config, startIndex)`: el mismo inicio en los otros sitios, ordenado por resultado.
+- `delayTolerance(data, config, startIndex)`: cuántos días se puede **atrasar** el alunizaje y la misión sigue sobreviviendo.
+  - Prueba inicios cada 6 h desde `startIndex` hacia adelante y se detiene en el primero que falla, o cuando la misión ya no cabe en el periodo.
+  - Devuelve `{ days, limitedByPeriod }`. `limitedByPeriod` es verdadero si no falló ninguno pero se acabaron los datos; en ese caso la interfaz dice "al menos X días".
+  - Responde la pregunta central del reto: *"Si la misión se atrasa, ¿todavía funciona?"*.
 - **Integrar con la viabilidad (5.4):** si la misión no sobrevive, la viabilidad queda en 40 % como máximo y la explicación lo dice. La recomendación (5.5) usa estos resultados: *"Aterrizando el 18 de enero sobrevives con 35 % de margen"*.
 - **Commit:** `Tarea S3: búsqueda de fechas y sitios viables`
 
 ### S4. Pruebas del simulador · Extra
 - Con Vitest:
   - Siempre con luz → no falla.
-  - Siempre en sombra → falla en `batteryKWh / baseLoadW` horas.
+  - Siempre en sombra → falla al llegar al 20 %, en `0.60 × B × 0.90 / (base + instrumentos) + 0.20 × B × 0.90 / base` horas, con `B` = `batteryKWh` en Wh (nominal del 100 al 40 %, supervivencia del 40 al 20 %).
+  - Con Sol pleno, la generación es exactamente `1361 × área × eficiencia`.
   - Sin contacto → 0 % de datos enviados.
 
 ---
@@ -185,12 +236,20 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 > El reto premia la **facilidad de uso**. Cada pantalla tiene que entenderla alguien que nunca usó Quickmap.
 
-### C0. Dirección visual y sistema de diseño · MVP (va antes de 4.3)
-- **Archivos:** `src/index.css` (tokens en `@theme`: colores, tipografía, espacios, radios, sombras y animación), `src/components/ui/` (Panel, Button, Stat, Badge, Tooltip y Slider) y `docs/DISENO.md`.
-- **Dirección:** "consola de misión": fondo `#05070d`, el Sol en ámbar y la Tierra en azul, como colores de dato que no se usan para decorar. Tipografía técnica pero legible, con números tabulares y jerarquía clara.
-- **Criterios:** buen contraste (WCAG AA), foco visible con teclado, funciona desde 360 px de ancho y respeta `prefers-reduced-motion`.
-- **Listo cuando:** `App.tsx` muestra el layout final con los componentes base y datos de prueba, sin lógica todavía.
-- **Commit:** `Tarea C0: sistema de diseño y layout final`
+### C0. Dirección visual y sistema de diseño · MVP · [x]
+- **Archivos:**
+  - `src/index.css` (tokens) y `src/fonts.css` con `public/fonts/` (fuentes locales).
+  - `src/components/ui/` (Panel, Button, Segmented, Slider, Stat, Badge, InfoTip y EmptyState).
+  - `src/components/HorizonStrip.tsx` y `src/components/WindowsBar.tsx`.
+  - `src/App.tsx` (layout final) y `docs/DISENO.md`.
+- **Dirección "hardware de vuelo":**
+  - Big Shoulders Stencil (rotulación esténcil del hardware espacial) solo en el nombre del sitio, la viabilidad y la marca.
+  - B612 (la tipografía de cabina de Airbus) para todo lo demás.
+  - Paneles como marcos de instrumento, con el nombre incrustado en el borde.
+  - Detalle en `docs/DISENO.md`.
+- **Elemento distintivo:** la **franja de horizonte de 360°**, con el relieve y el Sol y la Tierra rozándolo, y una escala ampliada cerca de 0°.
+- **Temporal:** `src/design/preview.ts` carga los datos y hace cálculos mínimos para revisar el diseño con datos reales. Lo reemplazan 4.1, 4.2, la tarea 5 y S1.
+- **Commit:** `Tarea C0: sistema de diseño "hardware de vuelo" y layout final`
 
 ### 6.1 Slider de fecha y hora · MVP
 - **Archivo:** `src/components/Timeline.tsx`. Slider sobre las 1440 muestras, con la fecha en UTC bien visible.
@@ -240,7 +299,10 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 ### 9.2 Luz del Sol desde los datos · MVP
 - Una luz direccional en la dirección `(sin az·cos el, sin el, -cos az·cos el)`, con el norte en -Z y el este en +X. Cambia con el slider de tiempo.
 - Las sombras salen en tiempo real del propio modelo.
-- **Comprobar:** el sitio queda en sombra en 3D exactamente cuando `isLit` es falso.
+- **Los datos mandan sobre el modelo:** si `isLit` es falso, la luz del Sol se apaga o se atenúa **aunque el terreno 3D no proyecte sombra**. El horizonte real puede venir de montañas que están fuera del recorte de 20 km.
+  - La intensidad sigue la fracción del disco solar visible (la misma de S2), así la transición es suave.
+  - Queda la luz ambiente tenue y la luz de la Tierra.
+- **Comprobar:** cuando `isLit` es falso, el sitio se ve en sombra en 3D, venga la sombra del modelo o no.
 
 ### 9.3 Sol y Tierra en el cielo · MVP
 - Se cargan `sun.glb` y `earth.glb` y se colocan en el cielo según su azimut y elevación actuales, a una distancia fija de la cámara.
@@ -261,7 +323,11 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 ### SU1. Panel "Configurar misión" · MVP
 - **Archivo:** `src/components/MissionSetup.tsx`.
 - Selector de preset, más sliders para cada parámetro con su unidad y un tooltip en lenguaje simple. También la fecha de alunizaje y la duración.
-- Aviso visible: los presets son ilustrativos.
+- El panel se configura con **área** y **eficiencia**. Al lado se muestra la potencia pico calculada (`1361 W/m² × área × eficiencia`).
+- Avisos visibles:
+  - Los presets son ilustrativos.
+  - Se asume una estación de la DSN siempre disponible cuando la Tierra es visible.
+  - La batería no baja del 20 % (profundidad de descarga del 80 %).
 - Botón grande **"Simular misión"**.
 - **Commit:** `Tarea SU1: panel de configuración de misión`
 
@@ -277,6 +343,7 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 - Tarjeta final:
   - ✅ **Misión cumplida**, o ❌ **Falló el día X**, con la causa.
   - Datos enviados (%), batería mínima y horas en supervivencia.
+  - **"Tolera atrasos de hasta X días"** (de `delayTolerance`), o "al menos X días" si el periodo de datos no alcanza para saber más. Si no tolera ningún atraso, se dice claramente.
   - Recomendación: la mejor fecha (de S3) y el mejor sitio alternativo, con un botón "Probar esta opción" que vuelve a simular.
 - Barra de **"fechas que funcionan"**: el resultado de `scanStartDates` sobre el periodo, en verde o en rojo.
 - **Commit:** `Tarea SU3: resultado de la misión y fechas viables`
@@ -286,6 +353,23 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 ### SU5. Animación de descenso · Extra
 - Al empezar la simulación, el módulo baja hasta el sitio en unos 3 segundos, antes de que empiece el tiempo de la misión. Respeta `prefers-reduced-motion`.
+
+---
+
+## Fase C3 · Portada narrativa con scroll
+
+> Medios generados por Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son **ilustraciones**: cada una lleva la leyenda "Ilustración generada con IA", y ningún dato sale de ellas.
+
+### C3.1 Portada con video que avanza con el scroll · Extra (MVP si llegan los videos)
+- **Archivo:** `src/components/Story.tsx`. Cuatro o cinco escenas con V1–V5. El scroll mueve el `currentTime` del video. Se pausa con `prefers-reduced-motion` y entonces muestra el póster.
+- Cada escena tiene una frase corta con un dato real de la app. Por ejemplo: *"En Shackleton el Sol nunca sube más de 1.3°"* (calculado de los datos de Horizons, no escrito a mano).
+- Termina con el botón **"Abrir el planificador"**.
+- Si falta un video, usa su póster o `i2-borde-crater.jpg`.
+- **Commit:** `Tarea C3.1: portada narrativa con scroll`
+
+### C3.2 Imagen para compartir · Extra
+- `public/og.jpg` (1200×630): el fondo I1 con el título en la tipografía de la app, compuesto en HTML y capturado.
+- Más las etiquetas Open Graph en `index.html`.
 
 ---
 
@@ -309,6 +393,7 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 - Escribir las limitaciones: no modelamos temperatura, polvo ni satélites de relevo, y el terreno de prueba no es real.
 
 ### Limitaciones del simulador (para el pitch)
+- Supuestos: siempre hay una estación de la DSN disponible cuando la Tierra es visible. El panel sigue al Sol perfectamente. Las eficiencias de la batería (0.90) son fijas.
 - No modelamos la temperatura real: el consumo de supervivencia es fijo.
 - Tampoco modelamos la degradación de la batería, el polvo sobre el panel ni los satélites de relevo.
 - Los presets son ilustrativos.
@@ -330,7 +415,7 @@ Todo el 3D lo modela Richard (en Blender o la herramienta que prefieras) y lo ex
 
 ### M0. Terrenos de los 6 sitios · MVP (para el paso 9.1)
 - **Archivos:** `public/models/terrain/{id}.glb`, uno por sitio: `shackleton-rim`, `connecting-ridge`, `de-gerlache-rim`, `mons-mouton`, `malapert-massif` y `nobile-rim`.
-- **Base obligatoria:** empezar desde `assets-src/terrain/{id}.obj` o desde el PNG del paso 3.4. **No cambies la forma grande** (montañas, cráteres, crestas), porque de ella salen el horizonte y los % de luz. Sí puedes sumar detalle fino: rocas, regolito, cráteres chicos de menos de 200 m, materiales y color.
+- **Base obligatoria:** empezar desde `assets-src/terrain/{id}.obj` o desde el PNG del paso 3.4. **No cambies la forma grande** (montañas, cráteres, crestas), porque de ella salen las sombras que se ven en 3D y deben coincidir con los % de luz. Sí puedes sumar detalle fino: rocas, regolito, cráteres chicos de menos de 200 m, materiales y color.
 - **Escala:** 1 unidad = 1 km, tanto en lo ancho como en las alturas. El terreno mide 20 × 20 unidades, con el sitio en el centro exacto (0, 0). El OBJ del paso 3.4 ya viene así.
 - **Límites:** menos de 200 000 triángulos y menos de 8 MB por terreno.
 - **Nombres:** el objeto del suelo se llama `Ground`, porque recibe las sombras.

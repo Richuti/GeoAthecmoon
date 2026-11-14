@@ -30,3 +30,7 @@ frontend/assets-src/terrain/*
 
 # Backend: DEM LOLA (231 MB) y caches
 backend/data/
+
+# Godot (vista de modelos)
+.godot/
+*.import
