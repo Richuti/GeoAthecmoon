@@ -1,13 +1,11 @@
 import { useDeferredValue, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
-import { MissionResult } from './components/sim/MissionResult'
-import { MissionSetup } from './components/sim/MissionSetup'
-import { MissionTrace } from './components/sim/MissionTrace'
+import { SimulatorWorkspace } from './components/sim/SimulatorWorkspace'
 import { Story } from './components/Story'
 import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
-import { Badge, Button, EmptyState, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
+import { Badge, Button, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
 import { formatLat, formatLon } from './lib/format'
 import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, totalDays } from './lib/time'
 import { missionWindow, recommend, type Recommendation } from './lib/recommend'
@@ -15,7 +13,7 @@ import { storyFacts } from './lib/storyFacts'
 import { DEFAULT_WEIGHTS, VERDICT_LABEL, siteViability, type Verdict, type ViabilityResult } from './lib/viability'
 import { nextChange, visibility } from './lib/visibility'
 import { DEFAULT_PRESET, PRESETS, type LanderConfig, type PresetId } from './sim/lander'
-import { bestStart, compareSites, delayTolerance, scanStarts } from './sim/search'
+import { bestViableStart, delayTolerance, scanStarts } from './sim/search'
 import { simulate } from './sim/simulate'
 import { useAppState, type Speed } from './state'
 import type { SiteData } from './types'
@@ -48,6 +46,7 @@ interface SiteView {
   contactPct: number
   result: ViabilityResult
   viability: number
+  missionSurvives?: boolean
 }
 
 type View = 'story' | 'planner'
@@ -109,6 +108,7 @@ function Planner() {
         contactPct: result.factors.contact.score,
         result,
         viability: result.score,
+        missionSurvives,
       }
     }
     return out
@@ -131,13 +131,13 @@ function Planner() {
     () => (current && landing !== null ? scanStarts(current.data, simCfg, missionDays, current.vis) : null),
     [current, landing !== null, missionDays, simCfg], // eslint-disable-line react-hooks/exhaustive-deps
   )
+  const bestMissionDate = useMemo(() => {
+    if (!current || !scan) return null
+    return bestViableStart(current.data, scan, missionDays, current.vis)
+  }, [current, scan, missionDays])
   const tolerance = useMemo(
     () => (current && result ? delayTolerance(current.data, simCfg, result.from, missionDays, current.vis) : null),
     [current, result, missionDays, simCfg],
-  )
-  const alternatives = useMemo(
-    () => (current && result ? compareSites(contexts.map((c) => ({ data: c.data, series: c.vis })), current.data.site.id, simCfg, result.from, missionDays) : []),
-    [contexts, current, result, missionDays, simCfg],
   )
   const tryStart = (s: number) => {
     actions.setPlaying(false)
@@ -155,10 +155,9 @@ function Planner() {
     actions.setIndex(index)
   }
   const plannedStart = current ? missionWindow(current.data, draftStart ?? landing ?? i, missionDays).from : 0
-  const missionSample = result && i >= result.from && i < result.from + result.series.soc.length ? i - result.from : null
 
   return (
-    <div className="flex min-h-dvh flex-col lg:h-dvh">
+    <div className={cx('flex min-h-dvh flex-col', mode === 'explore' && 'lg:h-dvh')}>
       <header className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-5">
         <Brand />
         <Segmented label="Modo" options={MODES} value={mode} onChange={actions.setMode} />
@@ -180,113 +179,58 @@ function Planner() {
         <Loading />
       ) : (
         <>
-          <HorizonStrip
-            title={`${p.data.site.name} · ${formatLat(p.data.site.lat)}, ${formatLon(p.data.site.lon)}`}
-            horizon={p.data.horizon.elevationDeg}
-            sun={{ az: p.data.sun.az[i], el: p.data.sun.el[i], visible: p.lit[i] }}
-            earth={{ az: p.data.earth.az[i], el: p.data.earth.el[i], visible: p.contact[i] }}
-            sunTrack={p.data.sun}
-            earthTrack={p.data.earth}
-          />
-
-          <main className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-5 p-3 pt-5 sm:p-5 lg:min-h-0 lg:flex-1 lg:grid-cols-[16.5rem_minmax(0,1fr)_22rem] xl:grid-cols-[17.5rem_minmax(0,1fr)_24rem]">
-            <SiteSelector
-              sites={sites}
-              selectedId={p.data.site.id}
-              summaries={views}
-              errors={state.dataErrors}
-              onSelect={actions.select}
+          {mode === 'simulate' ? (
+            <SimulatorWorkspace
+              data={p.data} lit={p.lit} contact={p.contact} onSeek={seek} survivalThreshold={simCfg.survivalThreshold}
+              setup={{
+                preset, cfg,
+                onPreset: (id) => { setPreset(id); setCfg(PRESETS[id].config) },
+                onCfg: (value) => { setPreset(null); setCfg(value) },
+                missionDays,
+                maxDays: totalDays(p.data, p.data.sun.el.length),
+                onMissionDays: actions.setMissionDays,
+                timelineDate: sampleTime(p.data, plannedStart),
+                minDate: sampleTime(p.data, 0),
+                maxDate: sampleTime(p.data, Math.max(0, p.data.sun.el.length - samplesFor(p.data, missionDays * 24))),
+                onDate: (value) => {
+                  const date = fromInputValue(value)
+                  if (date) setDraftStart(indexAt(p.data, date, p.data.sun.el.length))
+                },
+                landingDate: result ? sampleTime(p.data, result.from) : null,
+                onSimulate: () => tryStart(plannedStart),
+              }}
+              report={result && tolerance && scan ? {
+                data: p.data, result, tolerance, scan,
+                best: bestMissionDate, assessment: p.result,
+                comparisons: Object.values(views)
+                  .filter(v => v.data.start === p.data.start && v.data.stepHours === p.data.stepHours && v.data.sun.el.length === p.data.sun.el.length)
+                  .map(v => ({ siteId: v.data.site.id, name: v.data.site.name, score: v.viability, lightPct: v.lightPct, contactPct: v.contactPct, slopeDeg: v.data.slope.max100mDeg, survived: v.missionSurvives }))
+                  .sort((a, b) => b.score - a.score),
+                onTryStart: tryStart,
+                onTrySite: actions.select,
+              } : null}
             />
+          ) : <>
+            <HorizonStrip
+              title={`${p.data.site.name} · ${formatLat(p.data.site.lat)}, ${formatLon(p.data.site.lon)}`}
+              horizon={p.data.horizon.elevationDeg}
+              sun={{ az: p.data.sun.az[i], el: p.data.sun.el[i], visible: p.lit[i] }}
+              earth={{ az: p.data.earth.az[i], el: p.data.earth.el[i], visible: p.contact[i] }}
+              sunTrack={p.data.sun} earthTrack={p.data.earth}
+            />
+            <main className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-5 p-3 pt-5 sm:p-5 lg:min-h-0 lg:flex-1 lg:grid-cols-[16.5rem_minmax(0,1fr)_22rem] xl:grid-cols-[17.5rem_minmax(0,1fr)_24rem]">
+              <SiteSelector sites={sites} selectedId={p.data.site.id} summaries={views} errors={state.dataErrors} onSelect={actions.select} />
+              <div className="flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5">
+                <ViewerPanel data={p.data} index={i} contact={p.contact[i]} />
+                <Timeline p={p} index={i} playing={state.playing} speed={state.speed} onIndex={seek} onTogglePlay={actions.togglePlay} onSpeed={actions.setSpeed} />
+              </div>
+              <div className="flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5">
+                {rec && <Viability p={p} rec={rec} missionDays={missionDays} onMissionDays={actions.setMissionDays} onSelect={actions.select} onSeek={actions.setIndex} />}
+                <Now p={p} index={i} />
+              </div>
+            </main>
+          </>}
 
-            <div className={cx('flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5', mode === 'simulate' && 'order-2 lg:order-none')}>
-              <ViewerPanel data={p.data} index={i} contact={p.contact[i]}
-                missionState={mode === 'simulate' && result && missionSample !== null ? result.series.mode[missionSample] : undefined} />
-              <Timeline
-                p={p}
-                index={i}
-                playing={state.playing}
-                speed={state.speed}
-                onIndex={seek}
-                onTogglePlay={actions.togglePlay}
-                onSpeed={actions.setSpeed}
-                mission={mode === 'simulate' && result && missionEnd !== null ? { from: result.from, to: missionEnd } : undefined}
-              />
-              {mode === 'simulate' && result && current && (
-                <MissionTrace
-                  data={current.data}
-                  result={result}
-                  lit={current.vis.lit}
-                  contact={current.vis.contact}
-                  survivalThreshold={simCfg.survivalThreshold}
-                  index={i}
-                  onSeek={seek}
-                />
-              )}
-            </div>
-
-            <div className={cx('flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5', mode === 'simulate' && 'order-1 lg:order-none')}>
-              {mode === 'explore' ? (
-                <>
-                  {rec && (
-                    <Viability
-                      p={p}
-                      rec={rec}
-                      missionDays={missionDays}
-                      onMissionDays={actions.setMissionDays}
-                      onSelect={actions.select}
-                      onSeek={actions.setIndex}
-                    />
-                  )}
-                  <Now p={p} index={i} />
-                </>
-              ) : (
-                <>
-                  <MissionSetup
-                    preset={preset}
-                    cfg={cfg}
-                    onPreset={(id) => {
-                      setPreset(id)
-                      setCfg(PRESETS[id].config)
-                    }}
-                    onCfg={(c) => {
-                      setPreset(null)
-                      setCfg(c)
-                    }}
-                    missionDays={missionDays}
-                    maxDays={totalDays(p.data, p.data.sun.el.length)}
-                    onMissionDays={actions.setMissionDays}
-                    timelineDate={sampleTime(p.data, plannedStart)}
-                    minDate={sampleTime(p.data, 0)}
-                    maxDate={sampleTime(p.data, Math.max(0, p.data.sun.el.length - samplesFor(p.data, missionDays * 24)))}
-                    onDate={(value) => {
-                      const date = fromInputValue(value)
-                      if (date) setDraftStart(indexAt(p.data, date, p.data.sun.el.length))
-                    }}
-                    landingDate={result ? sampleTime(p.data, result.from) : null}
-                    onSimulate={() => tryStart(plannedStart)}
-                  />
-                  {result && tolerance && scan ? (
-                    <MissionResult
-                      data={p.data}
-                      result={result}
-                      tolerance={tolerance}
-                      scan={scan}
-                      best={bestStart(scan)}
-                      alternatives={alternatives}
-                      onTryStart={tryStart}
-                      onTrySite={actions.select}
-                    />
-                  ) : (
-                    <Panel label="Resultado de la misión">
-                      <EmptyState title="Todavía no simulaste esta misión">
-                        Elige un módulo, ajusta sus valores y pulsa «Simular misión» para ver si sobrevive hora por hora.
-                      </EmptyState>
-                    </Panel>
-                  )}
-                </>
-              )}
-            </div>
-          </main>
         </>
       )}
     </div>

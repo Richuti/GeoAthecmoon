@@ -7,7 +7,7 @@ import { windows } from '../../lib/visibility'
 import { MIN_SOC } from '../../sim/lander'
 import type { EventType, SimResult } from '../../sim/simulate'
 import type { SiteData } from '../../types'
-import { cx, Panel, Stat, StatGrid } from '../ui'
+import { cx, Stat, StatGrid } from '../ui'
 
 const EVENT_COLOR: Record<EventType, string> = {
   landing: 'bg-ink',
@@ -69,7 +69,8 @@ export function MissionTrace({
   }
 
   return (
-    <Panel label={`Batería y eventos · ${data.site.name}`}>
+    <section aria-label={`Batería y eventos · ${data.site.name}`} className="py-2">
+      <h2 className="mb-4 text-base font-bold text-ink">Energía durante la misión</h2>
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-sm text-ink-muted">
           {inMission ? (
@@ -146,7 +147,7 @@ export function MissionTrace({
       </div>
 
       <EventLog events={events} index={index} onSeek={onSeek} />
-    </Panel>
+    </section>
   )
 }
 
@@ -182,8 +183,8 @@ function EventLog({ events, index, onSeek }: { events: SimResult['events']; inde
   }, [lastPast])
 
   return (
-    <div className="mt-5 border-t border-seam pt-4">
-      <p className="instrument-label">Registro de la misión · {events.length} eventos</p>
+    <details className="mt-5">
+      <summary className="cursor-pointer py-2 text-sm text-ink-muted hover:text-ink">Registro de la misión · {events.length} eventos</summary>
       <ol ref={list} className="relative mt-2 max-h-56 overflow-y-auto pr-1">
         {events.map((e, j) => {
           const past = e.index <= index
@@ -205,6 +206,6 @@ function EventLog({ events, index, onSeek }: { events: SimResult['events']; inde
           )
         })}
       </ol>
-    </div>
+    </details>
   )
 }

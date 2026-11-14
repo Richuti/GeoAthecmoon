@@ -3,7 +3,8 @@
 
 import { missionWindow } from '../lib/recommend.ts'
 import { samplesFor } from '../lib/time.ts'
-import { contactSeries, litSeries } from '../lib/visibility.ts'
+import { contactSeries, litSeries, visibility, type Visibility } from '../lib/visibility.ts'
+import { DEFAULT_WEIGHTS, siteViability } from '../lib/viability.ts'
 import type { SiteData } from '../types'
 import type { LanderConfig } from './lander.ts'
 import { simulate, type Series } from './simulate.ts'
@@ -18,6 +19,23 @@ export interface StartResult {
   /** Energía sobre el mínimo del 20 % en el peor momento (kWh); 0 si falla */
   marginKWh: number
   dataSentPct: number
+}
+
+export type ViableStart = StartResult & { viability: number }
+
+/** Entre las fechas que sobreviven, prioriza luz, contacto y pendiente; después el margen y la fecha más temprana. */
+export function bestViableStart(data: SiteData, scan: StartResult[], missionDays: number, vis: Visibility = visibility(data)): ViableStart | null {
+  let best: ViableStart | null = null
+  for (const candidate of scan) {
+    if (!candidate.survived) continue
+    const score = siteViability(data, vis, DEFAULT_WEIGHTS, missionWindow(data, candidate.startIndex, missionDays)).score
+    const tiedScore = best !== null && Math.abs(score - best.viability) < 1e-9
+    const tiedMargin = best !== null && Math.abs(candidate.marginKWh - best.marginKWh) < 1e-9
+    if (!best || score > best.viability + 1e-9 || (tiedScore && (candidate.marginKWh > best.marginKWh + 1e-9 || (tiedMargin && candidate.startIndex < best.startIndex)))) {
+      best = { ...candidate, viability: score }
+    }
+  }
+  return best
 }
 
 /** Series de luz y contacto, para no recalcularlas en cada simulación. */

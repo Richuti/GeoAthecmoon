@@ -3,11 +3,31 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, test } from 'node:test'
 import { PRESETS } from '../src/sim/lander.ts'
-import { bestStart, compareSites, delayTolerance, scanStarts, seriesOf } from '../src/sim/search.ts'
+import { bestStart, bestViableStart, compareSites, delayTolerance, scanStarts, seriesOf, type StartResult } from '../src/sim/search.ts'
 import type { SiteData } from '../src/types.ts'
 
 const explorer = PRESETS.explorer.config
 const N = 20 * 24
+
+describe('bestViableStart: luz, comunicación y terreno', () => {
+  const candidate = (startIndex: number, marginKWh: number, survived = true): StartResult => ({ startIndex, marginKWh, survived, minSocPct: 50, dataSentPct: 100 })
+  test('prefiere más contacto aunque otra fecha deje más batería', () => {
+    const d = site('a', () => true)
+    d.earth.el.fill(-5, 0, 24)
+    const best = bestViableStart(d, [candidate(0, 2.4), candidate(48, 1.2)], 1)
+    assert.equal(best?.startIndex, 48)
+    assert.equal(best?.viability, 100)
+  })
+  test('solo recomienda fechas en las que el módulo sobrevive', () => {
+    const d = site('a', () => true)
+    assert.equal(bestViableStart(d, [candidate(0, 3, false)], 1), null)
+  })
+  test('a igual viabilidad elige margen, y después la fecha más temprana', () => {
+    const d = site('a', () => true)
+    const best = bestViableStart(d, [candidate(48, 2), candidate(24, 1), candidate(0, 2)], 1)
+    assert.equal(best?.startIndex, 0)
+  })
+})
 
 /** 20 días: el Sol se ve mientras `sunUp(i)`; la Tierra siempre. */
 function site(id: string, sunUp: (i: number) => boolean): SiteData {

@@ -22,12 +22,13 @@ class ViewerError extends Component<{ children: ReactNode; fallback: ReactNode }
   }
 }
 
-export function ViewerPanel({ data, index, contact, missionState }: { data: SiteData; index: number; contact: boolean; missionState?: 'nominal' | 'survival' | 'failed' }) {
+export function ViewerPanel({ data, index, contact, missionState, immersive = false }: { data: SiteData; index: number; contact: boolean; missionState?: 'nominal' | 'survival' | 'failed'; immersive?: boolean }) {
   const s = data.site
   const [ground, setGround] = useState<{ siteId: string; y: number } | null>(null)
   const [resetKey, setResetKey] = useState(0)
   const onGroundHeight = useCallback((y: number) => setGround({ siteId: s.id, y }), [s.id])
   const loaded = ground?.siteId === s.id
+  const Heading = immersive ? 'h2' : 'h1'
 
   const frac = sunFraction(clearanceDeg(data.horizon, data.sun.az[index], data.sun.el[index]))
   const sky: Sky = {
@@ -49,12 +50,8 @@ export function ViewerPanel({ data, index, contact, missionState }: { data: Site
     </div>
   )
 
-  return (
-    <Panel
-      label={`Terreno 3D · LOLA · ${data.terrain?.extentKm ?? 20} × ${data.terrain?.extentKm ?? 20} km`}
-      className="min-h-[26rem] flex-1 lg:min-h-[24rem]"
-      bodyClassName="relative overflow-hidden p-0"
-    >
+  const content = (
+    <>
       <div className="absolute inset-0" role="img" aria-label={`Vista 3D del relieve de ${s.name}, 20 por 20 kilómetros, con el Sol ${sunState}.`}>
         <ViewerError key={s.id} fallback={unavailable}>
           <Suspense fallback={null}>
@@ -75,9 +72,9 @@ export function ViewerPanel({ data, index, contact, missionState }: { data: Site
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 p-5 sm:p-6">
         <div>
           <Badge>{CATEGORY_LABEL[s.category]}</Badge>
-          <h1 className="mt-3 max-w-xl font-display text-4xl font-extrabold uppercase leading-[0.9] tracking-[0.01em] xl:text-5xl">
+          <Heading className="mt-3 max-w-xl font-display text-4xl font-extrabold uppercase leading-[0.9] tracking-[0.01em] xl:text-5xl">
             {s.name}
-          </h1>
+          </Heading>
           <p className="mt-2 font-mono text-xs text-ink-muted">{formatCoords(s)}</p>
         </div>
         <Button size="sm" className="pointer-events-auto shrink-0 bg-void/70" onClick={() => setResetKey((k) => k + 1)}>
@@ -101,6 +98,10 @@ export function ViewerPanel({ data, index, contact, missionState }: { data: Site
           Relieve LOLA (NASA/LRO). Módulo agrandado ×30; Sol y Tierra agrandados. Arrastra para girar.
         </p>
       </div>
-    </Panel>
+    </>
+  )
+  return immersive ? <section aria-label={`Terreno lunar de ${s.name}`} className="relative h-full min-h-80 overflow-hidden bg-black">{content}</section> : (
+    <Panel label={`Terreno 3D · LOLA · ${data.terrain?.extentKm ?? 20} × ${data.terrain?.extentKm ?? 20} km`}
+      className="min-h-[26rem] flex-1 lg:min-h-[24rem]" bodyClassName="relative overflow-hidden p-0">{content}</Panel>
   )
 }

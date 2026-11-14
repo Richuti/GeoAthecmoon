@@ -1,11 +1,12 @@
-// Portada narrativa: cinco escenas donde el scroll mueve el video y revela el texto, cada una con un dato
-// real calculado por la app. Las imágenes son ilustraciones generadas con IA (así lo dice cada escena).
+// Portada continua: un solo escenario fijo encadena las tomas y revela los datos con el avance del video.
+// Las imágenes son ilustraciones generadas con IA; los datos se calculan por separado.
 //
 // Rendimiento: un solo bucle requestAnimationFrame actualiza variables CSS y el tiempo de los videos de las
 // escenas visibles, sin volver a dibujar React en cada cuadro. Con "reducir movimiento" se ven pósters fijos.
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { StoryFacts } from '../lib/storyFacts'
+import { storyCues, storyPosition, storyVideoProgress } from '../lib/storyTiming'
 import { formatDateTime, formatShortDate, sampleTime } from '../lib/time'
 import { Button, cx } from './ui'
 
@@ -27,11 +28,6 @@ interface Scene {
 }
 
 const MEDIA = '/media'
-
-const smoothstep = (a: number, b: number, x: number) => {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)))
-  return t * t * (3 - 2 * t)
-}
 
 function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(() =>
@@ -133,9 +129,11 @@ export function Story({ facts, onOpen }: { facts: StoryFacts | null; onOpen: () 
   const reduced = useReducedMotion()
   const scenes = buildScenes(facts)
   const sectionRefs = useRef<Array<HTMLElement | null>>([])
+  const journey = useRef<HTMLElement | null>(null)
+  const videos = useRef<Array<HTMLVideoElement | null>>([])
   const [active, setActive] = useState(0)
 
-  // Bucle de scroll: progreso de cada escena → variables CSS, tiempo del video y contadores.
+  // El scroll solicita un fotograma; el fotograma alcanzado revela cada parte del relato.
   useEffect(() => {
     if (reduced) return
     const state = scenes.map(() => ({ t: 0 }))
@@ -143,40 +141,45 @@ export function Story({ facts, onOpen }: { facts: StoryFacts | null; onOpen: () 
     let lastActive = -1
 
     const frame = () => {
+      const track = journey.current
+      if (!track) return
       const vh = window.innerHeight
-      let current = -1
+      const r = track.getBoundingClientRect()
+      const global = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - vh)))
+      const position = storyPosition(global, scenes.length)
+      const current = position.finale > 0.5 ? -1 : position.scene
+      track.style.setProperty('--finale', position.finale.toFixed(4))
       sectionRefs.current.forEach((el, k) => {
-        if (!el) return
-        const r = el.getBoundingClientRect()
-        const visible = r.top < vh && r.bottom > 0
-        if (!visible) return
-        const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - vh)))
-        const isFirst = k === 0
-        const inn = isFirst ? 1 : smoothstep(0.06, 0.24, p)
-        const out = 1 - smoothstep(0.84, 0.97, p)
-        el.style.setProperty('--p', p.toFixed(4))
-        el.style.setProperty('--in', inn.toFixed(4))
-        el.style.setProperty('--vis', (inn * out).toFixed(4))
-        if (r.top <= vh * 0.5 && r.bottom >= vh * 0.5) current = k
+        const video = videos.current[k]
+        if (!el || !video) return
+        const isCurrent = k === position.scene
+        const isNext = k === position.scene + 1
+        video.style.opacity = isCurrent ? '1' : isNext ? position.blend.toFixed(4) : '0'
+        el.style.setProperty('--scene-opacity', isCurrent ? ((1 - position.blend) * (1 - position.finale)).toFixed(4) : '0')
+        if (!isCurrent && !isNext) return
+        const p = isCurrent ? position.local : 0
 
         // Video: el tiempo sigue al scroll con un poco de inercia.
-        const video = el.querySelector('video')
-        if (video && video.duration > 0) {
-          const target = Math.min(video.duration - 0.05, p * video.duration)
+        const end = video && Number.isFinite(video.duration) && video.duration > 0 ? Math.max(0.01, video.duration - 0.05) : null
+        if (video && end !== null) {
+          const target = storyVideoProgress(p) * end
           const s = state[k]
           s.t += (target - s.t) * 0.14
           if (Math.abs(video.currentTime - s.t) > 0.02 && !video.seeking) video.currentTime = s.t
         }
 
-        // Contador del dato: sube mientras entra el texto.
-        el.querySelectorAll<HTMLElement>('[data-count-to]').forEach((c) => {
-          const to = Number(c.dataset.countTo)
-          const d = Number(c.dataset.decimals ?? 0)
-          c.textContent = (to * smoothstep(0, 1, inn)).toFixed(d)
-        })
+        // El texto espera al fotograma, incluso si el navegador tarda en buscarlo.
+        // Si el video falla, el póster conserva el relato guiado por el scroll.
+        const unavailable = !video || video.error || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE
+        const videoProgress = unavailable ? storyVideoProgress(p) : end === null ? 0 : video.currentTime / end
+        const cues = storyCues(p, videoProgress, k === 0)
+        el.style.setProperty('--title', cues.title.toFixed(4))
+        el.style.setProperty('--body', cues.body.toFixed(4))
+        el.style.setProperty('--readout', cues.readout.toFixed(4))
+        el.style.setProperty('--visible', cues.visible.toFixed(4))
 
         // Cargar el video de la escena siguiente con tiempo.
-        const next = sectionRefs.current[k + 1]?.querySelector('video')
+        const next = videos.current[k + 1]
         if (next && next.preload !== 'auto') next.preload = 'auto'
       })
       if (current !== lastActive) {
@@ -189,7 +192,8 @@ export function Story({ facts, onOpen }: { facts: StoryFacts | null; onOpen: () 
 
     // iOS Safari solo permite cambiar el tiempo de un video después de un gesto: lo "despierta" una vez.
     const unlock = () => {
-      document.querySelectorAll('video').forEach((v) => {
+      videos.current.forEach((v) => {
+        if (!v) return
         v.play().then(() => v.pause()).catch(() => undefined)
       })
       window.removeEventListener('touchstart', unlock)
@@ -205,11 +209,10 @@ export function Story({ facts, onOpen }: { facts: StoryFacts | null; onOpen: () 
   }, [reduced])
 
   const goTo = (k: number) => {
-    const el = sectionRefs.current[k]
+    const el = reduced ? sectionRefs.current[k] : journey.current
     if (!el) return
     const top = el.getBoundingClientRect().top + window.scrollY
-    // Al 35 % de la escena, el texto ya está a la vista.
-    const offset = reduced || k === 0 ? 0 : (el.offsetHeight - window.innerHeight) * 0.35
+    const offset = reduced ? 0 : (el.offsetHeight - window.innerHeight) * ((k + (k === 0 ? 0 : 0.38)) / (scenes.length + 1))
     window.scrollTo({ top: top + offset, behavior: reduced ? 'auto' : 'smooth' })
   }
 
@@ -229,21 +232,39 @@ export function Story({ facts, onOpen }: { facts: StoryFacts | null; onOpen: () 
       <StoryBar onOpen={onOpen} />
       {!reduced && <ChapterNav scenes={scenes} active={active} onGo={goTo} />}
 
-      {scenes.map((s, k) => (
+      {reduced ? <>{scenes.map((s, k) => (
         <section
           key={s.id}
           ref={(el) => {
             sectionRefs.current[k] = el
           }}
           aria-labelledby={`escena-${s.id}`}
-          className={cx('relative', reduced ? 'min-h-dvh' : k === 0 ? 'h-[240vh]' : 'h-[280vh]')}
-          style={{ '--p': 0, '--in': k === 0 ? 1 : 0, '--vis': k === 0 ? 1 : 0 } as CSSProperties}
+          className="relative min-h-dvh"
+          style={{ '--p': 0, '--title': 1, '--body': 1, '--readout': 1, '--visible': 1 } as CSSProperties}
         >
           <SceneStage scene={s} index={k} total={scenes.length} reduced={reduced} first={k === 0} />
         </section>
-      ))}
-
-      <Finale facts={facts} onOpen={onOpen} />
+      ))}<Finale facts={facts} onOpen={onOpen} /></> : (
+        <section ref={journey} aria-label="Viaje al polo sur lunar" className="relative h-[1200svh]" style={{ '--finale': 0 } as CSSProperties}>
+          <div className="sticky top-0 h-dvh overflow-hidden bg-void">
+            {scenes.map((s, k) => (
+              <video key={s.video} ref={(el) => { videos.current[k] = el }} aria-hidden muted playsInline
+                preload={k === 0 ? 'auto' : 'metadata'} poster={`${MEDIA}/${s.video}.jpg`}
+                className="absolute inset-0 size-full object-cover" style={{ opacity: k === 0 ? 1 : 0 }}>
+                <source src={`${MEDIA}/${s.video}.mp4`} type="video/mp4" />
+              </video>
+            ))}
+            <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgb(5_7_13/0.92)_0%,rgb(5_7_13/0.4)_38%,transparent_75%)]" />
+            {scenes.map((s, k) => (
+              <article key={s.id} ref={(el) => { sectionRefs.current[k] = el }} aria-hidden={active !== k}
+                className="pointer-events-none absolute inset-0" style={{ '--scene-opacity': k === 0 ? 1 : 0, '--title': k === 0 ? 1 : 0, '--body': 0, '--readout': 0, '--visible': 1 } as CSSProperties}>
+                <SceneStage scene={s} index={k} total={scenes.length} reduced={false} first={k === 0} continuous />
+              </article>
+            ))}
+            <Finale facts={facts} onOpen={onOpen} continuous active={active < 0} />
+          </div>
+        </section>
+      )}
     </div>
   )
 }
@@ -290,7 +311,6 @@ function ChapterNav({ scenes, active, onGo }: { scenes: Scene[]; active: number;
               <span className={cx('font-mono text-xs tabular-nums', k === active ? 'text-ink' : 'text-ink-faint')}>
                 {String(k + 1).padStart(2, '0')}
               </span>
-              <span className={cx('block h-px transition-all duration-300', k === active ? 'w-8 bg-ink' : 'w-4 bg-ink-faint')} />
             </button>
           </li>
         ))}
@@ -305,17 +325,20 @@ function SceneStage({
   total,
   reduced,
   first,
+  continuous = false,
 }: {
   scene: Scene
   index: number
   total: number
   reduced: boolean
   first: boolean
+  continuous?: boolean
 }) {
   const src = `${MEDIA}/${scene.video}`
   return (
-    <div className={cx('overflow-hidden', reduced ? 'relative min-h-dvh' : 'sticky top-0 h-dvh')}>
-      {reduced ? (
+    <div className={cx('overflow-hidden', continuous ? 'absolute inset-0' : 'relative min-h-dvh')}
+      style={continuous ? { opacity: 'var(--scene-opacity)' } : undefined}>
+      {continuous ? null : reduced ? (
         <img src={`${src}.jpg`} alt="" className="absolute inset-0 size-full object-cover" />
       ) : (
         <video
@@ -324,22 +347,20 @@ function SceneStage({
           playsInline
           preload={first ? 'auto' : 'metadata'}
           poster={`${src}.jpg`}
-          className="absolute inset-0 size-full origin-center object-cover"
-          style={{ transform: 'scale(calc(1.08 - var(--p) * 0.08))' }}
+          className="absolute inset-0 size-full object-cover"
         >
           <source src={`${src}.mp4`} type="video/mp4" />
         </video>
       )}
 
       {/* Velo para que el texto se lea sobre cualquier cuadro */}
-      <div aria-hidden className="absolute inset-0 bg-[linear-gradient(to_top,rgb(5_7_13/0.92)_0%,rgb(5_7_13/0.55)_38%,transparent_70%)]" />
-      <div aria-hidden className="absolute inset-0 bg-[linear-gradient(to_right,rgb(5_7_13/0.7)_0%,transparent_55%)]" />
+      {!continuous && <div aria-hidden className="absolute inset-0 bg-[linear-gradient(to_top,rgb(5_7_13/0.92)_0%,rgb(5_7_13/0.55)_38%,transparent_70%)]" />}
 
       <div
         className="absolute inset-x-0 bottom-0 px-5 pb-16 sm:px-10 sm:pb-20 lg:px-16"
-        style={reduced ? undefined : { opacity: 'var(--vis)', transform: 'translateY(calc((1 - var(--in)) * 28px))' }}
+        style={reduced ? undefined : { opacity: 'var(--visible)' }}
       >
-        <p className="instrument-label text-ink-muted">
+        <p className="instrument-label text-ink-muted" style={reduced ? undefined : { opacity: 'var(--title)' }}>
           {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')} · {scene.chapter}
         </p>
         <h2
@@ -348,13 +369,16 @@ function SceneStage({
             'mt-4 max-w-4xl font-display font-extrabold uppercase leading-[0.88] tracking-[0.01em] text-ink',
             first ? 'text-6xl sm:text-7xl lg:text-8xl' : 'text-5xl sm:text-6xl lg:text-7xl',
           )}
-          style={reduced ? undefined : { clipPath: 'inset(0 calc((1 - var(--in)) * 100%) 0 0)' }}
+          style={reduced ? undefined : { opacity: 'var(--title)', clipPath: 'inset(0 0 calc((1 - var(--title)) * 100%) 0)' }}
         >
           {scene.title}
         </h2>
         <div className="mt-6 grid max-w-5xl gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-          <p className="max-w-xl text-base leading-relaxed text-ink-muted sm:text-lg">{scene.body}</p>
-          {scene.readout && <ReadoutBox r={scene.readout} reduced={reduced} />}
+          <p className="max-w-xl text-base leading-relaxed text-ink-muted sm:text-lg"
+            style={reduced ? undefined : { opacity: 'var(--body)', transform: 'translateY(calc((1 - var(--body)) * 12px))' }}>{scene.body}</p>
+          {scene.readout && <div style={reduced ? undefined : { opacity: 'var(--readout)', clipPath: 'inset(0 calc((1 - var(--readout)) * 100%) 0 0)' }}>
+            <ReadoutBox r={scene.readout} />
+          </div>}
         </div>
       </div>
 
@@ -362,7 +386,7 @@ function SceneStage({
         <div
           aria-hidden
           className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2"
-          style={{ opacity: 'calc(1 - var(--p) * 6)' }}
+          style={{ opacity: 'calc(1 - var(--body) * 6)' }}
         >
           <span className="instrument-label text-ink-muted">Desliza</span>
           <span className="block h-8 w-px origin-top bg-ink-muted motion-safe:animate-pulse" />
@@ -370,23 +394,17 @@ function SceneStage({
       )}
 
       <p className="absolute bottom-4 right-4 text-[0.6875rem] text-ink-faint sm:right-8">Ilustración generada con IA</p>
-      {!reduced && (
-        <div aria-hidden className="absolute inset-x-0 bottom-0 h-px bg-ink/10">
-          <div className="h-full bg-ink/60" style={{ width: 'calc(var(--p) * 100%)' }} />
-        </div>
-      )}
     </div>
   )
 }
 
-function ReadoutBox({ r, reduced }: { r: Readout; reduced: boolean }) {
+function ReadoutBox({ r }: { r: Readout }) {
   const shown = r.value.toFixed(r.decimals)
   return (
-    <div className="border-l border-ink/30 pl-5">
+    <div>
       <p className={cx('flex items-baseline', r.unit === '°' ? 'gap-0.5' : 'gap-2')}>
         <span
           className="font-display text-6xl font-black leading-none text-ink sm:text-7xl"
-          {...(reduced ? {} : { 'data-count-to': r.value, 'data-decimals': r.decimals })}
         >
           {shown}
         </span>
@@ -398,10 +416,12 @@ function ReadoutBox({ r, reduced }: { r: Readout; reduced: boolean }) {
   )
 }
 
-function Finale({ facts, onOpen }: { facts: StoryFacts | null; onOpen: () => void }) {
+function Finale({ facts, onOpen, continuous = false, active = true }: { facts: StoryFacts | null; onOpen: () => void; continuous?: boolean; active?: boolean }) {
   return (
-    <section aria-labelledby="final" className="relative flex min-h-dvh items-end overflow-hidden">
-      <img src={`${MEDIA}/i2-borde-crater.jpg`} alt="" className="absolute inset-0 size-full object-cover" />
+    <section aria-labelledby="final" aria-hidden={!active}
+      className={cx('flex items-end overflow-hidden', continuous ? 'absolute inset-0' : 'relative min-h-dvh', !active && 'pointer-events-none')}
+      style={continuous ? { opacity: 'var(--finale)' } : undefined}>
+      {!continuous && <img src={`${MEDIA}/i2-borde-crater.jpg`} alt="" className="absolute inset-0 size-full object-cover" />}
       <div aria-hidden className="absolute inset-0 bg-[linear-gradient(to_top,rgb(5_7_13/0.95)_0%,rgb(5_7_13/0.6)_45%,rgb(5_7_13/0.2)_100%)]" />
       <div className="relative px-5 pb-20 sm:px-10 lg:px-16">
         <p className="instrument-label text-ink-muted">Tu turno</p>
@@ -412,7 +432,7 @@ function Finale({ facts, onOpen }: { facts: StoryFacts | null; onOpen: () => voi
           {facts ? `${facts.siteCount} sitios del polo sur y ${facts.periodDays} días` : 'Sitios del polo sur y semanas'} de
           posiciones reales del Sol y la Tierra. Mueve la fecha, cambia el módulo y mira si tu misión sobrevive.
         </p>
-        <Button variant="primary" size="lg" className="mt-8" onClick={onOpen}>
+        <Button variant="primary" size="lg" className="mt-8" onClick={onOpen} tabIndex={active ? undefined : -1}>
           Abrir el planificador
         </Button>
         <p className="mt-10 max-w-xl text-xs leading-relaxed text-ink-faint">

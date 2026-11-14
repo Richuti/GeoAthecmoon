@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { formatDateTime, formatDuration, toInputValue } from '../../lib/time'
+import { useEffect, useState, type ReactNode } from 'react'
+import { formatDuration, toInputValue } from '../../lib/time'
 import {
   PARAMETER_RANGES,
   PRESETS,
@@ -9,7 +9,7 @@ import {
   type LanderConfig,
   type PresetId,
 } from '../../sim/lander'
-import { Button, cx, Panel, Slider } from '../ui'
+import { Button, cx, Slider } from '../ui'
 
 const PRESET_OPTIONS = (Object.keys(PRESETS) as PresetId[]).map((id) => ({ value: id, label: PRESETS[id].label }))
 
@@ -27,6 +27,7 @@ export function MissionSetup({
   maxDate,
   onDate,
   onSimulate,
+  siteControl,
 }: {
   /** null si se cambió algún valor a mano */
   preset: PresetId | null
@@ -44,20 +45,20 @@ export function MissionSetup({
   maxDate: Date
   onDate: (value: string) => void
   onSimulate: () => void
+  siteControl?: ReactNode
 }) {
   const set = (key: keyof LanderConfig) => (v: number) => onCfg({ ...cfg, [key]: v })
   const range = (key: keyof LanderConfig) => PARAMETER_RANGES[key]
   const peak = panelPeakW(cfg)
   const minSun = minSunFraction(cfg)
+  const [daysInput, setDaysInput] = useState(String(missionDays))
+  useEffect(() => setDaysInput(String(missionDays)), [missionDays])
 
   return (
-    <Panel label="Configurar misión">
-      <details key={landingDate?.getTime() ?? 'initial'} open={landingDate === null}>
-        <summary className="cursor-pointer text-sm leading-relaxed text-ink">
-          {landingDate ? `${preset ? PRESETS[preset].label : 'Módulo personalizado'} · ${missionDays} días` : 'Elige tu módulo y la fecha'}
-          {landingDate && <span className="mt-1 block text-xs text-ink-muted">{formatDateTime(timelineDate)} · Cambiar configuración</span>}
-        </summary>
-        <div className="mt-4">
+    <section aria-label="Configurar misión">
+      <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1.15fr_0.65fr_auto]">
+          {siteControl}
+          <div>
           <label htmlFor="mission-module" className="mb-2 block text-sm text-ink-muted">Módulo</label>
           <select id="mission-module" value={preset ?? 'custom'}
             onChange={(e) => onPreset(e.target.value as PresetId)}
@@ -65,11 +66,8 @@ export function MissionSetup({
             {!preset && <option value="custom" disabled>Personalizado</option>}
             {PRESET_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
-          <p className="mt-2 text-xs leading-relaxed text-ink-muted">
-            {preset ? PRESETS[preset].description : 'Valores ajustados a mano a partir de un preset.'}
-          </p>
+          </div>
 
-          <div className="mt-5 flex flex-col gap-4">
             <div>
               <label htmlFor="mission-date" className="mb-2 block text-sm text-ink-muted">Fecha de alunizaje · UTC</label>
               <input id="mission-date" type="datetime-local" value={toInputValue(timelineDate)}
@@ -77,18 +75,34 @@ export function MissionSetup({
                 onChange={(e) => { if (e.target.validity.valid && e.target.value) onDate(e.target.value) }}
                 className="min-h-11 w-full min-w-0 rounded-hw border border-seam-strong bg-hull px-3 text-sm text-ink" />
             </div>
-            <Slider label="Duración" unit="días" min={1} max={maxDays} value={missionDays} onChange={onMissionDays} />
-          </div>
+            <div>
+              <label htmlFor="mission-days" className="mb-2 block text-sm text-ink-muted">Duración</label>
+              <div className="flex min-h-11 items-center gap-2 rounded-hw border border-seam-strong bg-hull px-3">
+                <input id="mission-days" type="number" min={1} max={maxDays} value={daysInput}
+                  onChange={(e) => {
+                    setDaysInput(e.target.value)
+                    const value = e.target.valueAsNumber
+                    if (Number.isInteger(value) && value >= 1 && value <= maxDays) onMissionDays(value)
+                  }}
+                  onBlur={() => setDaysInput(String(missionDays))}
+                  className="min-w-0 w-full bg-transparent text-sm text-ink" />
+                <span className="text-xs text-ink-muted">días</span>
+              </div>
+            </div>
+            <Button variant="primary" size="lg" className="min-h-11 sm:col-span-2 lg:col-span-1" onClick={onSimulate}>
+              {landingDate === null ? 'Simular misión' : 'Volver a simular'}
+            </Button>
+      </div>
 
-          <dl className="mt-5 grid grid-cols-2 gap-4 border-y border-seam py-3">
-            <Derived label="Potencia solar" value={`${Math.round(peak)} W`} tone="text-sun" />
-            <Derived label="Autonomía sin Sol" value={formatDuration(autonomyHours(cfg))} />
-          </dl>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-xs leading-relaxed text-ink-muted">
+        <p>Panel <span className="text-sun">{Math.round(peak)} W</span> · Batería {cfg.batteryKWh} kWh · Autonomía sin Sol {formatDuration(autonomyHours(cfg))}</p>
+        <p>{landingDate && landingDate.getTime() !== timelineDate.getTime() ? 'Fecha modificada: vuelve a simular para aplicar el cambio.' : 'Presets ilustrativos. Puedes ajustar el módulo.'}</p>
+      </div>
 
-          <details className="mt-4 border-b border-seam pb-4">
+          <details className="mt-2">
             <summary className="cursor-pointer py-2 text-sm text-ink-muted hover:text-ink">Ajustar módulo · opciones avanzadas</summary>
-            <div className="mt-4 flex flex-col gap-4">
-              <p className="instrument-label">Energía</p>
+            <div className="mt-4 grid gap-x-8 gap-y-5 rounded-hw bg-hull p-5 sm:grid-cols-2 xl:grid-cols-4">
+              <p className="instrument-label col-span-full">Energía</p>
               <Slider label="Área del panel" unit="m²" tone="sun" {...range('panelAreaM2')} value={cfg.panelAreaM2} onChange={set('panelAreaM2')}
                 format={(v) => v.toFixed(2)} hint="Superficie de celdas solares. Más área, más energía." />
               <Slider label="Eficiencia del panel" unit="%" tone="sun" {...range('panelEfficiency')} value={cfg.panelEfficiency}
@@ -103,14 +117,14 @@ export function MissionSetup({
                 onChange={set('survivalThreshold')} format={(v) => Math.round(v * 100).toString()}
                 hint="Al bajar de este nivel se apagan los instrumentos para ahorrar batería. Vuelven al superar el 60 %." />
 
-              <dl className="grid grid-cols-3 gap-3 border-y border-seam py-3">
+              <dl className="col-span-full grid gap-4 py-2 sm:grid-cols-3">
                 <Derived label="Potencia pico" value={`${Math.round(peak)} W`} tone="text-sun" />
                 <Derived label="Autonomía sin Sol" value={formatDuration(autonomyHours(cfg))} />
                 <Derived label="Sol necesario" value={Number.isFinite(minSun) ? `${Math.round(minSun * 100)} %` : 'No alcanza'}
                   tone={Number.isFinite(minSun) ? undefined : 'text-critical'} />
               </dl>
 
-              <p className="mt-1 instrument-label">Datos</p>
+              <p className="instrument-label col-span-full mt-1">Datos</p>
               <Slider label="Datos generados" unit="Mb/día" tone="earth" {...range('dataPerDayMb')} value={cfg.dataPerDayMb}
                 onChange={set('dataPerDayMb')} format={(v) => v.toLocaleString('es')} hint="Cuántos datos producen los instrumentos por día." />
               <Slider label="Velocidad de envío" unit="Mb/h" tone="earth" {...range('downlinkMbPerHour')} value={cfg.downlinkMbPerHour}
@@ -119,25 +133,7 @@ export function MissionSetup({
             </div>
           </details>
 
-          <ul className="mt-5 flex flex-col gap-1.5 text-xs leading-relaxed text-ink-faint">
-            <Note>Valores ilustrativos: no corresponden a ningún módulo real.</Note>
-            <Note>Se asume una estación de la DSN siempre disponible cuando se ve la Tierra.</Note>
-            <Note>La batería no baja del 20 % (profundidad de descarga del 80 %).</Note>
-          </ul>
-
-          <div className="mt-5">
-            <Button variant="primary" size="lg" className="w-full" onClick={onSimulate}>
-              {landingDate === null ? 'Simular misión' : 'Volver a simular'}
-            </Button>
-            <p className="mt-2 text-xs leading-relaxed text-ink-faint">
-              {landingDate === null
-                ? 'Descubre si la energía alcanza para completar la misión.'
-                : 'Los ajustes del módulo actualizan el resultado. Si cambias la fecha, pulsa «Volver a simular».'}
-            </p>
-          </div>
-        </div>
-      </details>
-    </Panel>
+    </section>
   )
 }
 
@@ -147,14 +143,5 @@ function Derived({ label, value, tone }: { label: string; value: string; tone?: 
       <dt className="instrument-label text-[0.625rem]">{label}</dt>
       <dd className={cx('mt-1 font-mono text-sm text-ink', tone)}>{value}</dd>
     </div>
-  )
-}
-
-function Note({ children }: { children: ReactNode }) {
-  return (
-    <li className="flex items-start gap-2">
-      <span aria-hidden className="mt-1.5 size-1.5 shrink-0 bg-caution" />
-      {children}
-    </li>
   )
 }

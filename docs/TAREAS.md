@@ -385,7 +385,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 ## Fase C2 · Interfaz del simulador
 
 ### SU1. Panel "Configurar misión" · MVP
-- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionSetup.tsx`. Módulo, fecha UTC y duración visibles; parámetros técnicos desplegables. Después de simular se pliega la configuración para dar prioridad al resultado. La fecha de alunizaje es independiente del cursor de reproducción.
+- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionSetup.tsx` y `SimulatorWorkspace.tsx`. Franja superior con sitio, módulo, fecha UTC, duración y acción principal; parámetros técnicos desplegables. Terreno amplio y lectura de viabilidad a su lado, sin marcos repetidos ni columnas con scroll independiente. La fecha de alunizaje es independiente del cursor de reproducción.
 - **Archivo:** `src/components/sim/MissionSetup.tsx`.
 - Selector de preset, más sliders para cada parámetro con su unidad y un tooltip en lenguaje simple. También la fecha de alunizaje y la duración.
 - El panel se configura con **área** y **eficiencia**. Al lado se muestra la potencia pico calculada (`1361 W/m² × área × eficiencia`).
@@ -406,7 +406,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Commit:** `Tarea SU2: reproducción de la misión`
 
 ### SU3. Resultado de la misión · MVP
-- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionResult.tsx` y búsquedas adelantadas de S3 (`src/sim/search.ts`). Resultado, tolerancia a atrasos, fechas que funcionan y recomendaciones. Distingue una falla de la falta de datos para comprobar atrasos. En modo simulación, la viabilidad de los sitios usa el alunizaje fijo y queda en 40 % como máximo si la misión falla. Comparación de sitios desplegable y selección de fechas por teclado.
+- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionResult.tsx` y búsquedas adelantadas de S3 (`src/sim/search.ts`). La viabilidad muestra luz y contacto en porcentaje y horas, más pendiente regional. Compara los seis sitios para la misma fecha y módulo. La mejor fecha prioriza la viabilidad entre las que sobreviven; a igual puntaje elige margen y luego fecha más temprana. La batería comprueba el plan sin sustituir los tres criterios del reto. La viabilidad usa el alunizaje fijo y queda en 40 % como máximo si la misión falla. Mantiene tolerancia a atrasos, eventos y controles por teclado.
 - **Verificación de esta entrega:** pruebas de cálculo y estado, compilación y recorrido en Edge con escritorio y móvil de 390 px; sin desborde horizontal ni excepciones de JavaScript.
 - Tarjeta final:
   - ✅ **Misión cumplida**, o ❌ **Falló el día X**, con la causa.
@@ -432,8 +432,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Hecho (adelantado a pedido de Richard):**
   - `src/components/Story.tsx` y `src/lib/storyFacts.ts`, con `tests/storyFacts.test.ts`.
   - Los medios convertidos están en `public/media/`: sin audio, con un fotograma clave cada 4, sin los marcos de película, el V4 invertido, con pósters, más `i2-borde-crater.jpg` e `i1-fondo-og.jpg`.
-- **Cinco escenas.** El scroll mueve el video con inercia. El titular en esténcil entra como si se pintara y el texto sube.
-- **Cada escena trae un dato real calculado,** con un contador que sube:
+- **Una secuencia continua.** Un único escenario fijo encadena las cinco tomas con fundidos, sin separaciones de página, líneas ni zoom adicional. Los textos aparecen por momentos del video. El cierre permanece sobre la noche lunar. El prompt para generar una toma única está en `docs/PROMPT_VIDEO_CONTINUO.md`; mientras llega ese archivo se usan los medios existentes.
+- **Cada escena trae un dato real calculado,** que aparece completo en su momento:
   - el Sol no pasa de 1.3° en Shackleton;
   - da una vuelta al horizonte cada 29.6 días;
   - la Tierra se ve el 40 % del tiempo;
@@ -455,6 +455,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - Termina con el botón **"Abrir el planificador"**.
 - Si falta un video, usa su póster o `i2-borde-crater.jpg`.
 - **Commit:** `Tarea C3.1: portada narrativa con scroll`
+- **Ajuste de secuencia pendiente de revisión y subida de Richard:** `src/lib/storyTiming.ts` y `tests/storyTiming.test.ts`. Apariciones por tiempo de video y fundidos dentro de un solo escenario; póster como respaldo y relato estático completo con movimiento reducido. Verificado en Edge con escritorio y móvil.
 
 ### C3.2 Imagen para compartir · Extra
 - `public/og.jpg` (1200×630): el fondo I1 con el título en la tipografía de la app, compuesto en HTML y capturado.
