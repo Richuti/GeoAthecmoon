@@ -3,12 +3,17 @@
 ## Qué es
 Proyecto del equipo para el **NASA Space Apps Challenge 2026** (14 y 15 de noviembre de 2026, tema "The Next Frontier"). Reto: **Lunar Landing Site Navigator** (antes "CLPS Lunar Mission Browser").
 
-**Nuestro proyecto:** un mapa topográfico 3D del polo sur de la Luna donde se elige un **sitio** y una **fecha**. El sistema calcula qué tan viable es la misión según:
+**Nuestro proyecto:** un **planificador y simulador de misión** sobre un mapa topográfico 3D del polo sur de la Luna. Se elige un **sitio** y una **fecha**, y el sistema calcula qué tan viable es la misión según:
 - **horas de sol** (energía solar),
 - **contacto con la Tierra** (comunicación directa),
 - **pendiente del terreno**.
 
 Con eso da un **porcentaje de viabilidad** y, si no conviene, **recomienda un sitio o una fecha mejor**. Nos enfocamos en **5 a 8 sitios conocidos** del polo sur, no en todo el polo.
+
+**Simulador de misión:** el usuario elige sitio, fecha y duración, y configura el módulo (batería, panel, consumo y datos). Después **simula la misión hora por hora** con los datos reales de luz y comunicación. Al final ve si la misión sobrevive, cuántos datos envió y qué fecha o sitio funcionaría mejor.
+- La pregunta central del reto es: *"Si la misión se atrasa, ¿todavía funciona?"*. Se mueve la fecha, se vuelve a simular y se ve.
+- **Regla: el simulador no inventa números.** Todo sale de `isLit`, `hasContact` y la elevación del Sol (tarea 5), más los parámetros que elige el usuario. Los valores de los presets son ilustrativos, y así lo dice la interfaz.
+- Detalle en las fases B2 y C2 de `docs/TAREAS.md`.
 
 **El reto premia la facilidad de uso:** las herramientas de NASA que ya existen (Quickmap, Moon Trek, Horizons) son complicadas. La app tiene que ser clara para ingenieros, estudiantes y público general.
 
@@ -55,8 +60,8 @@ GeoAthectum/
 ## Tareas del frontend
 La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un paso a la vez**, en el orden de ese archivo, y se marca con `[x]` cuando Richard lo sube.
 
-- **Hecho:** 1 (base), 2 (contrato), 3.1 (datos de prueba: `npm run mock`) y 3.2 (Sol y Tierra reales: `npm run horizons`, luego `npm run mock`).
-- **Siguiente:** 3.4 (exportar el relieve para que Richard modele los terrenos), luego 3.3 (manual) y 4.1 (cliente de datos).
+- **Hecho:** 1 (base), 2 (contrato), 3.1 (datos de prueba: `npm run mock`), 3.2 (Sol y Tierra reales: `npm run horizons`, luego `npm run mock`) y 3.4 (relieve para Blender: `npm run export-terrain`).
+- **Siguiente:** lo elige Richard. El orden recomendado está en `docs/TAREAS.md`: C0 → 4 → 5 → S1 → S2 → 6 → 8 → SU1 → SU2 → SU3 → 7 → 9 → S3 → 11. El 3.3 es manual y lo hace el equipo.
 - **Diseño:** el paso C0 (sistema de diseño) va antes de la primera pantalla. La calidad visual tiene que ser de primer nivel.
 - **3D: lo modela todo Richard** (`.glb` en `frontend/public/models/`, especificaciones en "Lo que Richard crea en 3D" de `docs/TAREAS.md`). **No generes geometría 3D en código**: nada de mallas procedurales, esferas ni marcadores hechos con primitivas. El código solo carga los modelos, controla la cámara, mueve la luz del Sol según los datos y anima las piezas con nombre (`SolarPanel`, `Antenna`). Si falta un modelo, se muestra un estado vacío bien diseñado.
 
@@ -70,3 +75,5 @@ Recursos oficiales del reto (detalle y uso en `docs/TAREAS.md`):
 
 ## Limitaciones (decirlas en el pitch)
 No modelamos temperatura, polvo ni satélites de relevo. Los datos de prueba no son reales: en la tarea 11 se reemplazan por los del backend.
+
+**Del simulador:** no modelamos la temperatura real (el consumo de supervivencia es fijo), la degradación de la batería, el polvo sobre el panel ni los satélites de relevo. Los presets son ilustrativos.

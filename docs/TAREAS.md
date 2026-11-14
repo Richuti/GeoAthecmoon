@@ -15,7 +15,7 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 - **Extra:** solo si sobra tiempo.
 - **NASA:** usa uno de los recursos oficiales del reto: **Quickmap**, **Moon Trek**, **JPL Horizons** o **CSA Moon Exploration**. Son prioritarios.
 
-**Orden recomendado (camino corto a una demo):** 3 → 4 → 5 → 6 → 8 → 7 → 9 → 11. El 10 y los extras van al final.
+**Orden recomendado (camino a la demo):** 3 → C0 → 4 → 5 → **S1 → S2** → 6 → 8 → **SU1 → SU2 → SU3** → 7 → 9 → **S3** → 11. El 10, S4, SU4, SU5 y los extras van al final.
 
 ---
 
@@ -57,13 +57,16 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 - Ajustar los nombres, categorías y descripciones (regiones de Artemis III, IM-2 de CLPS) según lo que muestran Quickmap y Moon Trek.
 - **Commit:** `Tarea 3.3: coordenadas de sitios verificadas con Quickmap`
 
-### 3.4 Exportar el relieve para Blender · MVP
+### 3.4 Exportar el relieve para Blender · MVP · [x]
 - **Archivos:** `scripts/export-terrain.mjs` y `assets-src/terrain/{id}.obj` + `{id}.png` + `{id}.json`.
 - **Qué hace:** saca el relieve de cada sitio (el mismo `terrain.heightsM` con que se calculan la luz y el horizonte) en dos formatos:
   - **OBJ**, para importarlo directo en Blender.
   - **PNG de 16 bits**, como mapa de alturas para el modificador *Displace*.
   - El JSON lleva la altura mínima y máxima en metros y el tamaño en km, para poner la escala exacta.
 - **Por qué:** Richard modela los terrenos encima de esta forma. Así las sombras del modelo coinciden con los % de luz que calcula la app.
+- **Resultado:** `npm run export-terrain` genera los 6 sitios. El OBJ tiene 9216 vértices y 18 050 triángulos, todos con la cara hacia arriba, y el sitio en (0, 0, 0). El PNG es de 16 bits, 1024×1024, con el norte arriba.
+  - Los pasos en Blender están en `assets-src/terrain/README.md`.
+  - Los archivos generados no se suben al repo (`.gitignore`); se regeneran con el comando.
 - **Commit:** `Tarea 3.4: exportar relieve de cada sitio para Blender`
 
 ---
@@ -113,6 +116,68 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 ### 5.6 Pruebas de los cálculos · Extra
 - Vitest con unos 10 casos: el cruce de 359° a 0°, ventanas al borde del periodo y pesos en cero.
+
+---
+
+## Fase B2 · Simulador de misión
+
+> **Regla:** el simulador **no inventa números**. Todo sale de `isLit`, `hasContact` y la elevación del Sol (tarea 5), más los parámetros que elige el usuario. Los valores de los presets son ilustrativos, y así lo dice la interfaz.
+
+### S1. Modelo del módulo y presets · MVP
+- **Archivo:** `src/sim/lander.ts`.
+- Tipo `LanderConfig`:
+  - `panelPeakW`: potencia del panel con Sol pleno.
+  - `batteryKWh`: capacidad de la batería.
+  - `baseLoadW`: consumo de supervivencia (calefactores y computadora).
+  - `instrumentLoadW`: consumo de los instrumentos.
+  - `dataPerDayMb`: datos que generan los instrumentos.
+  - `downlinkMbPerHour`: velocidad de envío cuando la Tierra es visible.
+  - `survivalThreshold`: entra en modo supervivencia por debajo de este nivel (por defecto 0.2).
+  - `missionDays`: duración (por defecto 14).
+- 3 presets ilustrativos y genéricos, sin copiar ningún módulo real:
+
+  | Preset | Panel | Batería | Consumo base + instrumentos | Datos | Envío |
+  |---|---|---|---|---|---|
+  | **Explorador ligero** | 300 W | 3 kWh | 60 W + 90 W | 1500 Mb/día | 400 Mb/h |
+  | **Estación científica** | 800 W | 10 kWh | 150 W + 250 W | 6000 Mb/día | 1200 Mb/h |
+  | **Rover de corta duración** | 200 W | 1.5 kWh | 40 W + 120 W | 800 Mb/día | 300 Mb/h |
+
+- **Commit:** `Tarea S1: modelo del módulo y presets`
+
+### S2. Motor de simulación · MVP
+- **Archivo:** `src/sim/simulate.ts`, con `simulate(data, config, startIndex)`. Es una función pura que avanza en pasos de `stepHours`.
+- **Energía, en cada paso:**
+  - Generación = `panelPeakW × fracciónDeSol`. La fracción es 1 si el Sol está completo sobre el horizonte, 0 si está tapado, y lineal mientras el disco solar (radio ≈ 0.27°) cruza el borde del relieve. El panel sigue al Sol, así que no hace falta otro factor de ángulo.
+  - Consumo = `baseLoadW`, más `instrumentLoadW` si está en modo nominal.
+  - `SoC += (generación − consumo) × horas`, limitado entre 0 y `batteryKWh`. Empieza al 100 %.
+- **Modos:**
+  - **Nominal.**
+  - **Supervivencia:** con SoC por debajo del umbral apaga los instrumentos, y vuelve a nominal por encima del 40 %.
+  - **Falla:** SoC = 0. La misión termina ahí.
+- **Datos:** en modo nominal se acumulan `dataPerDayMb / 24` por hora. Con contacto con la Tierra se envían hasta `downlinkMbPerHour`.
+- **Devuelve:**
+  - Series por paso: `soc`, `mode`, `generatedW`, `loadW`, `dataQueuedMb` y `dataSentMb`.
+  - `events[]` con `{ index, type, message }` en español, por ejemplo:
+    - *"Día 4, 13:00 UTC: el Sol se oculta tras el relieve"*
+    - *"Batería al 18 %: modo supervivencia"*
+    - *"Se abre la ventana de comunicación (6 h)"*
+    - *"Falla: batería agotada"*
+  - `summary`: `survived`, `failedAtIndex`, `minSocPct`, `hoursInSurvival`, `dataSentPct` y `energyMarginKWh`.
+- **Listo cuando:** con el mismo sitio y el mismo preset, una fecha con noche larga falla y otra con mucha luz sobrevive.
+- **Commit:** `Tarea S2: motor de simulación de energía y datos`
+
+### S3. Búsqueda de fechas y sitios que funcionan · MVP
+- **Archivo:** `src/sim/search.ts`.
+- `scanStartDates(data, config)`: simula empezando cada 6 h dentro del periodo, siempre que quepa la misión completa, y devuelve qué fechas sobreviven y con qué margen.
+- `bestAlternative(allSites, config, startIndex)`: el mismo inicio en los otros sitios, ordenado por resultado.
+- **Integrar con la viabilidad (5.4):** si la misión no sobrevive, la viabilidad queda en 40 % como máximo y la explicación lo dice. La recomendación (5.5) usa estos resultados: *"Aterrizando el 18 de enero sobrevives con 35 % de margen"*.
+- **Commit:** `Tarea S3: búsqueda de fechas y sitios viables`
+
+### S4. Pruebas del simulador · Extra
+- Con Vitest:
+  - Siempre con luz → no falla.
+  - Siempre en sombra → falla en `batteryKWh / baseLoadW` horas.
+  - Sin contacto → 0 % de datos enviados.
 
 ---
 
@@ -191,6 +256,39 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 ---
 
+## Fase C2 · Interfaz del simulador
+
+### SU1. Panel "Configurar misión" · MVP
+- **Archivo:** `src/components/MissionSetup.tsx`.
+- Selector de preset, más sliders para cada parámetro con su unidad y un tooltip en lenguaje simple. También la fecha de alunizaje y la duración.
+- Aviso visible: los presets son ilustrativos.
+- Botón grande **"Simular misión"**.
+- **Commit:** `Tarea SU1: panel de configuración de misión`
+
+### SU2. Reproducción de la simulación · MVP
+- Usa la misma línea de tiempo (tarea 6) en "modo misión", desde el alunizaje hasta el final.
+- En el panel de métricas: batería en % (verde, ámbar o rojo), modo actual, y datos en cola y enviados.
+- **Gráfico SVG de la batería** a lo largo de la misión, con las franjas de luz y comunicación debajo.
+- **Registro de eventos** que aparecen a medida que avanza. Al hacer clic se salta a ese momento.
+- **En 3D:** el panel sigue al Sol y la antena a la Tierra, como en la tarea 9.4. El módulo muestra su estado con una etiqueta HTML sobre el modelo, o encendiendo la pieza opcional `StatusLight` del `lander.glb`. Sin geometría generada por código.
+- **Commit:** `Tarea SU2: reproducción de la misión`
+
+### SU3. Resultado de la misión · MVP
+- Tarjeta final:
+  - ✅ **Misión cumplida**, o ❌ **Falló el día X**, con la causa.
+  - Datos enviados (%), batería mínima y horas en supervivencia.
+  - Recomendación: la mejor fecha (de S3) y el mejor sitio alternativo, con un botón "Probar esta opción" que vuelve a simular.
+- Barra de **"fechas que funcionan"**: el resultado de `scanStartDates` sobre el periodo, en verde o en rojo.
+- **Commit:** `Tarea SU3: resultado de la misión y fechas viables`
+
+### SU4. Modo reto · Extra
+- Retos educativos, por ejemplo: *"Sobrevive 14 días en Nobile con la batería más pequeña posible"*. El puntaje depende del tamaño de la batería y de los datos enviados.
+
+### SU5. Animación de descenso · Extra
+- Al empezar la simulación, el módulo baja hasta el sitio en unos 3 segundos, antes de que empiece el tiempo de la misión. Respeta `prefers-reduced-motion`.
+
+---
+
 ## Fase D · Cierre
 
 ### 11.1 Conectar con el backend real · MVP
@@ -209,6 +307,12 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 - Comparar nuestro horizonte y nuestro % de luz con lo que muestran **Quickmap** (capas de iluminación o relieve del polo sur, si las tiene) y **Moon Trek** en los mismos sitios, y hacer capturas para el pitch.
 - Usar **CSA Moon Exploration** para el contexto: el papel de Canadá en Artemis y por qué importa elegir bien el sitio.
 - Escribir las limitaciones: no modelamos temperatura, polvo ni satélites de relevo, y el terreno de prueba no es real.
+
+### Limitaciones del simulador (para el pitch)
+- No modelamos la temperatura real: el consumo de supervivencia es fijo.
+- Tampoco modelamos la degradación de la batería, el polvo sobre el panel ni los satélites de relevo.
+- Los presets son ilustrativos.
+
 
 ---
 
@@ -239,6 +343,7 @@ Todo el 3D lo modela Richard (en Blender o la herramienta que prefieras) y lo ex
   - `SolarPanel`: con el pivote en la bisagra. Se gira en Y (azimut) y en X (inclinación).
   - `Antenna`: con el pivote en la base del plato.
   - `Body`: todo lo demás.
+  - `StatusLight` (opcional): una luz pequeña con material emisivo. El código cambia su color según el modo de la misión: verde nominal, ámbar supervivencia y rojo falla.
 - **Límites:** menos de 15 000 triángulos, menos de 1 MB y máximo 3 materiales.
 
 ### M2. Sol · MVP (para el paso 9.3)

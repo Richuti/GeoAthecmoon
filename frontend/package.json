@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "mock": "node scripts/generate-mock-data.mjs",
-    "horizons": "node scripts/fetch-horizons.mjs"
+    "horizons": "node scripts/fetch-horizons.mjs",
+    "export-terrain": "node scripts/export-terrain.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",
