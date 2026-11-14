@@ -29,6 +29,12 @@ Con eso da un **porcentaje de viabilidad** y, si no conviene, **recomienda un si
 - Responde en **español**.
 - Entorno: **Windows** (PowerShell). Node 22 o superior.
 
+## Pruebas
+- `npm test` corre `tests/**/*.test.ts` con el ejecutor de Node (`node --test`), sin dependencias. `npm run build` también revisa sus tipos (`tsconfig.test.json`).
+- Cada función de `src/lib/` y `src/sim/` lleva sus pruebas.
+- **Ojo:** dentro de `src/lib/` y `src/sim/`, los imports de *valores* entre módulos deben llevar la extensión `.ts` (`import { horizonAt } from './horizon.ts'`), porque Node los ejecuta sin compilar. Los `import type` no la necesitan.
+- Para probar en el navegador: Edge headless manejado por CDP desde Node (con el `WebSocket` nativo y sin dependencias). Edge headless no baja de unos 500 px de ancho; para ver el móvil hay que usar `Emulation.setDeviceMetricsOverride`.
+
 ## Reparto del equipo
 - **Richard: frontend** (este repo, carpeta `frontend/`). React.
 - **Backend: otro integrante** (Python, carpeta `backend/`). No es tarea de Richard; no lo construyas salvo que lo pida.
@@ -76,7 +82,7 @@ La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un pas
 - **Hecho también:** C0 (sistema de diseño y layout final; `src/design/preview.ts` es temporal).
 - **Hecho:** 4.1 (cliente de datos `src/api.ts`, con caché y validación del contrato) y 4.2 (estado global en `src/state`, hook `useAppState()`).
 - **Hecho:** 4.3 (`SiteSelector`, con teclado, versión móvil plegable y enlace directo `?sitio=`).
-- **Siguiente:** tarea 5 (cálculos en `src/lib/`), empezando por 5.1 (horizonte interpolado).
+- **Hecho:** 5.1 (`src/lib/horizon.ts`), 5.2 (`src/lib/visibility.ts`) y 5.3 (`src/lib/time.ts`, todo en UTC). **Siguiente:** 5.4 (viabilidad con pesos ajustables y explicación en lenguaje simple).
 - **Orden:** 3 → 4 → 5 → S1 → S2 → 6 → 8 → SU1 → SU2 → SU3 → 7 → 9 → S3 → 11. El C0 se cierra antes del 4. El 3.3 es manual y lo hace el equipo.
 - **Pendiente pequeño:** agregar `TIME_TYPE='UT'` a `fetch-horizons.mjs` y volver a descargar.
 - **Diseño:** el paso C0 (sistema de diseño) va antes de la primera pantalla. La calidad visual tiene que ser de primer nivel.

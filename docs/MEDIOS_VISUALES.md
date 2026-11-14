@@ -158,6 +158,20 @@ below is pitch black. Composition with a calm, dark lower third. 2400x1200.
 
 ---
 
+## Estado de los medios
+
+| Id | Estado | Revisión |
+|---|---|---|
+| V1 Amanecer polar | Recibido (1280×720, 24 fps, 7.9 s) | ✅ Muy bueno. Cielo negro, luz rasante, cráter en sombra. El Sol se ve grande, pero como licencia cinematográfica sirve. |
+| V2 El Sol que gira | Recibido (1280×720, 24 fps, 7.9 s) | ⚠️ Sirve. Trae marcos de película con números arriba y abajo; se recortan al convertirlo. Tiene destellos de lente. |
+| V3 Tierra baja | Recibido (1280×720, 24 fps, 7.9 s) | ❌ Conviene regenerarlo. La Tierra sale gigante (debería medir unos 2°, como un pulgar con el brazo estirado) y sube en vez de bajar. También trae marcos de película. |
+| V4 Descenso | Pendiente | |
+| V5 Noche lunar | Pendiente | |
+
+Para regenerar el V3, agregar al prompt: *"Earth appears small in the sky, only about 2 degrees wide (the size of a thumbnail at arm's length), roughly four times the Sun's disc. No film border, no frame numbers, no lens flare."*
+
+Todos traen audio; se quita al convertirlos (`-an`).
+
 ## Cómo entregarlos
 
 1. Guarda los archivos en `frontend/public/media/` con los nombres exactos de la tabla.

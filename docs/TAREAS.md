@@ -125,18 +125,40 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
   - 21 pruebas en el navegador real (Edge por CDP): URL, teclado, móvil a 390 px sin desborde, y laptop de 1366×768 sin superposiciones y con las explicaciones enteras.
 - **Commit:** `Tarea 4.3: selector de sitios por categoría`
 
-### 5.1 Horizonte interpolado · MVP
-- **Archivo:** `src/lib/horizon.ts` con `horizonAt(mask, az)`. Interpola entre los grados vecinos y da la vuelta de 359° a 0°.
+### 5.1 Horizonte interpolado · MVP · [x]
+- **Archivo:** `src/lib/horizon.ts`.
+- **Funciones:**
+  - `horizonAt(mask, az)`: interpola entre los grados vecinos y da la vuelta de 359° a 0°. Funciona con cualquier `azimuthStepDeg`.
+  - `normalizeAz`, `clearanceDeg` (cuánto sobresale un cuerpo sobre el relieve) y `horizonExtremes`.
+- **Pruebas en el repo:** `npm test` (`node --test`, sin dependencias) con `tests/horizon.test.ts`.
+  - 21 casos: interpolación, vuelta 359° → 0°, azimuts negativos, paso de 2° y horizonte vacío.
+  - Además, comprueba que el % de luz de los 6 sitios coincide con el del generador.
+- `tsconfig.test.json`: `npm run build` también revisa los tipos de las pruebas.
+- `src/design/preview.ts` ya usa el horizonte interpolado.
+- **Commit:** `Tarea 5.1: horizonte interpolado y pruebas con node --test`
 
-### 5.2 Visibilidad · MVP
+### 5.2 Visibilidad · MVP · [x]
 - **Archivo:** `src/lib/visibility.ts`.
-- `isLit(data, i)` y `hasContact(data, i)`.
-- `percent(data, from, to)` para el Sol y para la Tierra.
-- `windows()`, que devuelve rangos continuos `{ start, end }`.
-- `nextChange(i)`, el tiempo hasta que el Sol o la Tierra se ocultan o vuelven a salir.
+- **De un instante:** `isLit(data, i)` y `hasContact(data, i)`, con el horizonte interpolado.
+- **Del periodo:** `litSeries`, `contactSeries` y `visibility(data)`, que calcula todo una vez.
+- **Porcentajes:** `percent(flags, from, to)`, del periodo completo o de un rango.
+- **Ventanas:** `windows(flags)` devuelve tramos `{ start, end, openStart, openEnd }`. `openStart` y `openEnd` dicen si el tramo ya venía antes del periodo o sigue después, para no decir "dura 3 h" cuando en realidad no se sabe.
+- **Tramo y cambio:** `windowAt(flags, i)` da el tramo de luz o de sombra que contiene la muestra; `nextChange(flags, i)` da las muestras hasta el próximo cambio, o `null`.
+- **Probado:** `tests/visibility.test.ts`, 28 casos. Incluye el borde exacto (elevación = horizonte no cuenta como luz) y comprueba con los 6 sitios que las ventanas suman lo mismo que el porcentaje.
+- La app ya los usa: `preview.ts`, el panel "Ahora" y la barra de ventanas (`WindowsBar`).
+- **Commit:** `Tarea 5.2: visibilidad, ventanas y próximo cambio`
 
-### 5.3 Tiempo · MVP
-- **Archivo:** `src/lib/time.ts`. Convierte de índice a fecha y de fecha a índice, y formatea en español: fechas en UTC y duraciones como "3 d 4 h".
+### 5.3 Tiempo · MVP · [x]
+- **Archivo:** `src/lib/time.ts`. Todo es UTC, y los meses están escritos a mano (`ene`, `feb`…) para que el texto salga igual en todos los navegadores.
+- **Muestra ↔ fecha:** `sampleTime`, `indexAt` (la muestra más cercana, recortada al periodo), `hoursBetween`, `samplesFor`, `dayNumber` (día del periodo o de la misión) y `totalDays`.
+- **Formato:**
+  - `formatDate` ("11 ene 2027"), `formatShortDate` ("8 ene"), `formatTime` ("13:00") y `formatDateTime` ("11 ene 2027, 13:00 UTC").
+  - `formatDuration` ("45 min", "3 d 4 h") y `formatDurationLong` ("3 días y 4 horas", para frases y lectores de pantalla).
+  - `formatMissionClock` ("Día 4, 13:00 UTC", para los eventos del simulador).
+- **Inputs de fecha:** `toInputValue` y `fromInputValue`, para `<input type="datetime-local">` interpretado como UTC (servirán en 6.1 y SU1).
+- **Probado:** `tests/time.test.ts`, 36 casos (85 en total). Pasan igual en Ciudad de México y en Tokio, así que no dependen de la zona horaria.
+- La app ya lo usa: la línea de tiempo, el panel "Ahora", la barra de ventanas y el alunizaje en el simulador. `preview.ts` ya no tiene formato.
+- **Commit:** `Tarea 5.3: tiempo y formato de fechas y duraciones`
 
 ### 5.4 Viabilidad · MVP
 - **Archivo:** `src/lib/viability.ts`.
@@ -151,7 +173,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Commit de la tarea 5 (puede ir en uno o dos):** `Tarea 5: cálculos de luz, comunicación, viabilidad y recomendación`
 
 ### 5.6 Pruebas de los cálculos · Extra
-- Vitest con unos 10 casos: el cruce de 359° a 0°, ventanas al borde del periodo y pesos en cero.
+- Con `node --test` (`npm test`), como en 5.1: ventanas al borde del periodo, pesos en cero y periodos sin cambios. Cada paso de la tarea 5 trae sus propias pruebas.
 
 ---
 
@@ -224,7 +246,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Commit:** `Tarea S3: búsqueda de fechas y sitios viables`
 
 ### S4. Pruebas del simulador · Extra
-- Con Vitest:
+- Con `node --test` (`npm test`):
   - Siempre con luz → no falla.
   - Siempre en sombra → falla al llegar al 20 %, en `0.60 × B × 0.90 / (base + instrumentos) + 0.20 × B × 0.90 / base` horas, con `B` = `batteryKWh` en Wh (nominal del 100 al 40 %, supervivencia del 40 al 20 %).
   - Con Sol pleno, la generación es exactamente `1361 × área × eficiencia`.

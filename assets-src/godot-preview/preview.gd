@@ -11,7 +11,7 @@ var cam: Camera3D
 var t := 0.0
 var yaw := 0.7
 var pitch := 0.45
-var dist := 11.0
+var dist := 26.0
 
 func _ready() -> void:
 	var env := Environment.new()
@@ -44,10 +44,15 @@ func _ready() -> void:
 
 	sun_ball = _model("res://sun.glb", Color(1.0, 0.71, 0.28))
 	var earth_ball := _model("res://earth.glb", Color(0.23, 0.51, 0.96))
-	earth_ball.position = _dir(0.25, 12.0) * 12.0 + Vector3(0, 2, 0)
+	earth_ball.position = _dir(0.25, 12.0) * 22.0 + Vector3(0, 4, 0)
 
 	var lander: Node3D = load("res://lander.glb").instantiate()
 	add_child(lander)
+	# Modelo original de NASA (sin modificar), al lado para comparar
+	if ResourceLoader.exists("res://apollo_original.glb"):
+		var orig: Node3D = load("res://apollo_original.glb").instantiate()
+		orig.position = Vector3(12, 0, 0)
+		add_child(orig)
 	panel = lander.find_child("SolarPanel", true, false)
 	antenna = lander.find_child("Antenna", true, false)
 	print("SolarPanel encontrado: ", panel != null, " | Antenna encontrada: ", antenna != null)
@@ -56,7 +61,7 @@ func _ready() -> void:
 func _model(path: String, c: Color) -> Node3D:
 	if ResourceLoader.exists(path):
 		var n: Node3D = load(path).instantiate()
-		n.scale = Vector3.ONE * 0.4
+		n.scale = Vector3.ONE * 0.8
 		add_child(n)
 		return n
 	return _ball(c)
@@ -85,12 +90,12 @@ func _process(delta: float) -> void:
 	var el_deg := 6.0  # exagerado para ver sombras (en el polo es 1–2°)
 	var d := _dir(az, el_deg)
 	sun.look_at_from_position(d * 30.0, Vector3.ZERO)
-	sun_ball.position = d * 12.0 + Vector3(0, 2, 0)
+	sun_ball.position = d * 22.0 + Vector3(0, 4, 0)
 	if panel:
 		panel.rotation = Vector3(deg_to_rad(el_deg), -az, 0)  # Y = azimut, X = inclinación
 	if antenna:
 		antenna.rotation = Vector3(deg_to_rad(12.0), -0.25, 0)
-	var target := Vector3(0, 2, 0)
+	var target := Vector3(6, 4, 0)
 	var off := Vector3(sin(yaw) * cos(pitch), sin(pitch), cos(yaw) * cos(pitch)) * dist
 	cam.look_at_from_position(target + off, target)
 
@@ -102,4 +107,4 @@ func _unhandled_input(e: InputEvent) -> void:
 		if e.button_index == MOUSE_BUTTON_WHEEL_UP:
 			dist = max(4.0, dist - 0.7)
 		elif e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			dist = min(30.0, dist + 0.7)
+			dist = min(45.0, dist + 0.7)

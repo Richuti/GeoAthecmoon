@@ -5,6 +5,7 @@
 //   - presets del módulo       → src/sim/lander.ts (S1)
 // No agregues lógica nueva aquí: va en esos pasos.
 
+import { visibility } from '../lib/visibility'
 import type { SiteData } from '../types'
 
 export interface SitePreview {
@@ -20,19 +21,11 @@ export interface SitePreview {
 /** Pesos por defecto de la viabilidad (los mismos que propone la tarea 5.4). */
 export const WEIGHTS = { light: 0.45, contact: 0.35, slope: 0.2 }
 
-function horizonNearest(h: number[], az: number): number {
-  return h[Math.round(((az % 360) + 360) % 360) % 360]
-}
-
 export function buildPreview(data: SiteData): SitePreview {
-  const h = data.horizon.elevationDeg
-  const lit = data.sun.el.map((el, i) => el > horizonNearest(h, data.sun.az[i]))
-  const contact = data.earth.el.map((el, i) => el > horizonNearest(h, data.earth.az[i]))
-  const pct = (flags: boolean[]) => (100 * flags.filter(Boolean).length) / flags.length
+  // Luz y contacto ya salen de src/lib/visibility.ts (5.2). La viabilidad pasa a src/lib en 5.4.
+  const { lit, contact, lightPct, contactPct } = visibility(data)
   const s = data.slope.max100mDeg
   const slopeScore = s <= 5 ? 100 : s >= 10 ? 0 : (100 * (10 - s)) / 5
-  const lightPct = pct(lit)
-  const contactPct = pct(contact)
   return {
     data,
     lit,
@@ -42,38 +35,6 @@ export function buildPreview(data: SiteData): SitePreview {
     slopeScore,
     viability: WEIGHTS.light * lightPct + WEIGHTS.contact * contactPct + WEIGHTS.slope * slopeScore,
   }
-}
-
-/** Muestras hasta que la bandera cambia, o null si no cambia en lo que queda del periodo. */
-export function stepsUntilChange(flags: boolean[], i: number): number | null {
-  for (let k = i + 1; k < flags.length; k++) if (flags[k] !== flags[i]) return k - i
-  return null
-}
-
-// ---------------------------------------------------------------------------
-// Formato
-// ---------------------------------------------------------------------------
-
-const dateFmt = new Intl.DateTimeFormat('es', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })
-const timeFmt = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' })
-
-export function sampleDate(data: SiteData, i: number): Date {
-  return new Date(Date.parse(data.start) + i * data.stepHours * 3600_000)
-}
-
-export function formatDate(d: Date): string {
-  return dateFmt.format(d).replace('.', '')
-}
-
-export function formatTime(d: Date): string {
-  return timeFmt.format(d)
-}
-
-export function formatDuration(hours: number): string {
-  const d = Math.floor(hours / 24)
-  const h = Math.round(hours % 24)
-  if (d === 0) return `${h} h`
-  return h === 0 ? `${d} d` : `${d} d ${h} h`
 }
 
 // ---------------------------------------------------------------------------
