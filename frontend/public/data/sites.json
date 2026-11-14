@@ -7,7 +7,7 @@
       "lon": 197,
       "category": "artemis",
       "description": "Borde del cráter que está en el mismo polo. Sol casi continuo, pero la Tierra pasa muy baja.",
-      "coordSource": "original del equipo; pendiente de confirmar en LRO QuickMap"
+      "coordSource": "original del equipo; confirmada en LRO QuickMap con marcador (14 nov 2026)"
     },
     {
       "id": "connecting-ridge",
@@ -16,7 +16,7 @@
       "lon": 222.6,
       "category": "artemis",
       "description": "Cresta que une Shackleton con de Gerlache. Muy iluminada y alta sobre su entorno.",
-      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); pendiente de confirmar en LRO QuickMap"
+      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); confirmada en LRO QuickMap con marcador (14 nov 2026)"
     },
     {
       "id": "de-gerlache-rim",
@@ -25,7 +25,7 @@
       "lon": 291.6,
       "category": "artemis",
       "description": "Borde de un cráter de 32 km. Buena luz con algunas sombras largas del relieve vecino.",
-      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); pendiente de confirmar en LRO QuickMap"
+      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); confirmada en LRO QuickMap con marcador (14 nov 2026)"
     },
     {
       "id": "mons-mouton",
@@ -34,7 +34,7 @@
       "lon": 29.2,
       "category": "clps",
       "description": "Meseta de cima plana, cerca de donde alunizó IM-2 (2025). Terreno suave y Tierra visible.",
-      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); pendiente de confirmar en LRO QuickMap"
+      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); confirmada en LRO QuickMap con marcador (14 nov 2026)"
     },
     {
       "id": "malapert-massif",
@@ -43,7 +43,7 @@
       "lon": 2.1,
       "category": "artemis",
       "description": "Montaña cara a la Tierra: buen contacto directo. Ladera con más pendiente.",
-      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); pendiente de confirmar en LRO QuickMap"
+      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); confirmada en LRO QuickMap con marcador (14 nov 2026)"
     },
     {
       "id": "nobile-rim",
@@ -52,7 +52,7 @@
       "lon": 37,
       "category": "clps",
       "description": "Zona que exploraría VIPER. Relieve alto alrededor: menos horas de sol y pendientes fuertes.",
-      "coordSource": "original del equipo; pendiente de confirmar en LRO QuickMap"
+      "coordSource": "original del equipo; confirmada en LRO QuickMap con marcador (14 nov 2026)"
     }
   ]
 }

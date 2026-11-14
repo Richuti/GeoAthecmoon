@@ -5,6 +5,20 @@
 ## En una línea
 El backend es un **pipeline en Python que corre offline**. Combina el **relieve real de LOLA** (DEM de 80 m/px) con **tus posiciones de JPL Horizons**, genera los JSON del contrato y los copia a `frontend/public/data/`. No hay servidor, API ni base de datos: la app sigue leyendo archivos estáticos.
 
+## Rutas de la API
+No hay servidor. Las rutas del contrato son **archivos JSON estáticos** que Vercel sirve junto con la app.
+
+| Ruta (contrato) | Lo que sirve Vercel hoy | Devuelve |
+|---|---|---|
+| `GET /sites` | `/data/sites.json` | `{ sites: Site[] }`: los 6 sitios (`id`, `name`, `lat`, `lon`, `category`, `description`, `coordSource`) |
+| `GET /sites/{id}` | `/data/sites/{id}.json` | `SiteData`: `site`, `start`, `stepHours`, `horizon[360]`, `slope`, `sun` y `earth` (`az[]` y `el[]`, 1440 muestras horarias desde el 1 ene 2027), `terrain` (96×96, 20 km) y `sources` |
+
+- **`id` válidos:** `shackleton-rim`, `connecting-ridge`, `de-gerlache-rim`, `mons-mouton`, `malapert-massif` y `nobile-rim`.
+- **Cómo se consumen:** deja `VITE_API_URL` **vacía**. Tu `src/api.ts` ya resuelve estas rutas solo, así que no hay que cambiar código ni poner `vercel.json`, CORS o rewrites.
+- **Ejemplo ya desplegado:** `https://<tu-deploy>.vercel.app/data/sites.json` y `https://<tu-deploy>.vercel.app/data/sites/malapert-massif.json`.
+- **De dónde salen:** `backend/out/` → `python backend/export.py` → `frontend/public/data/`.
+- **No hay más rutas** (ninguna de escritura). Si algún día hacemos el servidor en vivo, que es un extra, expondría estas mismas 2 rutas con la misma forma, y solo habría que llenar `VITE_API_URL`.
+
 ## Qué cambia para ti
 - **Los datos de prueba se reemplazaron por los reales** con `python backend/export.py`. Cada `SiteData` trae ahora `sources: { ephemeris: 'jpl-horizons', terrain: 'lola' }`. No toqué `public/data/horizons/` (tu caché).
 - **El contrato no cambia.** `docs/CONTRATO_DATOS.md` y `frontend/src/types.ts` siguen igual.
