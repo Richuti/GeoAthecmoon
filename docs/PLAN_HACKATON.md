@@ -20,7 +20,12 @@
 | Entregar el terreno real a Richard para Blender | Rafael → Richard | ⏳ | sáb 14:00 |
 | C0, 4, 5, S1, S2 (diseño, datos, cálculos, simulador) | Richard | ⏳ | sáb noche |
 | 3.3 Verificar coordenadas en Quickmap (`docs/VERIFICACION_SITIOS.md`) | Dilan y Joshua | ⏳ | sáb 15:00 |
-| B4 Validación con Quickmap y Moon Trek (capturas) | Rafael, Joshua y Dilan | ⏳ | sáb 18:00 |
+| B4 Validación con Quickmap y Moon Trek (`docs/VALIDACION.md`; nuestros valores en `docs/validacion/`) | Rafael, Joshua y Dilan | ⏳ | sáb 18:00 |
+| Fuentes publicadas de iluminación de los 6 sitios (artículos o páginas de NASA con su enlace) para la diapositiva de validación | Joshua | ⏳ | sáb 20:00 |
+| Explicar en 30 s el panorama del horizonte (`docs/validacion/malapert-massif_horizonte.png`) y el caso de la demo (`docs/CASO_DEMO.md`) | Joshua | ⏳ | sáb 21:00 |
+| Storyboard del video de respaldo de 60 s con los clics de `docs/CASO_DEMO.md` | Odelmy | ⏳ | sáb 20:00 |
+| Esqueleto de las diapositivas (problema, demo, validación, limitaciones, equipo) | Odelmy | ⏳ | sáb 22:00 |
+| Decidir el nombre público: "GeoAthectum" o "Simulador" (hoy no coinciden el doc de identidad y la app) | Odelmy y equipo | ⏳ | sáb 18:00 |
 | Primer deploy en Vercel (aunque esté incompleto) | Richard y Rafael | ⏳ | sáb 22:00 |
 | Guion del pitch en borrador | Odelmy y Joshua | ⏳ | dom 05:00 |
 | Feature freeze | todos | ⏳ | dom 07:00 |
