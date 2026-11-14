@@ -3,17 +3,20 @@
 **Entrega (H):** domingo 15 nov, **13:00** (meta interna: no hay hora oficial todavía; si la anuncian, se ajusta)
 **Fechas clave:** plan B del relieve sáb 23:00 · pitch en borrador dom 05:00 · feature freeze dom 07:00 · deploy final dom 08:00 · ensayos dom 10:00–12:30
 **Frase de valor:** *En 10 segundos sabes si un sitio y una fecha sirven en el polo sur lunar, y qué pasa si tu misión se retrasa.*
-**Momento wow de la demo:** "la misión se retrasa". Se mueve la fecha unos días, la Tierra queda tapada por el relieve real, el simulador muestra que la misión no sobrevive y la app recomienda otro sitio u otra fecha.
+**Momento wow de la demo:** "la misión se retrasa". Se atrasa el alunizaje unos días: el **Sol** queda tras el relieve real, la batería cae a su mínimo del **20 %** (falla) y la app dice cuánto atraso tolera la misión y qué fecha o sitio la salva. (La Tierra tapada solo corta el envío de datos, no la energía.)
 
 ## Hitos
 
 | Hito | Responsable | Estado | Meta |
 |---|---|---|---|
 | 3.2 Sol y Tierra reales (JPL Horizons) | Richard | ✅ | — |
-| B1 DEM LOLA 80 m: lector y prueba de cordura | Rafael | 🔄 descargando | sáb 12:00 |
+| B1 DEM LOLA 80 m: lector y prueba de cordura | Rafael | ✅ (coincide con QuickMap ±80 m) | sáb 12:00 |
 | ⚠ Richard: modelar en Blender sobre el relieve **real** (no el sintético) | Richard | ⏳ espera B3 | sáb 14:00 |
-| B2 Horizonte, pendiente y terreno reales | Rafael | 🔄 código escrito | sáb 13:00 |
-| B3 JSON finales (LOLA + Horizons) en `backend/out/` | Rafael | ⏳ | sáb 14:00 |
+| B2 Horizonte, pendiente y terreno reales | Rafael | ✅ | sáb 13:00 |
+| B3 JSON finales (LOLA + Horizons) en `backend/out/`, con 4 sitios movidos a la cresta | Rafael | ✅ | sáb 14:00 |
+| B5 Caso de la demo (`docs/CASO_DEMO.md`, réplica del simulador S2/S3 en Python) | Rafael | ⏳ | sáb 17:00 |
+| Confirmar en QuickMap las 6 coordenadas (`backend/sites_verified.json`) con marcador visible | Dilan y Joshua | ⏳ | sáb 16:00 |
+| Decidir con Richard si el repo será público para el jurado | Rafael y Richard | ⏳ | sáb 18:00 |
 | Entregar el terreno real a Richard para Blender | Rafael → Richard | ⏳ | sáb 14:00 |
 | C0, 4, 5, S1, S2 (diseño, datos, cálculos, simulador) | Richard | ⏳ | sáb noche |
 | 3.3 Verificar coordenadas en Quickmap (`docs/VERIFICACION_SITIOS.md`) | Dilan y Joshua | ⏳ | sáb 15:00 |

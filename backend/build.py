@@ -16,7 +16,9 @@ import dem as D
 import horizon as H
 
 ROOT = Path(__file__).resolve().parent.parent
-SITES = ROOT / "frontend" / "public" / "data" / "sites.json"
+SITES_FRONT = ROOT / "frontend" / "public" / "data" / "sites.json"
+SITES_VERIFIED = Path(__file__).parent / "sites_verified.json"
+SITES = SITES_VERIFIED if SITES_VERIFIED.exists() else SITES_FRONT
 HORIZONS = ROOT / "frontend" / "public" / "data" / "horizons"
 OUT = Path(__file__).parent / "out"
 
