@@ -1,12 +1,14 @@
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
+import { Story } from './components/Story'
 import { WindowsBar } from './components/WindowsBar'
 import { Badge, Button, EmptyState, InfoTip, Panel, Segmented, Slider, Stat, StatGrid, cx, type Tone } from './components/ui'
 import { formatCoords, formatLat, formatLon } from './lib/format'
 import { CATEGORY_LABEL } from './lib/sites'
 import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, sampleTime, totalDays } from './lib/time'
 import { missionWindow, recommend, type Recommendation } from './lib/recommend'
+import { storyFacts } from './lib/storyFacts'
 import { DEFAULT_WEIGHTS, VERDICT_LABEL, siteViability, type Verdict, type ViabilityResult } from './lib/viability'
 import { nextChange, visibility } from './lib/visibility'
 import {
@@ -52,7 +54,35 @@ interface SiteView {
   viability: number
 }
 
+type View = 'story' | 'planner'
+
+/** Portada o planificador. `#planificador` abre el planificador; un enlace directo `?sitio=` también. */
+function viewFromUrl(): View {
+  const { hash, search } = window.location
+  if (hash === '#planificador') return 'planner'
+  if (hash === '' && new URLSearchParams(search).has('sitio')) return 'planner'
+  return 'story'
+}
+
 export default function App() {
+  const [view, setView] = useState<View>(viewFromUrl)
+  useEffect(() => {
+    const onHash = () => {
+      setView(viewFromUrl())
+      window.scrollTo(0, 0)
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
+  const { state } = useAppState()
+  const facts = useMemo(() => storyFacts(Object.values(state.data)), [state.data])
+
+  if (view === 'story') return <Story facts={facts} onOpen={() => (window.location.hash = 'planificador')} />
+  return <Planner />
+}
+
+function Planner() {
   const { state, actions } = useAppState()
   const { sites, selectedId, index: i, mode } = state
 
@@ -200,7 +230,7 @@ function LoadError({ title, children, onRetry }: { title: string; children: Reac
 
 function Brand() {
   return (
-    <div className="flex items-center gap-3">
+    <a href="#inicio" title="Volver a la portada" className="flex items-center gap-3">
       <svg viewBox="0 0 32 32" className="size-8 shrink-0" aria-hidden>
         <rect width="32" height="32" rx="7" fill="var(--color-hull-raised)" />
         <circle cx="21" cy="15.5" r="3" fill="var(--color-sun)" />
@@ -217,7 +247,7 @@ function Brand() {
         <p className="font-display text-2xl font-extrabold uppercase leading-none tracking-[0.03em]">GeoAthectum</p>
         <p className="mt-0.5 text-[0.6875rem] text-ink-faint">Planificador de alunizaje · Polo sur lunar</p>
       </div>
-    </div>
+    </a>
   )
 }
 

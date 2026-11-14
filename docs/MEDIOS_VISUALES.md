@@ -160,6 +160,8 @@ below is pitch black. Composition with a calm, dark lower third. 2400x1200.
 
 ## Estado de los medios
 
+**Procesados y en uso** en `frontend/public/media/` (portada C3.1). Para reemplazar uno regenerado, vuelve a convertirlo con el mismo nombre. El V3 y el V5 siguen con la Tierra grande, y el V4 con el polvo en nubes.
+
 | Id | Estado | Revisión |
 |---|---|---|
 | V1 Amanecer polar | Recibido (1280×720, 24 fps, 7.9 s) | ✅ Muy bueno. Cielo negro, luz rasante, cráter en sombra. El Sol se ve grande, pero como licencia cinematográfica sirve. |

@@ -416,7 +416,28 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 > Medios generados por Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son **ilustraciones**: cada una lleva la leyenda "Ilustración generada con IA", y ningún dato sale de ellas.
 
-### C3.1 Portada con video que avanza con el scroll · Extra (MVP si llegan los videos)
+### C3.1 Portada con video que avanza con el scroll · [x]
+- **Hecho (adelantado a pedido de Richard):**
+  - `src/components/Story.tsx` y `src/lib/storyFacts.ts`, con `tests/storyFacts.test.ts`.
+  - Los medios convertidos están en `public/media/`: sin audio, con un fotograma clave cada 4, sin los marcos de película, el V4 invertido, con pósters, más `i2-borde-crater.jpg` e `i1-fondo-og.jpg`.
+- **Cinco escenas.** El scroll mueve el video con inercia. El titular en esténcil entra como si se pintara y el texto sube.
+- **Cada escena trae un dato real calculado,** con un contador que sube:
+  - el Sol no pasa de 1.3° en Shackleton;
+  - da una vuelta al horizonte cada 29.6 días;
+  - la Tierra se ve el 40 % del tiempo;
+  - Mons Mouton pasa de 44 % a 98 % cambiando la fecha;
+  - la autonomía es de 19.8 h.
+- **Navegación:**
+  - Índice de capítulos 01–05, que se oculta en la escena final.
+  - "Abrir el planificador" lleva a `#planificador`; la marca del planificador vuelve a la portada (`#inicio`); un enlace con `?sitio=` se salta la portada.
+  - Enlace "Saltar al planificador" para teclado.
+- **Calidad:**
+  - Un solo bucle `requestAnimationFrame` que solo trabaja con las escenas visibles, sin volver a dibujar React en cada cuadro.
+  - Cada video empieza a cargar cuando se acerca su escena.
+  - Truco para que iOS permita mover el video.
+  - Con "reducir movimiento" se ven pósters fijos.
+  - "Ilustración generada con IA" en cada escena.
+- **Probado:** 21 pruebas en el navegador real (scroll, texto, contador, índice, botones, movimiento reducido y móvil sin desborde), más las 25 del planificador.
 - **Archivo:** `src/components/Story.tsx`. Cuatro o cinco escenas con V1–V5. El scroll mueve el `currentTime` del video. Se pausa con `prefers-reduced-motion` y entonces muestra el póster.
 - Cada escena tiene una frase corta con un dato real de la app. Por ejemplo: *"En Shackleton el Sol nunca sube más de 1.3°"* (calculado de los datos de Horizons, no escrito a mano).
 - Termina con el botón **"Abrir el planificador"**.

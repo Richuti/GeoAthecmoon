@@ -31,3 +31,5 @@ frontend/assets-src/terrain/*
 # Godot (vista de modelos)
 .godot/
 *.import
+*.IMG
+*.LBL
