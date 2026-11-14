@@ -17,6 +17,8 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 **Orden recomendado (camino a la demo):** 3 → 4 → 5 → **S1 → S2** → 6 → 8 → **SU1 → SU2 → SU3** → 7 → 9 → **S3** → 11. El 10, S4, SU4, SU5 y los extras van al final.
 
+**Ampliación futura:** IA1 (planificador de misión con IA integrada), después de estabilizar SU1–SU3 y S3. Pendiente; no forma parte de la entrega actual.
+
 El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ---
@@ -421,6 +423,31 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ### SU5. Animación de descenso · Extra
 - Al empezar la simulación, el módulo baja hasta el sitio en unos 3 segundos, antes de que empiece el tiempo de la misión. Respeta `prefers-reduced-motion`.
+
+### IA1. Diseñar y aplicar un plan de misión con IA · Futura · [ ]
+- **Objetivo:** integrar la IA en el trabajo del simulador para proponer planes que se puedan comprobar y aplicar. No se plantea como un chat de preguntas generales.
+- **Ejemplo:** el usuario indica «Quiero una misión de 14 días, priorizando comunicación y usando este módulo». La IA interpreta el objetivo; el motor compara sitios y fechas y presenta las mejores opciones con sus resultados reales.
+- **Regla:** la IA no inventa horas de Sol, ventanas de comunicación, pendientes, viabilidad ni resultados de batería. Usa los datos y funciones del proyecto. Los parámetros de los módulos siguen marcados como ilustrativos.
+- **Dependencias:** SU1–SU3 y S3 estables; integrar el endpoint de IA con el integrante del backend. Richard todavía no tiene configurada una clave de la API de OpenAI.
+
+#### IA1.1 Conexión segura con OpenAI · [ ]
+- Endpoint propio en el servidor y clave `OPENAI_API_KEY` en su entorno. Nunca incluir la clave en React, variables `VITE_`, archivos públicos ni el repositorio.
+- Definir límites de uso y tratar errores, esperas y falta de configuración. El simulador debe seguir funcionando si la IA no está disponible.
+
+#### IA1.2 Traducir objetivos a criterios verificables · [ ]
+- Recoger duración, prioridades y restricciones: luz solar, comunicación, pendiente, módulo y fechas o sitios permitidos.
+- La IA devuelve una propuesta estructurada y validada contra los sitios, periodos y parámetros disponibles. Si falta información esencial, pedir únicamente ese dato; si el objetivo no es viable, explicarlo.
+
+#### IA1.3 Evaluar y ordenar los planes con el motor · [ ]
+- Ejecutar las búsquedas y simulaciones del proyecto para los criterios solicitados. Comparar opciones con el mismo objetivo y mostrar qué restricciones cumple cada una.
+- Devolver sitio, fecha, duración y configuración, junto con viabilidad, horas de luz y contacto, pendiente, batería mínima, datos enviados y tolerancia a atrasos.
+- Comprobar con pruebas objetivos imposibles, restricciones incompatibles y que todos los números correspondan a simulaciones reales.
+
+#### IA1.4 Aplicar el plan al simulador · [ ]
+- Acción **«Diseñar mi misión»**, integrada en la pantalla y con pocos controles. Presentar una propuesta principal y alternativas cuando existan, con razones breves basadas en los resultados.
+- Botón **«Aplicar este plan»**: actualiza sitio, fecha, duración y módulo; vuelve a simular y permite reproducir la batería y los eventos. El usuario revisa el plan antes de aplicarlo.
+- **Listo cuando:** un objetivo produce un plan comprobado que se puede aplicar y reproducir; los valores mostrados coinciden con los del motor; se entiende en móvil y con teclado; los fallos de la API no bloquean el planificador.
+- **Commit sugerido al completar la integración:** `Tarea IA1: planificador de misión con IA y aplicación de planes verificados`.
 
 ---
 
