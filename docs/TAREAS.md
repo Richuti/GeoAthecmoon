@@ -342,7 +342,15 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - Tooltips en cada métrica.
 - **Commit:** `Tarea 8.3: ayuda y glosario`
 
-### 9. Vista 3D con los modelos de Richard
+### 9. Vista 3D con los modelos de Richard · [x] (9.1–9.4)
+- **Hecho:** `src/components/Viewer3D.tsx`, que se carga aparte (unos 1 MB, solo cuando hace falta), y `src/components/ViewerPanel.tsx`.
+  - Terreno LOLA del sitio. La altura del suelo bajo el módulo sale de un rayo vertical sobre el modelo.
+  - La luz del Sol es la **fracción del disco solar visible** según el horizonte LOLA de 150 km, y cambia suave. Las sombras son rasantes (mapa de 4096).
+  - De noche hay una penumbra azulada para que el relieve se lea; de día casi no hay, y las sombras quedan negras.
+  - El Sol y la Tierra se ubican por azimut y elevación. Van agrandados y la interfaz lo dice. La Tierra se dibuja sin depender de la luz del sitio.
+  - Módulo agrandado ×30. `SolarPanel` apunta al Sol y `Antenna` a la Tierra; los dos miran a -Z, así que el giro es Y = -az, X = el.
+  - Estrellas de fondo muy tenues. Botón "Restablecer vista". Si el modelo falla, se muestra un mensaje en lugar de romper la app.
+  - **Probado en navegador real (WebGL por software):** carga, Sol iluminado y en sombra (Sol a 1.17° pero tapado por el relieve → escena oscura), cambio de sitio y consola sin errores.
 
 > **Regla:** el código **no genera geometría**. Todo lo que se ve en 3D (terrenos, módulo, Sol, Tierra, cielo y marcadores) lo modela Richard y llega como `.glb`. El código solo carga los modelos, pone la cámara, mueve la luz del Sol según los datos y anima las piezas con nombre.
 

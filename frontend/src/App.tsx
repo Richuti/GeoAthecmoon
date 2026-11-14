@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
 import { Story } from './components/Story'
+import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
 import { Badge, Button, EmptyState, InfoTip, Panel, Segmented, Slider, Stat, StatGrid, cx, type Tone } from './components/ui'
-import { formatCoords, formatLat, formatLon } from './lib/format'
-import { CATEGORY_LABEL } from './lib/sites'
+import { formatLat, formatLon } from './lib/format'
 import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, sampleTime, totalDays } from './lib/time'
 import { missionWindow, recommend, type Recommendation } from './lib/recommend'
 import { storyFacts } from './lib/storyFacts'
@@ -159,7 +159,7 @@ function Planner() {
             />
 
             <div className="flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5">
-              <Viewer p={p} />
+              <ViewerPanel data={p.data} index={i} contact={p.contact[i]} />
               <Timeline
                 p={p}
                 index={i}
@@ -262,33 +262,6 @@ function Loading() {
 // ---------------------------------------------------------------------------
 // Vista 3D (los modelos los crea Richard; aquí solo el marco y el estado vacío)
 // ---------------------------------------------------------------------------
-
-function Viewer({ p }: { p: SiteView }) {
-  const s = p.data.site
-  return (
-    <Panel
-      label={`Terreno 3D · ${p.data.terrain?.extentKm ?? 20} × ${p.data.terrain?.extentKm ?? 20} km`}
-      className="min-h-[19rem] flex-1 lg:min-h-fit"
-      bodyClassName="flex flex-col justify-between p-0"
-    >
-      <div className="p-5 sm:p-6">
-        <Badge>{CATEGORY_LABEL[s.category]}</Badge>
-        <h1 className="mt-3 max-w-2xl font-display text-5xl font-extrabold uppercase leading-[0.9] tracking-[0.01em] sm:text-6xl lg:text-5xl xl:text-6xl">
-          {s.name}
-        </h1>
-        <p className="mt-2 font-mono text-xs text-ink-muted">{formatCoords(s)}</p>
-        {s.description && <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-muted">{s.description}</p>}
-      </div>
-      <div className="flex items-start gap-3 border-t border-dashed border-seam px-5 py-4 sm:px-6">
-        <span aria-hidden className="mt-1.5 size-1.5 shrink-0 rounded-full bg-ink-faint" />
-        <p className="text-sm leading-relaxed text-ink-muted">
-          <span className="text-ink">El modelo 3D de este sitio todavía no está listo.</span> Mientras tanto, la franja
-          de horizonte muestra lo que verías girando 360° desde el sitio.
-        </p>
-      </div>
-    </Panel>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Línea de tiempo
