@@ -40,3 +40,11 @@ Nadie debe pasar más de 20 h despierto. Rafael y Richard no duermen al mismo ti
 
 ## Si sobra tiempo (en orden inverso de recorte)
 Comparador (10), textura LRO (9.5), globo de portada (M2), sliders de pesos, animación 3D, servidor en vivo con coordenadas libres.
+
+## Deploy en Vercel (revisado sáb 13:30, listo para hacerlo)
+La app es estática: lee `/data/*.json` y el enlace directo usa `?sitio=` (query), así que **no hace falta `vercel.json` ni rewrites**. Los datos pesan 1 MB, los modelos 2.5 MB y el build 3.8 MB.
+1. Vercel → *Add New Project* → importar `Richuti/GeoAthectum`.
+2. **Root Directory: `frontend`** · Framework: **Vite** · Build: `npm run build` · Output: `dist`.
+3. **No** definir `VITE_API_URL` (vacía = usa los JSON de `public/data`).
+4. Rama de producción: `main`. Cada PR genera su propia preview, así que el PR de `backend` se puede probar antes del merge.
+5. Prueba de humo: abrir Malapert en el celular y en la laptop de la presentación, y revisar el panel de fuentes (`lola` + `jpl-horizons`).
