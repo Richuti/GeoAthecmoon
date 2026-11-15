@@ -13,6 +13,7 @@ import { MissionOptions, MissionResult, type MissionResultProps } from './Missio
 import { MissionTrace } from './MissionTrace'
 import { EarthMoonJourney } from './EarthMoonJourney'
 import { IncidentPanel } from './IncidentPanel'
+import { MissionLive } from './MissionLive'
 
 interface WorkspaceProps {
   data: SiteData
@@ -89,9 +90,12 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       {view === 'journey' && <EarthMoonJourney data={data} arrival={setup.timelineDate} destination={data.site.name} onArrive={() => { setup.onSimulate(); navigate('surface') }} />}
       {view === 'surface' && (
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
-        <div className="terrain-stage h-[25rem] min-w-0 sm:h-[28rem] lg:h-[26rem] xl:h-[28rem]">
+        <div className="terrain-stage h-[34rem] min-w-0 sm:h-[32rem]">
           <ViewerPanel data={data} index={state.index} contact={contact[state.index]} immersive
-            missionState={result && sample !== null ? result.series.mode[sample] : undefined} />
+            missionState={result && sample !== null ? result.series.mode[sample] : undefined}
+            missionOverlay={result && <MissionLive key={`${data.site.id}:${result.from}:${JSON.stringify(result.plan)}:${JSON.stringify(setup.cfg)}`}
+              data={data} result={result} index={state.index} playing={state.playing}
+              onPlay={() => actions.setPlaying(true)} onPause={() => actions.setPlaying(false)} />} />
         </div>
         {report ? <MissionResult {...report} /> : (
           <section aria-label="Preparar simulación" className="flex flex-col justify-center px-1 py-4 lg:px-6">
@@ -104,10 +108,10 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       )}
 
       {report && view === 'surface' && <>
+        <MissionTransport data={data} report={report} onSeek={onSeek} />
         <IncidentPanel key={`${data.site.id}:${report.result.from}:${report.result.plan.missionDays}:${JSON.stringify(setup.cfg)}`}
           data={data} cfg={setup.cfg} startIndex={report.result.from} missionDays={report.result.plan.missionDays}
           onTryStart={report.onTryStart} onTrySite={report.onTrySite} onCfg={setup.onCfg} />
-        <MissionTransport data={data} report={report} onSeek={onSeek} />
         <MissionOptions {...report} />
         <Disclosure className="mt-4" title="Batería, datos y eventos de la misión" description="Revisa el resultado hora por hora y localiza los momentos críticos.">
           <MissionTrace data={data} result={report.result} lit={lit} contact={contact} survivalThreshold={survivalThreshold} index={state.index} onSeek={onSeek} />

@@ -90,11 +90,13 @@ La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un pas
 - **Hecho:** C3.1 (portada con scroll: `src/components/Story.tsx`, medios en `public/media/`). La app abre en la portada; `#planificador` o `?sitio=` abren el planificador.
 - **Datos reales:** `npm run mock` usa Horizons (Sol y Tierra) + LOLA (horizonte y pendiente de `assets-src/terrain/lola/{id}.json`). Los JSON ya no traen `terrain` y tienen `mock: false`. Terrenos 3D LOLA en `public/models/terrain/{id}.glb` (1 unidad = 1 km, objeto `Ground`, el sitio en (0, 0, 0)).
 - **Hecho:** 9 (visor 3D: `Viewer3D.tsx`, que se carga aparte, y `ViewerPanel.tsx`). Usa `three` 0.187, `@react-three/fiber` 9.8 y `@react-three/drei` 10.7.
-- **Hecho y subido:** SU1–SU7, S3, 6, 7, 8, 8.3, 11.1–11.3, 12, D1–D2, calendario propio de fecha (`DateTimeField`), prerender de la portada para buscadores (`npm run build` corre `scripts/prerender.mjs`), escala de tiempo explicada (`TimeScale`).
-- **Pendiente de subir (14 nov, noche):** recorrido en contexto por cada paso del planificador (`Tour.tsx`: resalta cada elemento y lo explica al lado la primera vez; se repite desde Ayuda → «Guía de esta pantalla»), «¿Y si la misión se atrasa?» en el resultado del planificador (`DelayCheck.tsx` + `src/sim/delay.ts`), textos del resultado simplificados, logo sin fondo en la entrada móvil y respaldo estático si el backend no responde (`withFallback` en `src/api.ts`).
-- **Pendiente de subir:** tarea 10 (comparador visual de planes, `PlanCompare.tsx` y `PlanStrips.tsx`) y franjas en «¿Y si la misión se atrasa?».
+- **Hecho y subido:** SU1–SU7, S3, 6, 7, 8, 8.3, 11.1–11.3, D1–D2, calendario propio de fecha (`DateTimeField`), prerender de la portada para buscadores (`npm run build` corre `scripts/prerender.mjs`), escala de tiempo explicada (`TimeScale`). Tarea 12: documento de validación subido; siguen pendientes las capturas manuales de Moon Trek del equipo.
+- **Hecho y subido:** recorrido en contexto por cada paso del planificador (`Tour.tsx`), «¿Y si la misión se atrasa?» (`DelayCheck.tsx` + `src/sim/delay.ts`), textos simplificados, logo sin fondo y respaldo estático si el backend no responde (`withFallback` en `src/api.ts`). Commits `eb91681` y `75c5306`.
+- **Hecho y subido:** tarea 10 (comparador visual de planes, `PlanCompare.tsx` y `PlanStrips.tsx`) y franjas en «¿Y si la misión se atrasa?». Commit `1d52a97`.
 - **Transiciones entre pantallas:** `transition(update, 'forward' | 'back' | 'fade')` en `src/components/ui/transition.ts` (View Transitions; la cabecera queda fija y `.app-screen` se desliza). Ya la usan portada ↔ planificador, los pasos del planificador y Planificador ↔ Simulador. Para los pasos internos del simulador, hay que envolver su `navigate` con ella.
-- **Reparto (15 nov):** Richard le pasó el simulador a **Claude** (antes lo llevaba Codex): texturas, 3D, escenas y simulador visual, además del planificador. `src/components/sim/MissionLive.tsx` es una capa visual ya escrita pero **sin conectar**.
+- **Reparto (15 nov):** Claude lleva las escenas 3D y texturas. Richard pidió a Codex conectar `MissionLive.tsx`, actualizar los estados de la documentación y completar la URL pública del build; esta entrega queda pendiente de su commit. La capa visual usa las series del motor, con batería, generación/consumo, datos y avisos sobre el terreno, sin nuevos cálculos físicos.
+- **Siguiente tarea acordada:** ampliar el escenario de imprevistos del simulador: más grande, explicado y visible en la nave. No está incluida en esta entrega.
+- **URL pública del build:** `frontend/scripts/site-url.mjs` comparte la dirección entre Open Graph y prerender. Prioridad: `SITE_URL` → `VERCEL_PROJECT_PRODUCTION_URL` → `https://geoathectum.vercel.app`. El build local también genera canónica y sitemap.
 - **Nave:** por decisión de Richard, el cohete `launch_vehicle.glb` es la nave de todo el recorrido (despegue, viaje, alunizaje y vista 3D del sitio). Si consigue un modelo más moderno, se cambia ahí.
 - **Globos en espejo:** `earth.glb` y `moon.glb` traen la textura reflejada; se cargan con `useGlobeModel` (reflejo en X). Convención geográfica en `src/sim/earthImagery.ts`.
 - **Regla de Richard:** en el simulador, lo visual antes que las estadísticas. Los sucesos se ven en la escena.
@@ -113,6 +115,6 @@ Recursos oficiales del reto (detalle y uso en `docs/TAREAS.md`):
 - **CSA Moon Exploration:** contexto de misiones y del papel de Canadá en Artemis, para el pitch.
 
 ## Limitaciones (decirlas en el pitch)
-No modelamos temperatura, polvo ni satélites de relevo. Los datos de prueba no son reales: en la tarea 11 se reemplazan por los del backend.
+No modelamos temperatura, acumulación de polvo ni satélites de relevo. El polvo del descenso es un efecto visual. Los seis sitios usan efemérides reales de JPL Horizons y relieve LOLA; la app puede leer los JSON estáticos sin backend en línea.
 
 **Del simulador:** no modelamos la temperatura real (el consumo de supervivencia es fijo), la degradación de la batería, el polvo sobre el panel ni los satélites de relevo. Los presets son ilustrativos.
