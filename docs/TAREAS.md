@@ -25,6 +25,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ## Hecho
 
+- **Entrada animada con el logo de Richard (14 nov), implementada; pendiente de revisión y subida:** por aclaración de Richard, se adapta solo la presentación inicial de `tunegocioimporta.us`; la landing posterior conserva su composición. Nuevo `BrandIntro.tsx`, `brand-intro.css` y `public/brand/logo.png` original. Logo y nombre se revelan sobre el fondo de marca y se retiran con borde curvo en unos dos segundos. Se puede saltar; no se repite al volver del planificador, se omite con movimiento reducido y no bloquea enlaces directos. Verificado: 277 pruebas y build; capturas a 1440/390 px y revisión a 320 px, finalización automática, scroll restaurado, botón para saltar, Escape, movimiento reducido y regreso desde el planificador sin repetición.
+
 - **Fotografías regionales en los botones de sitios (14 nov), implementadas; pendiente de revisión y subida de Richard:** seis imágenes reales LROC/NASA/GSFC/ASU, locales y optimizadas en WebP, detrás de nombres y cifras sobre cristal oscuro. `src/content/siteImagery.ts` registra fuente y encuadre; crédito visible, enlace al original del sitio elegido y listado en Fuentes. Las imágenes dan contexto regional; no alteran datos ni representan la iluminación de la fecha del plan. Créditos y condiciones en `docs/CREDITOS.md`.
   - **Verificado:** 277 pruebas, build y capturas a 1440/390 px; comprobación adicional a 320 px. Cargan los seis fondos locales (467 KiB en total); selección con teclado y móvil, enlace de fuente actualizado, créditos en Fuentes y modo de transparencia reducida. Sin errores de JavaScript ni desbordamientos en las vistas revisadas.
 

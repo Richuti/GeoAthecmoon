@@ -2,6 +2,10 @@
 
 Proyecto del equipo para el NASA Space Apps Challenge 2026. El material de NASA se usa según las NASA Images and Media Usage Guidelines: se reconoce a NASA como fuente y no se usan sus insignias.
 
+## Identidad del proyecto
+
+`frontend/public/brand/logo.png`: archivo facilitado por Richard desde su escritorio, copiado sin modificar (SHA-256 idéntico al original). Monograma GA con Luna. Se encuadra mediante SVG en la entrada animada, sin redibujar el logo ni alterar el archivo.
+
 ## Modelos 3D (`frontend/public/models/`)
 
 | Archivo | Origen | Licencia | Cambios del equipo |

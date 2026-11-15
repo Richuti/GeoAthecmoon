@@ -6,6 +6,10 @@ El material de cristal pertenece a toda la herramienta: paneles, navegación, me
 
 Los tokens están en `frontend/src/index.css` (`@theme`), el material en `frontend/src/flight-glass.css` y las fuentes en `frontend/src/fonts.css`.
 
+## Entrada de marca de la portada
+
+Richard pidió la entrada inicial de `tunegocioimporta.us`, no una nueva composición de la landing. `BrandIntro.tsx` y `brand-intro.css` presentan el logo GA original, el nombre GEOATHECMOON y «Planificador lunar», sobre el fondo exacto del archivo (#0c0e42). El monograma entra, se revela el nombre y el plano se retira hacia arriba con borde curvo para descubrir la portada existente. Dura unos dos segundos, permite saltar con botón, Escape o Tab, omite la animación con movimiento reducido y no se repite al regresar del planificador durante la misma carga de página. No aparece al entrar directamente a `#planificador`. El relato y las transiciones recortadas con el horizonte de Shackleton se conservan.
+
 ---
 
 ## Elemento distintivo: la franja de horizonte
