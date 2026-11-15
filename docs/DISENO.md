@@ -8,7 +8,7 @@ Los tokens están en `frontend/src/index.css` (`@theme`), el material en `fronte
 
 ## Entrada de marca de la portada
 
-Richard pidió la entrada inicial de `tunegocioimporta.us`, no una nueva composición de la landing. `BrandIntro.tsx` y `brand-intro.css` presentan el logo GA original, el nombre GEOATHECMOON y «Planificador lunar», sobre el fondo exacto del archivo (#0c0e42). El monograma entra, se revela el nombre y el plano se retira hacia arriba con borde curvo para descubrir la portada existente. Dura unos dos segundos, permite saltar con botón, Escape o Tab, omite la animación con movimiento reducido y no se repite al regresar del planificador durante la misma carga de página. No aparece al entrar directamente a `#planificador`. El relato y las transiciones recortadas con el horizonte de Shackleton se conservan.
+Richard reemplazó la referencia inicial de `tunegocioimporta.us` por la entrada de MXL Parts (`mxlparts.us`; escribió `mxlpart.us`, dominio que no resuelve). No pidió una nueva composición de la landing. `BrandIntro.tsx` y `brand-intro.css` presentan el logo GA original en gran formato, dividido en tres franjas que se desplazan y vuelven a unirse; GEOATHECMOON cruza el centro durante la unión. El fondo empieza en el azul exacto del logo (#0c0e42), cambia a un contraste claro/oscuro mediante CSS y se desvanece para mostrar la portada existente. Dura 2.4 segundos, permite saltar con botón, Escape o Tab, omite la animación con movimiento reducido y no se repite al regresar del planificador durante la misma carga de página. No aparece al entrar directamente a `#planificador`. El archivo original del logo, el relato y las transiciones recortadas con el horizonte de Shackleton se conservan.
 
 ---
 
