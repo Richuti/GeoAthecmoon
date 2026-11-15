@@ -1,6 +1,26 @@
-# Tareas del frontend · GeoAthectum
+# Tareas del frontend · GEOATHECMOON
 
 Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python) lo hace otro integrante.
+
+- **Corrección de la entrada (14 nov), implementada; pendiente de revisión y subida de Richard:** sustituye las tres franjas y la inversión de contraste por un corte horizontal en dos mitades. Logo y fondo se abren hacia arriba y abajo para descubrir la landing desde el centro. Verificado: 278 pruebas, build, capturas de la apertura a 1440/390 px, ajuste a 320 px, salto con botón/Escape, movimiento reducido y regreso sin repetir la intro.
+
+- **Entrada completa y color lunar (14 nov), implementada; pendiente de revisión y subida:** se volvió a observar MXL Parts y se adaptó su secuencia completa: apertura corta con el nombre, cierre, cambio de contraste neutro y apertura final con acercamiento de la portada. Se elimina el azul de la presentación sin modificar el PNG original. Verificado: 278 pruebas, build, capturas por fase a 1440/390 px y ajuste a 320 px; finalización, salto, Escape, movimiento reducido y regreso al inicio sin repetición.
+
+- **Navegación y recarga (14 nov), implementadas; pendiente de revisión y subida de Richard:** al recargar se vuelve a `#inicio`, conservando `?sitio=` para el planificador. Los enlaces compartidos siguen abriendo directamente el sitio al visitarlos por primera vez. El scroll se reinicia después del montaje de cada pantalla y la restauración automática del navegador queda en modo manual. Verificado: 278 pruebas, build y capturas a 1440/390 px; abrir desde el pie de la landing, recargar desde abajo del planificador, Atrás/Adelante, volver por la marca y enlaces directos al sitio elegido.
+
+- **Entrada siempre oscura (14 nov), implementada; pendiente de revisión y subida de Richard:** se elimina el cambio a fondo blanco y la inversión del logo. Se conserva la secuencia de apertura corta, nombre central, cierre y apertura final. Fondo fijo #05070d y logo blanco/gris. Verificado: 278 pruebas, build y capturas por fase a 1440/390 px; revisión adicional a 320 px.
+
+- **Salida rápida de la entrada (14 nov), implementada; pendiente de revisión y subida:** se elimina la espera tras el segundo cierre. La apertura final arranca inmediatamente y dura 448 ms; la secuencia completa baja de 2.8 a 2.24 segundos conservando los tiempos de la apertura inicial y del nombre. El acercamiento de la portada acompaña la salida. Verificado: 278 pruebas, build y capturas por fase a 1440/390 px, además de 320 px.
+
+- **Landing con recorrido más ágil (14 nov), implementada; pendiente de revisión y subida:** por petición de Richard, cada imagen pasa de 220 a 180 svh de scroll efectivo (18 % menos). Se conservan la aparición temprana de los textos, su tramo de lectura, los capítulos y el recorte del horizonte. Verificado: 278 pruebas, build y capturas a 1440/390 px; lectura de las cinco escenas, recorrido hacia atrás, capítulos, transición y movimiento reducido.
+
+- **Planificador guiado (14 nov), implementado; pendiente de revisión y subida de Richard:** Richard eligió un recorrido de sitio → fecha → resultado. Nuevo `PlannerGuide.tsx`: destinos con fotografías reales, una decisión por pantalla, pasos accesibles y retorno conservando las elecciones. El modo inicial pasa a Planificador; el simulador sigue disponible. Calendario, entorno y gráficos quedan como detalles opcionales; en móvil el resultado aparece antes del 3D. La lista de comparación sigue fija en escritorio. Se conserva el plan y el paso al cambiar de modo. Verificado: 278 pruebas, build, capturas a 1440/390 px y revisión a 320 px, teclado y WebKit móvil, regreso entre pasos, navegación/recarga y transferencia al simulador; Malapert el 15 ene conserva supervivencia de 14 días y tolerancia de 4 días y 6 horas.
+
+- **Adaptación responsive y fecha en Safari (14 nov), implementadas; pendiente de revisión y subida:** se centra verticalmente la fecha en ambos formularios con altura y línea coherentes; se conservan el ancho contenido y el selector nativo. Nuevo `responsive.css` para espacios seguros del iPhone, composición de la landing en horizontal y zoom. Se elimina la superposición de la acción de selección sobre los destinos; controles táctiles de 44 px y menús/ayudas ajustados al `visualViewport`. Verificado: 278 pruebas y build; cinco escenas a 320, 390, 720, 768, 844, 1024, 1440 y 2560 px; flujo del planificador en siete tamaños; WebKit táctil en móvil, horizontal y tablet; menú a zoom 200 % y con poca altura; viaje, resultados y batería en móvil, tablet y escritorio. Las comprobaciones son emuladas, no sobre un iPhone físico.
+
+- **Criterio confirmado del reto y próxima mejora del simulador (14 nov):** Richard compartió el texto completo de Lunar Landing Site Navigator. Priorizar la comparación rápida de sitios y fechas ante cambios del calendario o las restricciones. Pendiente: volver a evaluar libremente sin repetir el viaje, conservar un plan de referencia, probar un atraso elegido por el usuario y mostrar los cambios de luz, contacto y energía frente al original. Ofrecer otra fecha en el mismo sitio u otro sitio en la misma fecha, con resultados calculados y acciones para aplicarlos. El escenario de imprevisto existente es una base; no sustituye la elección libre de escenarios. El entorno se calcula a partir de fecha, coordenadas y relieve; no inventar cambios aleatorios ni afirmar que se modelan temperaturas. Esta nota define el criterio; la mejora de interfaz sigue pendiente.
+
+- **Base del despegue cercano (14 nov), implementada; pendiente de revisión y subida:** nueva escena `LaunchViewer.tsx`, en metros, con cohete Saturn V existente y plataforma/torre de NASA (`launch_platform.glb`). Anclaje sobre la cara próxima del GLB terrestre, cámara de seguimiento y transición a la vista orbital; el cohete gigante desaparece de la vista planetaria durante el ascenso. El tramo ilustrativo ocupa 10 s y la transferencia 24 s; pausa, búsqueda y regreso a cero conservan la sincronización. Se detiene el render de cada escena oculta. Verificado: 281 pruebas, build y capturas a 1440/390 px y horizontal, controles, movimiento reducido y conservación del resultado lunar de la demo. **Acabado fotorealista pendiente:** terreno detallado, humo/escape y eventualmente vehículo por etapas; especificaciones para Richard en `docs/ESCENA_DESPEGUE.md`. No se ha añadido dinámica de empuje ni atmósfera al cálculo orbital.
 
 ## Cómo trabajamos
 
@@ -17,11 +37,27 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 **Orden recomendado (camino a la demo):** 3 → 4 → 5 → **S1 → S2** → 6 → 8 → **SU1 → SU2 → SU3** → 7 → 9 → **S3** → 11. El 10, S4, SU4, SU5 y los extras van al final.
 
+**Ampliación futura:** IA1 (planificador de misión con IA integrada), después de estabilizar SU1–SU3 y S3. Pendiente; no forma parte de la entrega actual.
+
 El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ---
 
 ## Hecho
+
+- **Más tiempo para leer la landing (14 nov), implementado; pendiente de revisión y subida:** escenas con unos 220 svh de scroll efectivo frente a los 101 anteriores, entradas de texto más tempranas, lectura completa hasta el 86 % y transición del horizonte desde el 88 %. Se corrigió el contenedor que ocultaba el texto justo cuando aparecía el dato. Los capítulos abren en un punto legible. La intro del logo no cambia. Verificado: 278 pruebas y build, las cinco escenas con título/explicación/dato visibles al 40 % y al 80 % en escritorio y móvil, capítulos, retroceso, transición del horizonte y lectura estática con movimiento reducido.
+
+- **Nueva entrada inspirada en MXL Parts (14 nov), implementada; pendiente de revisión y subida de Richard:** sustituye la entrada curva anterior. Monograma GA grande, separación en tres franjas, nombre cruzando el centro, unión e inversión de contraste antes de mostrar la landing. Referencia revisada: `mxlparts.us` (la dirección `mxlpart.us` no resuelve). Solo cambian `BrandIntro.tsx` y `brand-intro.css`; no cambia el logo original ni la landing posterior. Verificado: 277 pruebas y build, capturas de las fases y a 1440/390 px, revisión a 320 px, salto de intro, Escape, movimiento reducido, scroll restaurado, enlaces directos y regreso sin repetición.
+
+- **Entrada animada con el logo de Richard (14 nov), implementada; pendiente de revisión y subida:** por aclaración de Richard, se adapta solo la presentación inicial de `tunegocioimporta.us`; la landing posterior conserva su composición. Nuevo `BrandIntro.tsx`, `brand-intro.css` y `public/brand/logo.png` original. Logo y nombre se revelan sobre el fondo de marca y se retiran con borde curvo en unos dos segundos. Se puede saltar; no se repite al volver del planificador, se omite con movimiento reducido y no bloquea enlaces directos. Verificado: 277 pruebas y build; capturas a 1440/390 px y revisión a 320 px, finalización automática, scroll restaurado, botón para saltar, Escape, movimiento reducido y regreso desde el planificador sin repetición.
+
+- **Fotografías regionales en los botones de sitios (14 nov), implementadas; pendiente de revisión y subida de Richard:** seis imágenes reales LROC/NASA/GSFC/ASU, locales y optimizadas en WebP, detrás de nombres y cifras sobre cristal oscuro. `src/content/siteImagery.ts` registra fuente y encuadre; crédito visible, enlace al original del sitio elegido y listado en Fuentes. Las imágenes dan contexto regional; no alteran datos ni representan la iluminación de la fecha del plan. Créditos y condiciones en `docs/CREDITOS.md`.
+  - **Verificado:** 277 pruebas, build y capturas a 1440/390 px; comprobación adicional a 320 px. Cargan los seis fondos locales (467 KiB en total); selección con teclado y móvil, enlace de fuente actualizado, créditos en Fuentes y modo de transparencia reducida. Sin errores de JavaScript ni desbordamientos en las vistas revisadas.
+
+- **Cristal líquido y lectura visual del planificador (14 nov), implementado; pendiente de revisión y subida de Richard:** nuevo material compartido en `src/flight-glass.css`, con fondo lunar, paneles/menús/controles translúcidos y alternativa opaca accesible. `SiteConditions` explica Sol y Tierra con imágenes existentes y estados reales. `VisibilityCalendar` muestra horas reales por día UTC, permite elegir día y recorrer los meses de 2027. Las franjas anuales, DSN y gráficos del cielo quedan como detalle técnico opcional; se retiraron las barras de la comparación principal. Las ayudas `InfoTip` usan portal para evitar recortes por el desenfoque. Los datos y el motor no cambian. Verificado con 277 pruebas, build, capturas a 1440/390 px, comprobaciones extra a 320/768 px, conteos del calendario contra los JSON, teclado y misión de Malapert de la demo.
+
+- **Mejora del planificador y desplegables (14 nov), implementada; pendiente de revisión y subida de Richard:** Explorar sitio reorganizado con lista comparativa etiquetada, fecha UTC y duración visibles, terreno amplio, viabilidad explicada y paso al simulador con el mismo plan. Scroll único; horizonte, gráfico polar y detalles de posición bajo apertura voluntaria. Nuevos `Select` y `Disclosure` compartidos: módulos con descripción/batería/panel, sitios con contexto, controles por teclado y menús que no se recortan. Ajustes de energía y comunicación en dos columnas legibles. No cambian los datos ni el motor de cálculo. Detalle del diseño en `docs/DISENO.md`.
+  - **Verificado:** 277 pruebas y build; capturas a 1440 y 390 px, además de 320 y 768 px. Selección con flechas, Enter, Escape, búsqueda por letras y Tab; selección y scroll táctil. El plan se conserva al abrir el simulador, y Malapert el 15 ene 2027 con Explorador ligero sobrevive los 14 días con tolerancia de 4 días y 6 horas. Sin errores de JavaScript ni desbordamientos horizontales en las vistas revisadas.
 
 - [x] **1. Base del proyecto:** Vite, React, TypeScript y Tailwind, con un layout de bloques placeholder.
 - [x] **2. Contrato de datos:** `src/types.ts` y `docs/CONTRATO_DATOS.md`.
@@ -71,6 +107,29 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
   - Los pasos en Blender están en `assets-src/terrain/README.md`.
   - Los archivos generados no se suben al repo (`.gitignore`); se regeneran con el comando.
 - **Commit:** `Tarea 3.4: exportar relieve de cada sitio para Blender`
+
+### D1. Datos completos: un año, coordenadas verificadas, eclipses, crestas, DSN y validación con NASA · [x]
+- **Periodo:** todo 2027 cada 1 h (8760 muestras, `scripts/sites.mjs`). Empieza el mismo 1 de enero, así que los primeros 60 días no cambian. Unos 600 KB por sitio (235 KB comprimidos).
+- **Horizonte propio desde el DEM** (`npm run horizon`, `scripts/compute-horizon.mjs` → `assets-src/horizon/{id}.json`): mismo método que `build_terrains.py`, con las coordenadas verificadas. En Shackleton coincide con el de Python con diferencia 0.0000°. Guarda además la **distancia y la altura de la cresta** que limita cada azimut.
+- **Horizons** (`npm run horizons`): agrega la **distancia** al Sol y a la Tierra (`QUANTITIES='4,20'`), `TIME_TYPE='UT'` (el pendiente pequeño) y la **Luna vista desde Goldstone, Madrid y Canberra** (`public/data/horizons/dsn.json`).
+- **`src/lib/sky.ts`** con sus pruebas (`tests/sky.test.ts`): tamaño aparente real del Sol y la Tierra, **eclipses del Sol por la Tierra**, fracción visible del disco de la Tierra, cresta que tapa una dirección (`sunBlocker`, `compassPoint`), ventanas DSN y comparación con NASA.
+- **Simulador:** la energía usa el radio real del Sol y descuenta los eclipses (`solarFraction`). Sin distancias en los datos da lo mismo que antes. La DSN **no** cambia el simulador: sigue el supuesto de que siempre hay una estación; queda lista para que Richard decida.
+- **Verificación:**
+  - Primeros 60 días contra `origin/backend:backend/out`: luz y contacto de los 6 sitios a menos de 0.5 puntos.
+  - Caso de la demo: Malapert sobrevive el 15 ene (85.1 % de datos enviados) y falla el 20 ene (2 feb, 10:00 UTC; el documento del backend dice 07:00). Tolerancia de 4.25 días (el documento dice 4.5). Las dos diferencias no vienen de este cambio: salen igual sin las distancias.
+  - Validación contra el mapa de iluminación de NASA (AVGVISIB, 2009–2013), con observador a ras de suelo como el mapa: luz a menos de 5 puntos en los 6 sitios (mediana 2.6). Con el panel a 2 m, en las crestas se ve más Sol (Connecting Ridge: 93 % frente a 72 % a ras de suelo).
+  - Eclipse detectado: el 17 ago 2027, hacia las 06:00 UTC, la Tierra tapa hasta el 42.9 % del Sol en Malapert (eclipse penumbral de Luna de ese día).
+  - Las 242 pruebas pasan y `npm run build` compila.
+- **Terrenos 3D con las coordenadas verificadas** (después de D1): `connecting-ridge`, `de-gerlache-rim`, `mons-mouton` y `malapert-massif` se regeneraron con `build_terrains.py` (antes estaban en las coordenadas viejas y el módulo quedaba hasta 1.7 km fuera del sitio). Comprobado: sitio en (0, 0, 0), objeto `Ground`, 20 × 20 km, y horizonte y pendiente idénticos a los de `public/data` (diferencia 0°). Shackleton y Nobile no cambian de coordenadas.
+- **Aviso para el backend:** `backend/build.py` no escribe los campos nuevos (`distKm`, `distanceKm`, `dsn`, `reference`); si se regenera con él, se pierden.
+- **Commit sugerido:** `Tarea D1: un año de datos con coordenadas verificadas, eclipses, crestas, DSN y validación con NASA`
+
+### D2. Datos de D1 en la interfaz · [ ] · Implementado, pendiente de revisión de Richard
+- **Registro de la misión** (`src/sim/simulate.ts`): cada puesta y salida del Sol dice por dónde ocurre. Si una cresta tapa el Sol: «el Sol se oculta tras el relieve, a 8.0 km hacia el suroeste». Si no: «el Sol se pone por el suroeste». Evento nuevo `eclipse`: «La Tierra tapa hasta el 43 % del Sol durante 3 h».
+- **Línea de tiempo del modo explorar:** fila nueva **DSN**, con las horas de enlace real (la Tierra a la vista y alguna antena con la Luna sobre 10°). Los eclipses aparecen como cortes en la franja de luz, con una nota que explica las dos cosas. Con 365 días, las fechas bajo la barra van una por mes en lugar de una por semana (`timeTicks` en `src/lib/time.ts`), porque se amontonaban.
+- **Panel «Ahora»:** «Relieve hacia el Sol» (altura del relieve en esa dirección y distancia a la cresta), «Antenas DSN» (cuáles ven la Luna en este momento) y, durante un eclipse, «Eclipse» con el % del Sol tapado.
+- **El simulador sigue sin usar la DSN:** mantiene el supuesto de que siempre hay una estación disponible, hasta que Richard decida.
+- **Probado:** 262 pruebas (las nuevas: rumbos, frase de la cresta, evento de eclipse, puesta tras una cresta y marcas por mes) y `npm run build`. En navegador: Malapert el 17 ago 2027 muestra el eclipse del 43 %, la fila DSN y las etiquetas por mes. En móvil no hay desborde ni textos cortados, y no hay errores de JavaScript. El flujo del imprevisto (SU7) sigue pasando.
 
 ---
 
@@ -160,17 +219,38 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - La app ya lo usa: la línea de tiempo, el panel "Ahora", la barra de ventanas y el alunizaje en el simulador. `preview.ts` ya no tiene formato.
 - **Commit:** `Tarea 5.3: tiempo y formato de fechas y duraciones`
 
-### 5.4 Viabilidad · MVP
+### 5.4 Viabilidad · MVP · [x]
 - **Archivo:** `src/lib/viability.ts`.
-- Combina el % de luz, el % de comunicación y la puntuación de pendiente con pesos ajustables (por defecto 0.45 / 0.35 / 0.20).
-- **Pendiente:** 100 hasta 5°, baja hasta 0 a los 10°, que es el límite típico de un módulo de alunizaje.
-- Devuelve el % y la explicación en lenguaje simple, por ejemplo: "Buena luz (82 %), pero la Tierra solo se ve el 40 % del tiempo".
+- **`viability(input, weights, { missionSurvives })`:** combina el % de luz, el % de contacto y el puntaje de pendiente.
+  - Los pesos son ajustables (por defecto 0.45 / 0.35 / 0.20) y `normalizeWeights` los lleva a sumar 1.
+  - **Pendiente:** 100 hasta 5°, baja hasta 0 a los 10°.
+  - Devuelve el puntaje, el veredicto (Buena / Aceptable / Difícil) y el detalle de cada factor (puntaje, peso, puntos que aporta y puntos que pierde).
+  - También devuelve el **factor que más resta**, un **resumen en lenguaje simple** y **avisos concretos**: pendiente peligrosa, más de la mitad del tiempo sin Sol, poco contacto o misión que no sobrevive.
+  - Las frases usan el mismo número redondeado que se muestra en pantalla.
+- **Tope para S3:** si `missionSurvives` es `false`, el puntaje queda en 40 como máximo y se avisa.
+- **`siteViability(data, vis, weights, range)`:** la viabilidad del periodo completo o de un rango (los días de una misión).
+- **Probado:** `tests/viability.test.ts`, 25 casos (110 en total). Con los datos reales, Connecting Ridge queda primero y Nobile último, y Nobile avisa por su pendiente.
+- **En la app:** el panel de viabilidad ya usa la librería. Muestra el resumen, los avisos y la marca "Más resta" en el factor que más baja el puntaje.
+- **Commit:** `Tarea 5.4: viabilidad con pesos, factor limitante y avisos`
 
-### 5.5 Recomendación · MVP
+### 5.5 Recomendación · MVP · [x]
 - **Archivo:** `src/lib/recommend.ts`.
-- **Mejor fecha de inicio** dentro del periodo, para una misión de N días (por defecto 14).
-- **Mejor sitio alternativo:** el de mayor viabilidad entre los otros sitios.
-- **Commit de la tarea 5 (puede ir en uno o dos):** `Tarea 5: cálculos de luz, comunicación, viabilidad y recomendación`
+- **La viabilidad es de la misión, no del periodo.** Se calcula para una misión de N días (7, 14 o 28; 14 por defecto) que empieza en la fecha de la línea de tiempo. `missionWindow` adelanta el inicio si la misión no entra completa en los datos, y la interfaz lo avisa.
+- **Funciones:**
+  - `scanStartDates`: la viabilidad de cada fecha de inicio posible, cada 6 h. Le sirve también a la barra de "fechas que funcionan" (SU3).
+  - `bestStartDate`: la mejor fecha; si hay empate, la más temprana.
+  - `bestAlternativeSite`: el mejor de los otros sitios en las mismas fechas. Solo compara sitios con el mismo periodo.
+  - `recommend`: junta todo y arma frases listas para mostrar. Solo recomienda si la mejora es de **3 puntos o más**.
+- **Estado:** `missionDays` en el estado global (de 1 día a la duración del periodo) y la acción `setMissionDays`.
+- **En la app:**
+  - El panel "Viabilidad de la misión" muestra el rango de fechas, el selector 7 / 14 / 28 días y la recomendación, con los botones "Probar esa fecha" y "Ver {sitio}".
+  - La lista de sitios usa la misma ventana, así que todos los números de la pantalla son de la misma misión.
+  - Ejemplo real: en Mons Mouton, desde el 1 de enero la viabilidad es 44 % (noche lunar). Desde el 12 de enero a las 12:00 sube a 98 %.
+- **Probado:**
+  - `tests/recommend.test.ts` y `tests/appState.test.ts` (137 pruebas en total).
+  - 25 pruebas en el navegador, entre ellas que "Probar esa fecha" mueve la línea de tiempo y sube la viabilidad.
+- `src/design/preview.ts` ya solo tiene los presets del módulo, que se van a `src/sim/lander.ts` en S1.
+- **Commit:** `Tarea 5.5: recomendación de fecha y sitio para una misión de N días`
 
 ### 5.6 Pruebas de los cálculos · Extra
 - Con `node --test` (`npm test`), como en 5.1: ventanas al borde del periodo, pesos en cero y periodos sin cambios. Cada paso de la tarea 5 trae sus propias pruebas.
@@ -181,7 +261,12 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 > **Regla:** el simulador **no inventa números**. Todo sale de `isLit`, `hasContact` y la elevación del Sol (tarea 5), más los parámetros que elige el usuario. Los valores de los presets son ilustrativos, y así lo dice la interfaz.
 
-### S1. Modelo del módulo y presets · MVP
+### S1. Modelo del módulo y presets · MVP · [x]
+- **Hecho:** `src/sim/lander.ts` y `tests/lander.test.ts` (12 casos, 149 en total).
+  - `missionDays` **no** va en `LanderConfig`: vive en el estado global (5.5) para que la viabilidad y el simulador usen la misma duración.
+  - Además de lo pedido: `autonomyHours` (horas sin Sol, desde el 100 % hasta el 20 %), `minSunFraction` (qué % del tiempo tiene que haber luz para que la energía alcance), `validateConfig`, `clampConfig`, `PARAMETER_RANGES` y la constante `RECOVERY_SOC = 0.6`.
+  - "Configurar misión" usa los sliders de área y eficiencia, muestra la potencia pico, la autonomía y el Sol necesario, y los tres avisos (presets ilustrativos, DSN y mínimo de 20 %).
+  - Se borró `src/design/preview.ts`.
 - **Archivo:** `src/sim/lander.ts`.
 - **Constantes físicas** (exportadas, con su fuente en un comentario):
   - `SOLAR_CONSTANT_W_M2 = 1361`: irradiancia solar a 1 UA. En la Luna no hay atmósfera que la reduzca.
@@ -208,7 +293,14 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 - **Commit:** `Tarea S1: modelo del módulo y presets`
 
-### S2. Motor de simulación · MVP
+### S2. Motor de simulación · MVP · [x]
+- **Hecho:** `src/sim/simulate.ts` y `tests/simulate.test.ts` (15 casos, 164 en total).
+  - Firma: `simulate(data, config, { startIndex, missionDays })`. El plan va aparte del módulo, porque la duración vive en el estado.
+  - `sunFraction` usa un radio solar de 0.2665°.
+  - Los eventos llevan el reloj de misión ("Día 1, 15:00 UTC: vuelve el Sol.").
+  - Las ventanas de comunicación dicen cuánto duran; si siguen al terminar la misión, agregan "o más".
+  - **Comprobado con datos reales:** Mons Mouton con el Explorador ligero falla desde el 1 de enero (noche lunar) y sobrevive desde la mejor fecha.
+  - Todavía sin interfaz: el botón "Simular misión" se conecta en SU1–SU3.
 - **Archivo:** `src/sim/simulate.ts`, con `simulate(data, config, startIndex)`. Es una función pura que avanza en pasos de `stepHours`.
 - **Generación (W)** = `1361 × panelAreaM2 × panelEfficiency × fracciónDeSol`.
   - La fracción es la parte del disco solar visible sobre el relieve: 1 si está completo, 0 si está tapado, y lineal mientras el disco (radio ≈ 0.27°) cruza el borde.
@@ -234,7 +326,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Listo cuando:** con el mismo sitio y el mismo preset, una fecha con noche larga falla y otra con mucha luz sobrevive.
 - **Commit:** `Tarea S2: motor de simulación de energía y datos`
 
-### S3. Búsqueda de fechas y sitios que funcionan · MVP
+### S3. Búsqueda de fechas y sitios que funcionan · MVP · [x]
+- **Hecho** (subido con SU1–SU3): `src/sim/search.ts` con `scanStarts`, `bestViableStart`, `bestStart`, `delayTolerance` y `compareSites`, con pruebas en `tests/search.test.ts`. Los nombres finales son esos, no los de la lista de abajo.
 - **Archivo:** `src/sim/search.ts`.
 - `scanStartDates(data, config)`: simula empezando cada 6 h dentro del periodo, siempre que quepa la misión completa, y devuelve qué fechas sobreviven y con qué margen.
 - `bestAlternative(allSites, config, startIndex)`: el mismo inicio en los otros sitios, ordenado por resultado.
@@ -273,6 +366,9 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Temporal:** `src/design/preview.ts` carga los datos y hace cálculos mínimos para revisar el diseño con datos reales. Lo reemplazan 4.1, 4.2, la tarea 5 y S1.
 - **Commit:** `Tarea C0: sistema de diseño "hardware de vuelo" y layout final`
 
+### 6. Línea de tiempo · MVP · [x]
+- **Hecho:** la función `Timeline` de `src/App.tsx` (no un archivo aparte) con `src/components/WindowsBar.tsx`. El slider recorre todo el periodo (8760 muestras desde D1) y la barra pone una fecha por mes cuando el periodo pasa de 70 días.
+
 ### 6.1 Slider de fecha y hora · MVP
 - **Archivo:** `src/components/Timeline.tsx`. Slider sobre las 1440 muestras, con la fecha en UTC bien visible.
 
@@ -282,6 +378,9 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 ### 6.3 Barra de ventanas en SVG · MVP
 - Dos franjas: luz en ámbar y comunicación en azul, con un cursor en el instante actual. Al hacer clic se salta a esa fecha.
 - **Commit:** `Tarea 6: línea de tiempo con ventanas de luz y comunicación`
+
+### 7. Gráfico polar del cielo · MVP · [x]
+- **Hecho y subido** (`de60a03`): `src/components/SkyPlot.tsx`, en el modo explorar.
 
 ### 7.1 Gráfico polar: base · MVP
 - **Archivo:** `src/components/SkyPlot.tsx`. Círculos de elevación y puntos cardinales, con el norte arriba.
@@ -294,6 +393,10 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - Trayectorias del Sol (ámbar) y de la Tierra (azul) en el periodo, con el punto actual de cada uno. El punto se ve hueco cuando está tapado por el relieve.
 - **Commit:** `Tarea 7: gráfico polar del cielo`
 
+### 8. Métricas y viabilidad · MVP · [x]
+- **Hecho:** las funciones `Now` (Sol, Tierra, cuenta regresiva y pendiente) y `Viability` (puntaje, factores, avisos y recomendación con «Probar esa fecha» y «Ver sitio») de `src/App.tsx`, no un `Metrics.tsx` aparte.
+- **No se hizo:** los sliders para ajustar los pesos. Los pesos son fijos (`DEFAULT_WEIGHTS`) y se muestran junto a cada factor.
+
 ### 8.1 Tarjetas de métricas · MVP
 - **Archivo:** `src/components/Metrics.tsx`.
 - Elevación del Sol y de la Tierra, y estado (luz/sombra, con/sin contacto).
@@ -304,12 +407,21 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - Sliders para ajustar los pesos.
 - **Commit:** `Tarea 8: panel de métricas y viabilidad`
 
-### 8.3 Ayuda en lenguaje simple · MVP
+### 8.3 Ayuda en lenguaje simple · MVP · [x]
+- **Hecho:** `src/components/Help.tsx`, botón «¿Cómo leer esto?» en el encabezado (en las dos vistas). Abre un glosario con horizonte, elevación, azimut, luz solar, ventana de comunicación, DSN, eclipse, pendiente, viabilidad y tolerancia a atrasos: qué es y por qué importa en el polo sur. Las métricas ya tenían su tooltip.
 - Un botón "¿Cómo leer esto?" con un glosario corto: horizonte, elevación, pendiente y ventana de comunicación.
 - Tooltips en cada métrica.
 - **Commit:** `Tarea 8.3: ayuda y glosario`
 
-### 9. Vista 3D con los modelos de Richard
+### 9. Vista 3D con los modelos de Richard · [x] (9.1–9.4)
+- **Hecho:** `src/components/Viewer3D.tsx`, que se carga aparte (unos 1 MB, solo cuando hace falta), y `src/components/ViewerPanel.tsx`.
+  - Terreno LOLA del sitio. La altura del suelo bajo el módulo sale de un rayo vertical sobre el modelo.
+  - La luz del Sol es la **fracción del disco solar visible** según el horizonte LOLA de 150 km, y cambia suave. Las sombras son rasantes (mapa de 4096).
+  - De noche hay una penumbra azulada para que el relieve se lea; de día casi no hay, y las sombras quedan negras.
+  - El Sol y la Tierra se ubican por azimut y elevación. Van agrandados y la interfaz lo dice. La Tierra se dibuja sin depender de la luz del sitio.
+  - Módulo agrandado ×30. `SolarPanel` apunta al Sol y `Antenna` a la Tierra; los dos miran a -Z, así que el giro es Y = -az, X = el.
+  - Estrellas de fondo muy tenues. Botón "Restablecer vista". Si el modelo falla, se muestra un mensaje en lugar de romper la app.
+  - **Probado en navegador real (WebGL por software):** carga, Sol iluminado y en sombra (Sol a 1.17° pero tapado por el relieve → escena oscura), cambio de sitio y consola sin errores.
 
 > **Regla:** el código **no genera geometría**. Todo lo que se ve en 3D (terrenos, módulo, Sol, Tierra, cielo y marcadores) lo modela Richard y llega como `.glb`. El código solo carga los modelos, pone la cámara, mueve la luz del Sol según los datos y anima las piezas con nombre.
 
@@ -317,6 +429,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - Instalar `three`, `@react-three/fiber` y `@react-three/drei`.
 - **Archivo:** `src/components/Viewer3D.tsx`. Un Canvas que carga `public/models/terrain/{id}.glb` según el sitio elegido, con OrbitControls limitados (sin meterse bajo el suelo) y carga progresiva.
 - Mientras no exista el modelo, muestra un estado vacío bien diseñado ("Modelo 3D en preparación") en lugar de una figura generada.
+- **Carga diferida:** cada `.glb` se pide solo cuando se va a ver, y mientras tanto se muestra el progreso. Hay modelos de varios MB (`gateway.glb` pesa unos 11 MB) y la primera pantalla no debe esperarlos.
 
 ### 9.2 Luz del Sol desde los datos · MVP
 - Una luz direccional en la dirección `(sin az·cos el, sin el, -cos az·cos el)`, con el norte en -Z y el este en +X. Cambia con el slider de tiempo.
@@ -343,7 +456,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 ## Fase C2 · Interfaz del simulador
 
 ### SU1. Panel "Configurar misión" · MVP
-- **Archivo:** `src/components/MissionSetup.tsx`.
+- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionSetup.tsx` y `SimulatorWorkspace.tsx`. Formulario principal reducido a sitio, fecha UTC y duración; módulo y parámetros técnicos desplegables. Navegación entre viaje Tierra–Luna y sitio de alunizaje. Terreno amplio y lectura de viabilidad a su lado. La fecha de alunizaje es independiente del cursor de reproducción.
+- **Archivo:** `src/components/sim/MissionSetup.tsx`.
 - Selector de preset, más sliders para cada parámetro con su unidad y un tooltip en lenguaje simple. También la fecha de alunizaje y la duración.
 - El panel se configura con **área** y **eficiencia**. Al lado se muestra la potencia pico calculada (`1361 W/m² × área × eficiencia`).
 - Avisos visibles:
@@ -354,6 +468,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Commit:** `Tarea SU1: panel de configuración de misión`
 
 ### SU2. Reproducción de la simulación · MVP
+- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionTrace.tsx`, línea de tiempo y estado global. La reproducción se limita a la misión y se detiene al terminar o fallar; al repetir comienza en el alunizaje. Incluye batería, modo, datos enviados y pendientes, eventos navegables y estado del módulo en el visor. Gráfica accesible con flechas, Inicio y Fin.
 - Usa la misma línea de tiempo (tarea 6) en "modo misión", desde el alunizaje hasta el final.
 - En el panel de métricas: batería en % (verde, ámbar o rojo), modo actual, y datos en cola y enviados.
 - **Gráfico SVG de la batería** a lo largo de la misión, con las franjas de luz y comunicación debajo.
@@ -362,6 +477,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Commit:** `Tarea SU2: reproducción de la misión`
 
 ### SU3. Resultado de la misión · MVP
+- **Implementado; pendiente de revisión y subida de Richard:** `src/components/sim/MissionResult.tsx` y búsquedas adelantadas de S3 (`src/sim/search.ts`). La viabilidad muestra luz y contacto en porcentaje y horas, más pendiente regional. Compara los seis sitios para la misma fecha y módulo. La mejor fecha prioriza la viabilidad entre las que sobreviven; a igual puntaje elige margen y luego fecha más temprana. La batería comprueba el plan sin sustituir los tres criterios del reto. La viabilidad usa el alunizaje fijo y queda en 40 % como máximo si la misión falla. Mantiene tolerancia a atrasos, eventos y controles por teclado.
+- **Verificación de esta entrega:** pruebas de cálculo y estado, compilación y recorrido en Edge con escritorio y móvil de 390 px; sin desborde horizontal ni excepciones de JavaScript.
 - Tarjeta final:
   - ✅ **Misión cumplida**, o ❌ **Falló el día X**, con la causa.
   - Datos enviados (%), batería mínima y horas en supervivencia.
@@ -376,20 +493,118 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 ### SU5. Animación de descenso · Extra
 - Al empezar la simulación, el módulo baja hasta el sitio en unos 3 segundos, antes de que empiece el tiempo de la misión. Respeta `prefers-reduced-motion`.
 
+### SU6. Viaje Tierra–Luna y accesibilidad · [x]
+- `src/sim/transfer.ts`, `tests/transfer.test.ts`, `src/components/sim/EarthMoonJourney.tsx` y `TransferViewer.tsx`.
+- Ascenso ilustrativo con un GLB Saturn V de NASA y transferencia orbital educativa calculada desde una órbita terrestre de 200 km. Muestra duración, distancia y velocidad; la Luna se mueve hacia el encuentro previsto.
+- Reproducción sin autoplay, pausa, avance manual y controles por teclado. Movimiento reducido detiene la reproducción y usa una cámara general fija. «Evaluar este alunizaje» conecta con el motor de superficie.
+- Supuestos y límites explícitos: dos cuerpos, Luna circular y fase orientada para un encuentro ideal. No calcula ascenso físico, ventanas reales de lanzamiento, captura, descenso ni consumo del cohete. Detalle y fuentes en `docs/TRANSFERENCIA.md`; modelo registrado en `docs/CREDITOS.md`.
+- Simplificación: tres campos principales; ajustes del módulo y gráfica detallada de batería, datos y eventos desplegables. Las cifras y unidades de los sliders se anuncian a lectores de pantalla.
+- **Probado:** conservación de energía y momento angular, condiciones de salida y encuentro; recorrido completo en navegador con escritorio, móvil, teclado y movimiento reducido. La simulación y comparación de sitios siguen funcionando.
+- **Commit sugerido:** `Tarea SU6: viaje Tierra-Luna calculado y simplificación accesible del simulador`.
+- **Corrección de sincronización, pendiente de revisión y subida de Richard:** el inicio espera a los modelos; reloj, nave y Luna comparten `journeyAt`. La reproducción avanza por cuadros y la cámara conserva ambos cuerpos en la aproximación, también en móvil. `transferView.ts` calcula el encuadre sin generar geometría. Verificado con 277 pruebas, build y capturas a 1440 y 390 px; carga retrasada, pausa, retroceso, repetición, llegada y evaluación de superficie.
+
+### SU7. Imprevisto en el alunizaje · [ ] · Implementado, pendiente de revisión de Richard
+- **Idea:** después del viaje, en «Evaluar», el botón «Simular el imprevisto» plantea que una corrección de trayectoria atrasa la llegada. El usuario ve si su misión todavía funciona y elige cómo salvarla. Es la pregunta del reto llevada a una decisión.
+- **Motor** (`src/sim/incident.ts`, pruebas en `tests/incident.test.ts`): el escenario es simulado, pero sus números salen de los datos.
+  - El atraso es el **más corto que hace fallar la misión** (la tolerancia a atrasos más un paso de 6 h). Si ningún atraso la hace fallar, se muestran 5 días y se dice que la misión aguanta.
+  - **Causa:** la última puesta de Sol antes de la falla, las horas de sombra que siguen y el relieve que lo tapa (dirección, distancia y altura, de los datos de D1). Distingue una cresta que tapa el Sol de un Sol que se pone bajo el horizonte.
+  - **Tres salidas, todas simuladas:** esperar en órbita hasta la primera llegada que sobrevive; cambiar al sitio que sobrevive y envía más datos con la misma llegada; encender menos instrumentos (75, 50 o 25 %, con menos consumo y menos datos en la misma proporción).
+- **Interfaz** (`src/components/sim/IncidentPanel.tsx`, montado en la vista «Evaluar» de `SimulatorWorkspace.tsx`): atraso, llegada prevista y nueva, día de la falla y su causa, y las salidas con batería mínima y datos enviados. «Aplicar» cambia el plan y vuelve a simular. Dice en pantalla que el atraso es un escenario y que el Sol, la Tierra y el relieve son datos reales.
+- **Caso de la demo** (Malapert, 15 ene 2027, Explorador ligero): atraso de 4 días y 12 horas, falla el día 14 (el 1 feb el Sol se pone por el suroeste y siguen 8 días y 6 horas de sombra). Salidas: esperar al 11 feb (84 % de datos), ir a de Gerlache (34 %) o encender el 75 % de los instrumentos (54 %).
+- **Probado:** 12 pruebas nuevas (254 en total) y `npm run build`. En navegador (Edge headless): flujo completo, «Aplicar» lleva al 11 feb y la misión sobrevive, móvil sin desborde y sin errores de JavaScript.
+- **IA1 lo puede usar:** la IA explicaría el imprevisto y las salidas que el motor ya comprobó, sin inventar números.
+
+### IA1. Diseñar y aplicar un plan de misión con IA · [ ] · Especificada, por hacer
+- **Objetivo:** un planificador que **actúa dentro del simulador**, no un chat genérico ni solo explicaciones. El usuario escribe un objetivo y recibe planes comprobados que puede aplicar.
+- **Ejemplo:** «Quiero una misión de 14 días, priorizando comunicación y usando este módulo». El sistema:
+  1. Interpreta el objetivo y extrae duración, prioridades y restricciones.
+  2. Evalúa sitios, fechas y configuraciones permitidas con el motor existente.
+  3. Presenta una propuesta principal y alternativas, cuando existan.
+  4. Con «Aplicar este plan» actualiza sitio, fecha, duración y módulo, vuelve a simular y permite reproducir la misión.
+- **Papel de la IA:** traduce el objetivo a criterios estructurados y explica las opciones calculadas. Puede pedir que se ejecuten funciones del proyecto mediante herramientas (*function calling*).
+- **Regla:** los cálculos físicos y la selección verificable de opciones son del código del proyecto. La IA no inventa horas de Sol, contacto, pendientes, viabilidad, batería ni fechas favorables. Si ninguna opción cumple las restricciones, lo dice y señala qué condición habría que revisar; nunca presenta una misión fallida como viable. Los presets siguen siendo ilustrativos.
+- **Arquitectura:** React → endpoint propio del backend → API de OpenAI.
+  - Antes de elegir modelo y API, consultar la documentación oficial vigente de OpenAI.
+  - Validar estrictamente las entradas, los argumentos de las herramientas y las respuestas estructuradas.
+  - Usar únicamente los sitios, periodos y parámetros disponibles.
+  - `OPENAI_API_KEY` solo en el servidor. Nunca en React, variables `VITE_`, archivos públicos ni el repositorio.
+  - Richard todavía no tiene clave: no pedirla en el chat; documentar cómo configurarla localmente.
+  - Sin clave, la interfaz dice que la función está pendiente de configuración y el simulador sigue funcionando. No se simulan respuestas de IA como si fueran reales.
+  - El backend principal es de otro integrante (Rafael): revisar qué existe y coordinar el contrato; no reconstruir su trabajo.
+- **Fuera de alcance:** no modificar la portada ni el recorrido Tierra–Luna para esta función.
+- **Forma de trabajar:** un paso a la vez. Al terminar cada paso: comprobaciones, resumen de archivos y mensaje de commit sugerido; después se detiene. Richard hace los commits y el push; no se cambia de rama.
+
+#### IA1.1 Revisar lo existente y definir el contrato · [ ]
+- Leer el simulador actual (`src/sim/`, `src/lib/`, `App.tsx`, `SimulatorWorkspace.tsx`) y lo que hay en `origin/backend`.
+- Definir el contrato del endpoint: qué envía el frontend (objetivo en texto, sitio y módulo actuales, periodo disponible), qué devuelve (criterios estructurados, planes y explicación) y los errores (sin clave, límite de uso, tiempo agotado, objetivo inválido).
+- Definir las herramientas que la IA puede pedir (por ejemplo: listar sitios y periodo, evaluar un plan, buscar fechas que sobreviven, comparar sitios) con sus esquemas de argumentos y su validación.
+- Decidir con Rafael dónde corre el endpoint y quién ejecuta el motor. Si el motor sigue en TypeScript, el servidor puede reutilizar `src/sim` y `src/lib` sin duplicar cálculos.
+- Documentarlo en `docs/CONTRATO_IA.md`.
+
+#### IA1.2 Conexión segura con OpenAI · [ ]
+- Endpoint propio en el servidor, con `OPENAI_API_KEY` en su entorno, y las instrucciones para configurarla localmente.
+- Límites de uso y manejo de errores, esperas y falta de configuración. Sin clave, estado «pendiente de configuración» y el simulador intacto.
+
+#### IA1.3 Traducir objetivos a criterios verificables · [ ]
+- Recoger duración, prioridades y restricciones: luz solar, comunicación, pendiente, módulo y fechas o sitios permitidos.
+- Respuesta estructurada y validada contra los sitios, periodos y parámetros disponibles. Si falta información esencial, pedir solo ese dato; si el objetivo no es viable, explicarlo.
+
+#### IA1.4 Evaluar y ordenar los planes con el motor · [ ]
+- Ejecutar las búsquedas y simulaciones del proyecto para los criterios pedidos. Comparar opciones con el mismo objetivo y mostrar qué restricciones cumple cada una.
+- Cada plan lleva: sitio, fecha, duración y módulo; viabilidad; horas de luz y contacto; pendiente; supervivencia y batería mínima; datos enviados; tolerancia a atrasos; y una explicación breve de por qué cumple el objetivo.
+
+#### IA1.5 «Diseñar mi misión» y «Aplicar este plan» · [ ]
+- Acción **«Diseñar mi misión»** integrada en el simulador: pocos controles, lenguaje claro, navegación por teclado y buen funcionamiento en móvil.
+- Identidad espacial del proyecto. Sin ventanas de chat flotantes, tarjetas repetidas, adornos de IA ni pantallas llenas de parámetros.
+- Primero lo esencial; los detalles, desplegables. Propuesta principal y alternativas.
+- **«Aplicar este plan»** actualiza sitio, fecha, duración y módulo, vuelve a simular y permite reproducir la batería y los eventos.
+
+#### IA1.6 Verificación · [ ]
+- Aplicar un plan reproduce **exactamente** sus resultados con el motor.
+- Pruebas de restricciones incompatibles, objetivos imposibles, errores de la API y fechas fuera del periodo disponible.
+- Capturas en escritorio y móvil. No afirmar que se verificó la conexión real con OpenAI sin credenciales.
+- **Listo cuando:** un objetivo produce un plan comprobado que se puede aplicar y reproducir; los valores mostrados coinciden con los del motor; se entiende en móvil y con teclado; los fallos de la API no bloquean el planificador.
+- **Commit sugerido al completar la integración:** `Tarea IA1: planificador de misión con IA y aplicación de planes verificados`.
+
 ---
 
 ## Fase C3 · Portada narrativa con scroll
 
-> Medios generados por Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son **ilustraciones**: cada una lleva la leyenda "Ilustración generada con IA", y ningún dato sale de ellas.
+> Medios generados por Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son **ilustraciones** y ningún dato sale de ellas. Por decisión de Richard (14 nov), la app no menciona la IA en ningún lugar.
 
-### C3.1 Portada con video que avanza con el scroll · Extra (MVP si llegan los videos)
+### C3.1 Portada con video que avanza con el scroll · [x]
+- **Hecho (adelantado a pedido de Richard):**
+  - `src/components/Story.tsx` y `src/lib/storyFacts.ts`, con `tests/storyFacts.test.ts`.
+  - Los medios convertidos están en `public/media/`: sin audio, con un fotograma clave cada 4, sin los marcos de película, el V4 invertido, con pósters, más `i2-borde-crater.jpg` e `i1-fondo-og.jpg`.
+- **Una secuencia continua.** Un único escenario fijo encadena las cinco tomas con fundidos, sin separaciones de página, líneas ni zoom adicional. Los textos aparecen por momentos del video. El cierre permanece sobre la noche lunar. El prompt para generar una toma única está en `docs/PROMPT_VIDEO_CONTINUO.md`; mientras llega ese archivo se usan los medios existentes.
+- **Cada escena trae un dato real calculado,** que aparece completo en su momento:
+  - el Sol no pasa de 1.3° en Shackleton;
+  - da una vuelta al horizonte cada 29.6 días;
+  - la Tierra se ve el 40 % del tiempo;
+  - Mons Mouton pasa de 44 % a 98 % cambiando la fecha;
+  - la autonomía es de 19.8 h.
+- **Navegación:**
+  - Índice de capítulos 01–05, que se oculta en la escena final.
+  - "Abrir el planificador" lleva a `#planificador`; la marca del planificador vuelve a la portada (`#inicio`); un enlace con `?sitio=` se salta la portada.
+  - Enlace "Saltar al planificador" para teclado.
+- **Calidad:**
+  - Un solo bucle `requestAnimationFrame` que solo trabaja con las escenas visibles, sin volver a dibujar React en cada cuadro.
+  - Cada video empieza a cargar cuando se acerca su escena.
+  - Truco para que iOS permita mover el video.
+  - Con "reducir movimiento" se ven pósters fijos.
+  - ~~"Ilustración generada con IA" en cada escena~~: retirado por decisión de Richard (sin menciones de IA en la app).
+- **Probado:** 21 pruebas en el navegador real (scroll, texto, contador, índice, botones, movimiento reducido y móvil sin desborde), más las 25 del planificador.
 - **Archivo:** `src/components/Story.tsx`. Cuatro o cinco escenas con V1–V5. El scroll mueve el `currentTime` del video. Se pausa con `prefers-reduced-motion` y entonces muestra el póster.
 - Cada escena tiene una frase corta con un dato real de la app. Por ejemplo: *"En Shackleton el Sol nunca sube más de 1.3°"* (calculado de los datos de Horizons, no escrito a mano).
 - Termina con el botón **"Abrir el planificador"**.
 - Si falta un video, usa su póster o `i2-borde-crater.jpg`.
 - **Commit:** `Tarea C3.1: portada narrativa con scroll`
+- **Ajuste de secuencia pendiente de revisión y subida de Richard:** `src/lib/storyTiming.ts` y `tests/storyTiming.test.ts`. Apariciones por tiempo de video y fundidos dentro de un solo escenario; póster como respaldo y relato estático completo con movimiento reducido. Verificado en Edge con escritorio y móvil.
 
-### C3.2 Imagen para compartir · Extra
+- **Portada rehecha, pendiente de revisión y subida de Richard:** ya no usa videos (se borraron del repo, unos 28 MB). Usa 5 imágenes fijas (`public/media/escena-1..5-*.jpg`, prompts en `docs/MEDIOS_VISUALES.md`). El cambio de escena sube recortado con la silueta real del horizonte de Shackleton; la franja fija del horizonte y el Sol se retiró por decisión de Richard. El relato va en el cielo y el dato sobre el suelo. Pie de página con «GEOATHECMOON» relleno con la textura de la superficie lunar de Solar System Scope (CC BY 4.0). Sin menciones de IA.
+
+### C3.2 Imagen para compartir · Extra · [ ] · Implementado, pendiente de revisión de Richard
+- **Hecho:** `frontend/public/og.jpg` (1200×630, fondo I1 con las fuentes de la app), etiquetas Open Graph y Twitter en `frontend/index.html`, y `frontend/vite.config.ts`, que pone `https://$VERCEL_PROJECT_PRODUCTION_URL` en `%SITE_URL%` (en local las rutas quedan relativas).
 - `public/og.jpg` (1200×630): el fondo I1 con el título en la tipografía de la app, compuesto en HTML y capturado.
 - Más las etiquetas Open Graph en `index.html`.
 
@@ -397,19 +612,31 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ## Fase D · Cierre
 
-### 11.1 Conectar con el backend real · MVP
+### 11.1 Conectar con el backend real · MVP · [x]
 - Configurar `VITE_API_URL`, revisar el checklist de `docs/CONTRATO_DATOS.md` con los datos reales y mostrar un aviso cuando se usan datos de prueba.
+- **Hecho:** checklist revisado sobre `backend/out` y `public/data` (los dos pasan; detalle y diferencias en `docs/CONTRATO_DATOS.md`). `VITE_API_URL` queda vacía: la app lee los JSON estáticos de `public/data`, también en Vercel. `dataNotice` (`src/api.ts`, con pruebas en `tests/api.test.ts`) avisa en el encabezado si un sitio trae datos de prueba. Anotado qué tendría que agregar `backend/build.py` para no perder los campos opcionales de D1.
+- **Commit sugerido:** `Tarea 11.1: datos reales verificados contra el contrato y aviso de datos de prueba`
 
-### 11.2 Fuentes de datos · MVP · NASA
+### 11.2 Fuentes de datos y créditos · MVP · NASA · [x]
+- **Hecho:** `src/components/Sources.tsx`. Los enlaces a QuickMap y Moon Trek llevan a cada visor con las coordenadas del sitio a la vista, no a un enlace directo al punto.
 - Panel "Fuentes" que acredita a JPL Horizons, Moon Trek, Quickmap (datos del LRO) y CSA Moon Exploration.
 - Cada sitio tiene enlaces "Ver en Quickmap" y "Ver en Moon Trek".
+- **Créditos de modelos y texturas,** tomados de `docs/CREDITOS.md` (la fuente única: si cambia, se actualiza el panel):
+  - **NASA 3D Resources** (dominio público): `lander.glb` (Apollo Lunar Module, adaptado con panel solar y antena), `rover.glb` (Space Exploration Vehicle), `astronaut.glb`, `lro.glb`, `gateway.glb`, `dsn_34m.glb` y `stars.jpg` (Tycho Star Map).
+  - **NASA Visible Earth / Goddard** (dominio público): Blue Marble Next Generation, en `earth.glb`.
+  - **NASA Earth Observatory** (dominio público): Black Marble, en `earth_night.jpg`.
+  - **Solar System Scope, CC BY 4.0: dar crédito es obligatorio.** Son las texturas de la Luna (`moon.glb`, basada en datos de NASA LRO) y del Sol (`sun.glb`). Texto: *"Texturas de la Luna y el Sol: Solar System Scope (solarsystemscope.com), CC BY 4.0"*, con enlace a la licencia.
+- **Sobre el proyecto:** "Proyecto creado por nuestro equipo para el NASA Space Apps Challenge 2026". El material de NASA se usa según las NASA Images and Media Usage Guidelines, sin sus insignias.
 - **Términos de uso:** Quickmap es de Arizona State University, no del gobierno de EE. UU. Hay que respetar sus condiciones de uso y no presentarlo como aval de la NASA.
+- **Commit:** `Tarea 11.2: panel de fuentes y créditos`
 
-### 11.3 Deploy en Vercel · MVP
+### 11.3 Deploy en Vercel · MVP · [x]
+- **Hecho:** Root Directory `frontend`, Vite, sin `VITE_API_URL`; se publica desde `main` (`git push origin frontend:main`). El backend irá aparte a Render.
 - Build estático de `frontend/` con las variables de entorno configuradas.
 - **Commit:** `Tarea 11: backend real, fuentes y deploy`
 
-### 12. Validación para el pitch · Extra · NASA
+### 12. Validación para el pitch · Extra · NASA · [ ] · Implementado, pendiente de revisión de Richard
+- **Hecho:** `docs/VALIDACION_NASA.md`. Con la misma regla que el mapa oficial AVGVISIB del equipo LOLA (a ras de suelo), nuestra luz queda a menos de 5 puntos en los 6 sitios. Connecting Ridge con el panel a 2 m da 89.5 %, contra 88–89 % publicado. Incluye las comprobaciones de Rafael (alturas con QuickMap, marcadores de Dilan, fuentes de Joshua), respuestas para el jurado y límites. Faltan las capturas de Moon Trek, que son manuales.
 - Comparar nuestro horizonte y nuestro % de luz con lo que muestran **Quickmap** (capas de iluminación o relieve del polo sur, si las tiene) y **Moon Trek** en los mismos sitios, y hacer capturas para el pitch.
 - Usar **CSA Moon Exploration** para el contexto: el papel de Canadá en Artemis y por qué importa elegir bien el sitio.
 - Escribir las limitaciones: no modelamos temperatura, polvo ni satélites de relevo, y el terreno de prueba no es real.
@@ -425,46 +652,38 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ## Lo que Richard crea en 3D
 
-Todo el 3D lo modela Richard (en Blender o la herramienta que prefieras) y lo exporta a **glTF binario (`.glb`)** en `frontend/public/models/`. El código solo los carga.
+Todo el 3D lo prepara Richard y lo exporta a **glTF binario (`.glb`)** en `frontend/public/models/`. Las texturas sueltas van en `frontend/public/textures/`. El código solo los carga. Los créditos de cada archivo están en `docs/CREDITOS.md`.
 
 ### Reglas para todos los modelos
 - **Ejes:** en Blender, Z hacia arriba y el **norte hacia +Y** (el este hacia +X). Al exportar con *+Y Up*, queda como la escena espera: Y arriba, norte en -Z y este en +X.
 - **Origen:** en el punto de apoyo (centro de la base o del terreno).
-- **Materiales:** PBR (Principled BSDF). Las texturas en potencias de 2 (1024 o 2048) y en JPG, salvo las que tienen transparencia.
 - **Sin luz horneada:** no hornear sombras ni luz del Sol en las texturas, porque el Sol se mueve con el slider y las sombras las calcula el código. La oclusión ambiental (AO) sí se puede hornear.
-- **Antes de exportar:** aplicar transformaciones (Ctrl+A → All Transforms) y borrar cámaras y luces de la escena.
-- **Exportar:** File → Export → glTF 2.0 → *glTF Binary (.glb)*, con *+Y Up*, *Apply Modifiers* y compresión *Draco* si pasa de 5 MB.
+- **Sin límite de triángulos.** Para que la página cargue rápido, los modelos se cargan de forma diferida (ver 9.1).
+- **Créditos:** todo archivo nuevo se anota en `docs/CREDITOS.md`, con su origen y su licencia.
 
-### M0. Terrenos de los 6 sitios · MVP (para el paso 9.1)
-- **Archivos:** `public/models/terrain/{id}.glb`, uno por sitio: `shackleton-rim`, `connecting-ridge`, `de-gerlache-rim`, `mons-mouton`, `malapert-massif` y `nobile-rim`.
-- **Base obligatoria:** empezar desde `assets-src/terrain/{id}.obj` o desde el PNG del paso 3.4. **No cambies la forma grande** (montañas, cráteres, crestas), porque de ella salen las sombras que se ven en 3D y deben coincidir con los % de luz. Sí puedes sumar detalle fino: rocas, regolito, cráteres chicos de menos de 200 m, materiales y color.
-- **Escala:** 1 unidad = 1 km, tanto en lo ancho como en las alturas. El terreno mide 20 × 20 unidades, con el sitio en el centro exacto (0, 0). El OBJ del paso 3.4 ya viene así.
-- **Límites:** menos de 200 000 triángulos y menos de 8 MB por terreno.
-- **Nombres:** el objeto del suelo se llama `Ground`, porque recibe las sombras.
+### Lo que ya está
 
-### M1. Módulo de alunizaje · MVP (para el paso 9.4)
-- **Archivo:** `public/models/lander.glb`.
-- **Diseño:** un módulo **genérico y propio**, que no copie ninguno real. Cuerpo, 3 o 4 patas, un panel solar y una antena parabólica. La silueta se tiene que reconocer de lejos.
-- **Escala:** en metros (1 unidad = 1 m), unos 4 m de alto. El código lo agranda como símbolo en la escena de 1 unidad = 1 km.
-- **Partes con nombre exacto** (objetos separados, para que el código los mueva):
-  - `SolarPanel`: con el pivote en la bisagra. Se gira en Y (azimut) y en X (inclinación).
-  - `Antenna`: con el pivote en la base del plato.
-  - `Body`: todo lo demás.
-  - `StatusLight` (opcional): una luz pequeña con material emisivo. El código cambia su color según el modo de la misión: verde nominal, ámbar supervivencia y rojo falla.
-- **Límites:** menos de 15 000 triángulos, menos de 1 MB y máximo 3 materiales.
+| Archivo | Qué es | Uso previsto |
+|---|---|---|
+| `lander.glb` | Apollo Lunar Module (NASA 3D Resources), adaptado con `SolarPanel` y `Antenna` orientables. Unos 102 000 triángulos y escala real de unos 7 m. | Paso 9.4 y SU2: el panel sigue al Sol y la antena a la Tierra. |
+| `rover.glb` | Space Exploration Vehicle (NASA), 3 m de alto. | Por definir: otro tipo de misión o referencia de escala. |
+| `astronaut.glb` | Astronauta (NASA), 1.85 m. | Por definir: referencia de escala junto al módulo. |
+| `lro.glb` | Lunar Reconnaissance Orbiter (NASA). | Portada (C3) o panel de fuentes: la nave que midió el relieve (LOLA). |
+| `gateway.glb` | Gateway Core (NASA), unos 11 MB. | Por definir: contexto de Artemis en la portada. |
+| `dsn_34m.glb` | Antena de 34 m de la Deep Space Network (NASA). | Contacto con la Tierra en el simulador: el supuesto de la DSN siempre disponible. |
+| `earth.glb` | Esfera con Blue Marble (NASA). | 9.3: la Tierra en el cielo. |
+| `sun.glb` | Esfera con textura de Solar System Scope (CC BY 4.0). | 9.3: el Sol en el cielo. |
+| `moon.glb` | Esfera con textura de Solar System Scope (CC BY 4.0), con *empties* `site-{id}`. | Portada: globo lunar con los 6 sitios. |
+| `textures/stars.jpg` | Tycho Star Map (NASA), equirectangular. | Fondo del cielo en 3D. Desde el suelo iluminado, una cámara real casi no vería estrellas, así que conviene usarlo tenue. |
+| `textures/earth_night.jpg` | Black Marble (NASA): luces nocturnas. | Lado oscuro de la Tierra en 9.3. |
 
-### M2. Sol · MVP (para el paso 9.3)
-- **Archivo:** `public/models/sun.glb`. Una esfera de 1 unidad de radio con material emisivo ámbar (`#ffb547` o parecido), sin textura obligatoria. El código le pone el brillo.
-
-### M3. Tierra · MVP (para el paso 9.3) · NASA
-- **Archivo:** `public/models/earth.glb`. Una esfera de 1 unidad de radio con textura **Blue Marble** de NASA Visible Earth (visibleearth.nasa.gov), en 2048×1024.
-
-### M4. Globo lunar para la portada · Extra · NASA
-- **Archivo:** `public/models/moon.glb`. Una esfera con el color y el relieve del **CGI Moon Kit** de NASA SVS (svs.gsfc.nasa.gov), en 2048 px.
-- Va el polo sur hacia la cámara y un *empty* por sitio llamado `site-{id}` (por ejemplo `site-shackleton-rim`) en su posición, para que el código ponga ahí los marcadores interactivos.
-
-### Orden sugerido
-M0 (primero un solo terreno, por ejemplo Shackleton, para probar el flujo), luego M1, M2 y M3, y al final M4.
+### Lo que falta
+- **M0. Terrenos de los 6 sitios** (`public/models/terrain/{id}.glb`, para el paso 9.1).
+  - Se parte de `assets-src/terrain/{id}.obj` o del PNG del paso 3.4.
+  - **No cambies la forma grande**, porque de ella salen las sombras que deben coincidir con los % de luz.
+  - 1 unidad = 1 km, y el objeto del suelo se llama `Ground`.
+- **`StatusLight`** (opcional) en `lander.glb`: una luz pequeña con material emisivo que el código pinta según el modo de la misión (SU2).
+- **Luna con CGI Moon Kit** (pendiente en `docs/CREDITOS.md`): si se reemplaza la textura de Solar System Scope por la de NASA SVS, que es de dominio público, ya no hace falta el crédito CC BY de la Luna.
 
 ---
 

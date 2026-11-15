@@ -99,7 +99,7 @@ describe('formatDurationLong', () => {
 describe('reloj de misión', () => {
   test('día y hora desde el inicio de la misión', () => {
     // La misión empieza en la muestra 10 (01 ene, 10:00). La muestra 85 es el 04 ene a las 13:00: día 4.
-    assert.equal(formatMissionClock(hourly, 85, 10), 'Día 4, 13:00 UTC')
+    assert.equal(formatMissionClock(hourly, 85, 10), 'Día 4 · 4 ene, 13:00 UTC')
   })
 })
 
@@ -112,5 +112,25 @@ describe('input datetime-local (UTC)', () => {
   })
   test('valores inválidos dan null', () => {
     for (const v of ['', 'mañana', '2027-13-40T99:99', '2027-01-18']) assert.equal(fromInputValue(v), null)
+  })
+})
+
+describe('timeTicks: marcas de fecha bajo la barra', async () => {
+  const { timeTicks } = await import('../src/lib/time.ts')
+  test('60 días: una marca por semana', () => {
+    const t = timeTicks('2027-01-01T00:00:00Z', 1, 1440)
+    assert.equal(t.length, 9)
+    assert.deepEqual(t.slice(0, 2), [{ index: 0, label: '1 ene' }, { index: 168, label: '8 ene' }])
+  })
+  test('un año: una marca por mes, el día 1', () => {
+    const t = timeTicks('2027-01-01T00:00:00Z', 1, 8760)
+    assert.equal(t.length, 12)
+    assert.deepEqual(t.map((x) => x.label), ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'])
+    assert.equal(t[1].index, 31 * 24)
+  })
+  test('si el periodo no empieza el día 1, la primera marca es el mes siguiente', () => {
+    const t = timeTicks('2027-01-15T06:00:00Z', 6, 400)
+    assert.equal(t[0].label, 'feb')
+    assert.equal(t[0].index, Math.round((Date.UTC(2027, 1, 1) - Date.parse('2027-01-15T06:00:00Z')) / (6 * 3_600_000)))
   })
 })

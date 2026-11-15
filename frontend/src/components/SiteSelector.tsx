@@ -1,12 +1,13 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react'
 import { formatCoords } from '../lib/format'
 import { CATEGORY_HINT, CATEGORY_LABEL, groupByCategory } from '../lib/sites'
+import { SITE_IMAGERY, SITE_IMAGE_CREDIT } from '../content/siteImagery'
 import type { Site } from '../types'
-import { InfoTip, Panel, cx } from './ui'
+import { InfoTip, cx } from './ui'
 
 /** Resumen de un sitio para la lista. Lo calcula quien usa el componente. */
 export interface SiteSummary {
-  /** Viabilidad del periodo, 0–100 */
+  /** Viabilidad de la misión en la fecha y duración elegidas, 0–100 */
   viability: number
   /** % del tiempo con luz solar */
   lightPct: number
@@ -34,6 +35,7 @@ const NAV_KEYS = ['ArrowDown', 'ArrowUp', 'Home', 'End']
 export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }: SiteSelectorProps) {
   const listId = useId()
   const navRef = useRef<HTMLElement>(null)
+  const toggleRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const selected = sites.find((s) => s.id === selectedId)
 
@@ -52,30 +54,25 @@ export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }:
   }
 
   return (
-    <Panel
-      label={`Sitios · ${sites.length}`}
-      bodyClassName="p-2 pt-4 lg:min-h-0 lg:overflow-y-auto"
-      actions={
-        <InfoTip label="Lista de sitios" align="end">
-          El número es la viabilidad de todo el periodo. Las barras muestran el % del tiempo con luz (ámbar) y con
-          contacto con la Tierra (azul). Usa las flechas ↑ ↓ para recorrer la lista.
-        </InfoTip>
-      }
-    >
+    <aside aria-label="Elegir sitio de alunizaje" className="glass-surface min-w-0 p-4 lg:sticky lg:top-6 lg:flex lg:max-h-[calc(100dvh-3rem)] lg:flex-col">
+      <div className="flex shrink-0 items-baseline justify-between gap-3"><h2 className="text-base font-bold text-ink">Sitios de alunizaje</h2><span className="text-xs text-ink-muted">{sites.length} sitios</span></div>
+      <p className="mb-4 mt-2 shrink-0 text-xs leading-relaxed text-ink-muted">Las cifras comparan la fecha y los días de tu plan.</p>
       {/* Móvil: solo el sitio elegido y un botón para desplegar la lista */}
       <button
+        ref={toggleRef}
         type="button"
-        className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left lg:hidden"
+        className="site-current relative flex min-h-24 w-full items-center justify-between gap-3 overflow-hidden border border-seam-strong bg-hull px-4 py-3 text-left lg:hidden"
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => setOpen((o) => !o)}
       >
-        <span className="min-w-0">
-          <span className="block truncate text-sm text-ink">{selected?.name ?? 'Elige un sitio'}</span>
-          {selected && <span className="font-mono text-[0.625rem] text-ink-faint">{formatCoords(selected)}</span>}
+        {selected && <SiteBackdrop id={selected.id} />}
+        <span className="relative z-10 min-w-0">
+          <span className="block truncate text-base font-bold text-ink">{selected?.name ?? 'Elige un sitio'}</span>
+          {selected && <span className="text-xs text-ink-muted">{formatCoords(selected)}</span>}
         </span>
-        <span className="shrink-0 rounded-hw border border-seam-strong px-2.5 py-1 text-xs font-bold text-ink-muted">
-          {open ? 'Ocultar' : `Cambiar sitio (${sites.length})`}
+        <span className="relative z-10 shrink-0 text-xs font-bold text-ink">
+          {open ? 'Cerrar ↑' : 'Cambiar ↓'}
         </span>
       </button>
 
@@ -84,17 +81,17 @@ export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }:
         ref={navRef}
         aria-label="Sitios de alunizaje"
         onKeyDown={onKeyDown}
-        className={cx('flex-col gap-3 max-lg:mt-2 max-lg:border-t max-lg:border-seam max-lg:pt-3', open ? 'flex' : 'hidden', 'lg:flex')}
+        className={cx('flex-col gap-4 max-lg:mt-4', open ? 'flex' : 'hidden', 'lg:flex lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1')}
       >
         {groupByCategory(sites).map(({ category, sites: list }) => (
-          <div key={category} role="group" aria-label={CATEGORY_LABEL[category]}>
-            <h3 className="instrument-label flex items-center gap-1.5 px-3 pb-1 pt-1">
+          <div key={category} role="group" aria-label={CATEGORY_LABEL[category]} className="shrink-0">
+            <h3 className="mb-2 flex items-center gap-1.5 text-xs text-ink-muted">
               {CATEGORY_LABEL[category]}
               <InfoTip label={CATEGORY_LABEL[category]} align="start">
                 {CATEGORY_HINT[category]}
               </InfoTip>
             </h3>
-            <ul className="flex flex-col gap-0.5">
+            <ul className="flex flex-col gap-3">
               {list.map((s) => (
                 <li key={s.id}>
                   <SiteButton
@@ -105,6 +102,7 @@ export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }:
                     onSelect={() => {
                       onSelect(s.id)
                       setOpen(false)
+                      if (window.innerWidth < 1024) toggleRef.current?.focus()
                     }}
                   />
                 </li>
@@ -113,7 +111,10 @@ export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }:
           </div>
         ))}
       </nav>
-    </Panel>
+      <p className="mt-4 shrink-0 text-xs leading-relaxed text-ink-muted">Imágenes de la región · LROC<br />{SITE_IMAGE_CREDIT}
+        {selected && SITE_IMAGERY[selected.id] && <a className="mt-1 block text-ink underline decoration-white/30 underline-offset-4 hover:decoration-white" href={SITE_IMAGERY[selected.id].source} target="_blank" rel="noreferrer">Fuente del sitio elegido ↗</a>}
+      </p>
+    </aside>
   )
 }
 
@@ -140,15 +141,17 @@ function SiteButton({
       aria-current={active ? 'true' : undefined}
       onClick={onSelect}
       className={cx(
-        'flex w-full flex-col gap-1 px-3 py-2.5 text-left transition-colors duration-150',
-        active ? 'bg-hull-raised shadow-[inset_2px_0_0_var(--color-ink)]' : 'hover:bg-hull-raised/60',
+        'site-choice site-choice--photo relative flex w-full flex-col justify-end overflow-hidden border p-2 text-left transition-colors duration-150',
+        active ? 'border-ink-faint bg-hull-raised' : 'border-transparent hover:border-seam hover:bg-hull',
       )}
     >
+      <SiteBackdrop id={site.id} />
+      <span className="site-choice__content relative z-10 flex w-full flex-col gap-2">
       <span className="flex w-full items-baseline justify-between gap-2">
-        <span className={cx('text-sm', active ? 'text-ink' : 'text-ink-muted')}>{site.name}</span>
+        <span className="text-sm font-bold text-ink">{site.name}</span>
         {summary ? (
           <span className="font-mono text-xs text-ink">
-            {Math.round(summary.viability)}%<span className="sr-only"> de viabilidad</span>
+            {Math.round(summary.viability)}<span className="text-ink-muted">/100</span><span className="sr-only"> de viabilidad</span>
           </span>
         ) : error ? (
           <span className="font-mono text-xs text-critical" title={error}>
@@ -160,26 +163,28 @@ function SiteButton({
           </span>
         )}
       </span>
-      <span className="font-mono text-[0.625rem] text-ink-faint">{formatCoords(site)}</span>
       {summary && (
         <>
-          <span className="mt-0.5 grid grid-cols-2 gap-1.5" aria-hidden>
-            <MiniBar pct={summary.lightPct} className="bg-sun" />
-            <MiniBar pct={summary.contactPct} className="bg-earth" />
+          <span className="grid w-full grid-cols-2 gap-3 text-xs" aria-hidden>
+            <span className="text-sun">Luz {light} %</span>
+            <span className="text-earth">Tierra {contact} %</span>
           </span>
           <span className="sr-only">
             Luz {light} % del tiempo, contacto con la Tierra {contact} % del tiempo.
           </span>
         </>
       )}
+      </span>
     </button>
   )
 }
 
-function MiniBar({ pct, className }: { pct: number; className: string }) {
-  return (
-    <span className="block h-0.5 overflow-hidden bg-seam">
-      <span className={cx('block h-full opacity-80', className)} style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
-    </span>
-  )
+function SiteBackdrop({ id }: { id: string }) {
+  const image = SITE_IMAGERY[id]
+  if (!image) return null
+  return <span aria-hidden className="site-backdrop pointer-events-none absolute inset-0">
+    <img src={image.src} alt="" loading="lazy" decoding="async" className="size-full object-cover" style={{ objectPosition: image.position }}
+      onError={e => { e.currentTarget.style.display = 'none' }} />
+    <span className="site-backdrop__shade absolute inset-0" />
+  </span>
 }

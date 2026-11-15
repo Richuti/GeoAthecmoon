@@ -25,6 +25,9 @@ export interface AppState {
   playing: boolean
   speed: Speed
   mode: Mode
+  /** Duración de la misión en días: la viabilidad y la recomendación se calculan para esa ventana */
+  missionDays: number
+  playbackRange: { from: number; to: number } | null
 }
 
 /** Sitio que se abre primero si existe en la lista. */
@@ -41,6 +44,8 @@ export const initialState: AppState = {
   playing: false,
   speed: 6,
   mode: 'explore',
+  missionDays: 14,
+  playbackRange: null,
 }
 
 export type Action =
@@ -56,6 +61,8 @@ export type Action =
   | { type: 'play/toggle' }
   | { type: 'speed'; speed: Speed }
   | { type: 'mode'; mode: Mode }
+  | { type: 'missionDays'; days: number }
+  | { type: 'play/range'; range: AppState['playbackRange'] }
 
 /** Datos del sitio elegido, si ya llegaron. */
 export function selectedData(state: AppState): SiteData | null {
@@ -108,7 +115,7 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case 'select': {
       if (action.id === state.selectedId) return state
-      const next = { ...state, selectedId: action.id, playing: false }
+      const next = { ...state, selectedId: action.id, playing: false, playbackRange: null }
       return { ...next, index: clampIndex(next, state.index) }
     }
 
@@ -118,8 +125,10 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'time/step': {
       const n = sampleCount(state)
       if (n === 0) return state
-      const index = clampIndex(state, state.index + action.by)
-      const atEnd = index >= n - 1
+      const from = state.playbackRange?.from ?? 0
+      const end = Math.min(n, state.playbackRange?.to ?? n) - 1
+      const index = Math.min(end, Math.max(from, clampIndex(state, state.index + action.by)))
+      const atEnd = index >= end
       return { ...state, index, playing: atEnd ? false : state.playing }
     }
 
@@ -128,7 +137,9 @@ export function reducer(state: AppState, action: Action): AppState {
       const n = sampleCount(state)
       if (n === 0) return state
       // Si está al final, vuelve a empezar.
-      return { ...state, playing: true, index: state.index >= n - 1 ? 0 : state.index }
+      const from = state.playbackRange?.from ?? 0
+      const end = Math.min(n, state.playbackRange?.to ?? n) - 1
+      return { ...state, playing: true, index: state.index >= end || state.index < from ? from : state.index }
     }
 
     case 'play/toggle':
@@ -138,6 +149,21 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, speed: action.speed }
 
     case 'mode':
-      return { ...state, mode: action.mode }
+      return { ...state, mode: action.mode, playing: false, playbackRange: null }
+
+    case 'play/range': {
+      const range = action.range
+      if (range?.from === state.playbackRange?.from && range?.to === state.playbackRange?.to) return state
+      const index = range ? Math.max(range.from, Math.min(range.to - 1, state.index)) : state.index
+      return { ...state, playbackRange: range, index, playing: false }
+    }
+
+    case 'missionDays': {
+      // Entre 1 día y la duración del periodo (si ya se conoce).
+      const data = selectedData(state)
+      const maxDays = data ? Math.max(1, Math.floor((data.sun.el.length * data.stepHours) / 24)) : 365
+      const days = Math.min(maxDays, Math.max(1, Math.round(action.days)))
+      return days === state.missionDays ? state : { ...state, missionDays: days }
+    }
   }
 }

@@ -26,8 +26,9 @@ export function Button({ variant = 'secondary', size = 'md', className, type = '
   return (
     <button
       type={type}
+      data-variant={variant}
       className={cx(
-        'inline-flex shrink-0 items-center justify-center gap-2 rounded-hw font-bold transition-colors duration-150 ease-console',
+        'flight-button inline-flex shrink-0 items-center justify-center gap-2 rounded-hw font-bold transition-colors duration-150 ease-console',
         'disabled:pointer-events-none disabled:opacity-40',
         variants[variant],
         sizes[size],

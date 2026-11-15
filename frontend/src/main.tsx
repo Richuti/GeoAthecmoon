@@ -4,6 +4,15 @@ import './index.css'
 import App from './App.tsx'
 import { AppStateProvider } from './state'
 
+// Recargar reinicia la visita en la portada, conservando el sitio elegido para después.
+// Los enlaces compartidos al planificador siguen funcionando al abrirlos por primera vez.
+if ((performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type === 'reload') {
+  const url = new URL(window.location.href)
+  url.hash = 'inicio'
+  window.history.replaceState(window.history.state, '', url)
+}
+window.history.scrollRestoration = 'manual'
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppStateProvider>

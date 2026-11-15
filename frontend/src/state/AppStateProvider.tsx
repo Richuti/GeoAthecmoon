@@ -84,9 +84,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       select: (id) => dispatch({ type: 'select', id }),
       setIndex: (index) => dispatch({ type: 'time/set', index }),
       setPlaying: (playing) => dispatch({ type: 'play', playing }),
+      setPlaybackRange: (range) => dispatch({ type: 'play/range', range }),
       togglePlay: () => dispatch({ type: 'play/toggle' }),
       setSpeed: (speed) => dispatch({ type: 'speed', speed }),
       setMode: (mode) => dispatch({ type: 'mode', mode }),
+      setMissionDays: (days) => dispatch({ type: 'missionDays', days }),
       reload: () => {
         clearDataCache()
         setReloadKey((k) => k + 1)

@@ -1,4 +1,4 @@
-# GeoAthectum · Contexto para Claude Code
+# GEOATHECMOON · Contexto para Claude Code
 
 ## Qué es
 Proyecto del equipo para el **NASA Space Apps Challenge 2026** (14 y 15 de noviembre de 2026, tema "The Next Frontier"). Reto: **Lunar Landing Site Navigator** (antes "CLPS Lunar Mission Browser").
@@ -12,6 +12,7 @@ Con eso da un **porcentaje de viabilidad** y, si no conviene, **recomienda un si
 
 **Simulador de misión:** el usuario elige sitio, fecha y duración, y configura el módulo (batería, panel, consumo y datos). Después **simula la misión hora por hora** con los datos reales de luz y comunicación. Al final ve si la misión sobrevive, cuántos datos envió y qué fecha o sitio funcionaría mejor.
 - La pregunta central del reto es: *"Si la misión se atrasa, ¿todavía funciona?"*. Se mueve la fecha, se vuelve a simular y se ve.
+- **Aclaración de Richard al compartir el texto completo del reto (14 nov):** el usuario debe poder cambiar sitio, fecha/hora, duración o módulo y volver a evaluar cuantas veces quiera. La prioridad es comparar rápidamente el plan original con alternativas cuando cambian el calendario o las restricciones. El viaje Tierra–Luna es un recurso complementario y no debe ser un paso obligatorio para repetir cada evaluación. Luz y contacto cambian según las efemérides y el relieve; no se generan variaciones aleatorias. No presentar condiciones térmicas u otras variables como simuladas si el modelo no las calcula.
 - **Regla: el simulador no inventa números.** Todo sale de `isLit`, `hasContact` y la elevación del Sol (tarea 5), más los parámetros que elige el usuario. Los valores de los presets son ilustrativos, y así lo dice la interfaz.
 - **Física:**
   - Potencia del panel = `1361 W/m² × área × eficiencia (0.30 por defecto) × fracción del disco solar visible`.
@@ -44,16 +45,16 @@ Con eso da un **porcentaje de viabilidad** y, si no conviene, **recomienda un si
 - React 19 + Vite + TypeScript + Tailwind CSS v4 (plugin `@tailwindcss/vite`; `@import "tailwindcss"` en `src/index.css`).
 - 3D: **React Three Fiber** + drei + three (instalar en la tarea 9), solo para **cargar** los `.glb` de Richard.
 - Sin librerías de gráficos: el gráfico polar y la barra de ventanas se hacen en **SVG**.
-- Estética **"hardware de vuelo"** (ver `docs/DISENO.md`). Fondo `#05070d`; el ámbar es solo el Sol y el azul solo la Tierra.
+- Estética actual: **exploración lunar sobre cristal líquido**, por decisión de Richard el 14 nov (ver `docs/DISENO.md`). Reemplaza la restricción anterior de marcos rectos. Fondo `#05070d`; el ámbar es solo el Sol y el azul solo la Tierra.
   - Big Shoulders Stencil solo en rótulos grandes. B612 (de cabina) para la interfaz y los números.
-  - Paneles como marcos finos con el nombre en el borde.
+  - Paneles, menús y controles de cristal neutro sobre fondo lunar; títulos dentro del panel. Estilo en `src/flight-glass.css`. Versión opaca si el usuario pide menos transparencia.
   - Fuentes locales en `public/fonts`.
-- **Nada de diseño con cara de IA:** sin tarjetas redondeadas genéricas, etiquetas en mono espaciada, píldoras con punto ni gradientes. Antes de entregar una pantalla, capturas en escritorio y móvil.
-- **Imágenes y videos:** los genera Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son ilustraciones con la leyenda "Ilustración generada con IA"; ningún dato sale de ellas.
+- **Nada de diseño con cara de IA:** Richard autorizó expresamente el cristal líquido en toda la herramienta, incluidas esquinas redondeadas y reflejos neutros. Prioriza explicaciones visuales y datos legibles. Las imágenes de `SiteConditions` son ilustrativas; `VisibilityCalendar` suma las horas reales por día UTC. Los gráficos de líneas quedan como detalle técnico opcional. Antes de entregar: capturas en escritorio y móvil.
+- **Imágenes y videos:** los genera Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son ilustraciones; ningún dato sale de ellas. **Decisión de Richard (14 nov): la app no menciona la IA en ningún lugar**, ni en leyendas ni en el panel de fuentes. Si hace falta aclarar, se dice «Ilustración · los datos no salen de la imagen».
 
 ## Estructura
 ```
-GeoAthectum/
+GEOATHECMOON/
 ├── CLAUDE.md
 ├── README.md
 ├── docs/CONTRATO_DATOS.md   ← formato JSON backend → frontend
@@ -82,11 +83,20 @@ La lista detallada, paso a paso, está en **`docs/TAREAS.md`**. Se hace **un pas
 - **Hecho también:** C0 (sistema de diseño y layout final; `src/design/preview.ts` es temporal).
 - **Hecho:** 4.1 (cliente de datos `src/api.ts`, con caché y validación del contrato) y 4.2 (estado global en `src/state`, hook `useAppState()`).
 - **Hecho:** 4.3 (`SiteSelector`, con teclado, versión móvil plegable y enlace directo `?sitio=`).
-- **Hecho:** 5.1 (`src/lib/horizon.ts`), 5.2 (`src/lib/visibility.ts`) y 5.3 (`src/lib/time.ts`, todo en UTC). **Siguiente:** 5.4 (viabilidad con pesos ajustables y explicación en lenguaje simple).
+- **Hecho:** tarea 5 completa: 5.1 (`horizon.ts`), 5.2 (`visibility.ts`), 5.3 (`time.ts`, todo en UTC), 5.4 (`viability.ts`) y 5.5 (`recommend.ts`).
+  - La viabilidad es de **la misión** (`missionDays` en el estado, 14 por defecto) desde la fecha de la línea de tiempo, no del periodo completo.
+- **Hecho:** S1 (`src/sim/lander.ts`). `src/design/preview.ts` ya no existe.
+- **Hecho:** S2 (`src/sim/simulate.ts`, motor puro con eventos y resumen).
+- **Hecho:** C3.1 (portada con scroll: `src/components/Story.tsx`, medios en `public/media/`). La app abre en la portada; `#planificador` o `?sitio=` abren el planificador.
+- **Datos reales:** `npm run mock` usa Horizons (Sol y Tierra) + LOLA (horizonte y pendiente de `assets-src/terrain/lola/{id}.json`). Los JSON ya no traen `terrain` y tienen `mock: false`. Terrenos 3D LOLA en `public/models/terrain/{id}.glb` (1 unidad = 1 km, objeto `Ground`, el sitio en (0, 0, 0)).
+- **Hecho:** 9 (visor 3D: `Viewer3D.tsx`, que se carga aparte, y `ViewerPanel.tsx`). Usa `three` 0.187, `@react-three/fiber` 9.8 y `@react-three/drei` 10.7.
+- **Implementado, pendiente de revisión y subida de Richard:** SU1–SU3 (interfaz del simulador) y búsquedas adelantadas de S3. Configuración compacta con fecha propia, reproducción limitada a la misión, batería y datos por hora, eventos, resultados y tolerancia a atrasos. Detalle en `docs/TAREAS.md`. No iniciar otra tarea hasta que Richard revise esta entrega.
+- **Ramas:** se trabaja en la rama `frontend` (Richard la creó desde `main`).
+- **Medios:** ya están todos en el escritorio de Richard (fuera del repo). Su revisión está en `docs/MEDIOS_VISUALES.md`. Se procesan en la tarea C3.
 - **Orden:** 3 → 4 → 5 → S1 → S2 → 6 → 8 → SU1 → SU2 → SU3 → 7 → 9 → S3 → 11. El C0 se cierra antes del 4. El 3.3 es manual y lo hace el equipo.
 - **Pendiente pequeño:** agregar `TIME_TYPE='UT'` a `fetch-horizons.mjs` y volver a descargar.
 - **Diseño:** el paso C0 (sistema de diseño) va antes de la primera pantalla. La calidad visual tiene que ser de primer nivel.
-- **3D: lo modela todo Richard** (`.glb` en `frontend/public/models/`, especificaciones en "Lo que Richard crea en 3D" de `docs/TAREAS.md`). **No generes geometría 3D en código**: nada de mallas procedurales, esferas ni marcadores hechos con primitivas. El código solo carga los modelos, controla la cámara, mueve la luz del Sol según los datos y anima las piezas con nombre (`SolarPanel`, `Antenna`). Si falta un modelo, se muestra un estado vacío bien diseñado.
+- **3D: lo prepara todo Richard** (`.glb` en `frontend/public/models/` y texturas en `frontend/public/textures/`, lista en "Lo que Richard crea en 3D" de `docs/TAREAS.md`). Ya están `lander` (Apolo adaptado, con `SolarPanel` y `Antenna`), `rover`, `astronaut`, `lro`, `gateway`, `dsn_34m`, `earth`, `moon` (con *empties* `site-{id}`), `sun`, `stars.jpg` y `earth_night.jpg`. Sin límite de triángulos: se cargan de forma diferida. **Créditos en `docs/CREDITOS.md`; Solar System Scope (Luna y Sol) es CC BY 4.0 y su crédito es obligatorio en el panel "Fuentes" (11.2).** **No generes geometría 3D en código**: nada de mallas procedurales, esferas ni marcadores hechos con primitivas. El código solo carga los modelos, controla la cámara, mueve la luz del Sol según los datos y anima las piezas con nombre (`SolarPanel`, `Antenna`). Si falta un modelo, se muestra un estado vacío bien diseñado.
 
 ## Recursos de NASA del reto (usarlos siempre que se pueda)
 **Regla:** cuando un dato pueda salir de un recurso de NASA, se usa ese recurso y se cita en la app (panel "Fuentes"). Lo sintético es solo de respaldo y se marca con `mock: true`.

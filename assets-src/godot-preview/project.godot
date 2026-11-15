@@ -10,6 +10,6 @@ config_version=5
 
 [application]
 
-config/name="GeoAthectum - Vista de modelos"
+config/name="GEOATHECMOON - Vista de modelos"
 run/main_scene="res://preview.tscn"
 config/features=PackedStringArray("4.7")

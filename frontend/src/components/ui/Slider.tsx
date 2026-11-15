@@ -48,6 +48,7 @@ export function Slider({ label, value, min, max, step = 1, unit, tone = 'neutral
         max={max}
         step={step}
         value={value}
+        aria-valuetext={`${format ? format(value) : value}${unit ? ` ${unit}` : ''}`}
         onChange={(e) => onChange(Number(e.target.value))}
       />
     </div>

@@ -1,12 +1,28 @@
 // Sitios y periodo que comparten los scripts de datos (generate-mock-data.mjs y fetch-horizons.mjs).
 
-/** Periodo de los datos: 60 días cada 1 hora (1440 muestras). */
+/** Periodo de los datos: todo 2027, cada 1 hora (8760 muestras). Un año cubre el ciclo de estaciones de la luz polar. */
 export const START = '2027-01-01T00:00:00Z'
 export const STEP_HOURS = 1
-export const DAYS = 60
+export const DAYS = 365
 export const SAMPLES = (DAYS * 24) / STEP_HOURS
 
-// Coordenadas aproximadas: se verifican con Quickmap y Moon Trek en el paso 3.3.
+/**
+ * Antenas de 70 m de la Red de Espacio Profundo (DSN) de NASA, una por complejo.
+ * Coordenadas geodésicas: longitud este (0–360), latitud y altura en km.
+ * Fuente: NASA/JPL, documento DSN 301 (https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301K.pdf).
+ */
+export const DSN_STATIONS = [
+  { id: 'goldstone', name: 'Goldstone (EE. UU.)', antenna: 'DSS-14', lon: 243.1105, lat: 35.4259, altKm: 1.002 },
+  { id: 'madrid', name: 'Madrid (España)', antenna: 'DSS-63', lon: 355.752, lat: 40.4313, altKm: 0.865 },
+  { id: 'canberra', name: 'Canberra (Australia)', antenna: 'DSS-43', lon: 148.9813, lat: -35.4024, altKm: 0.689 },
+]
+
+/** Elevación mínima de la Luna sobre el horizonte de la estación para poder enlazar (grados). */
+export const DSN_MIN_ELEVATION_DEG = 10
+
+// Connecting Ridge, de Gerlache, Mons Mouton y Malapert usan las coordenadas verificadas del backend
+// (backend/sites_verified.json). Shackleton y Nobile siguen siendo aproximadas (paso 3.3).
+// Deben coincidir con assets-src/terrain/build_terrains.py.
 //
 // `relief` solo lo usa el terreno sintético (generate-mock-data.mjs):
 //   baseM          altura de referencia (solo cosmético)
@@ -37,8 +53,8 @@ export const SITES = [
   {
     id: 'connecting-ridge',
     name: 'Connecting Ridge',
-    lat: -89.45,
-    lon: 222.0,
+    lat: -89.44,
+    lon: 222.6,
     category: 'artemis',
     description: 'Cresta que une Shackleton con de Gerlache. Muy iluminada y alta sobre su entorno.',
     relief: {
@@ -57,7 +73,7 @@ export const SITES = [
     id: 'de-gerlache-rim',
     name: 'Borde del cráter de Gerlache',
     lat: -88.67,
-    lon: 292.0,
+    lon: 291.6,
     category: 'artemis',
     description: 'Borde de un cráter de 32 km. Buena luz con algunas sombras largas del relieve vecino.',
     relief: {
@@ -75,7 +91,7 @@ export const SITES = [
   {
     id: 'mons-mouton',
     name: 'Mons Mouton',
-    lat: -84.8,
+    lat: -84.81,
     lon: 29.2,
     category: 'clps',
     description: 'Meseta de cima plana, cerca de donde alunizó IM-2 (2025). Terreno suave y Tierra visible.',
@@ -91,8 +107,8 @@ export const SITES = [
   {
     id: 'malapert-massif',
     name: 'Macizo Malapert',
-    lat: -86.0,
-    lon: 2.9,
+    lat: -85.99,
+    lon: 2.1,
     category: 'artemis',
     description: 'Montaña cara a la Tierra: buen contacto directo. Ladera con más pendiente.',
     relief: {

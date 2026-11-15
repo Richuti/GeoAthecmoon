@@ -34,3 +34,5 @@ backend/data/
 # Godot (vista de modelos)
 .godot/
 *.import
+*.IMG
+*.LBL

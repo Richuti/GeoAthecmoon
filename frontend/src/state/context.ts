@@ -7,9 +7,12 @@ export interface AppActions {
   /** Salta a una muestra de tiempo (se ajusta al rango válido). */
   setIndex: (index: number) => void
   setPlaying: (playing: boolean) => void
+  setPlaybackRange: (range: AppState['playbackRange']) => void
   togglePlay: () => void
   setSpeed: (speed: Speed) => void
   setMode: (mode: Mode) => void
+  /** Duración de la misión en días (se ajusta a 1 … duración del periodo). */
+  setMissionDays: (days: number) => void
   /** Vuelve a cargar todo desde cero (botón "Reintentar"). */
   reload: () => void
 }

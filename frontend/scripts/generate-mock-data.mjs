@@ -3,24 +3,70 @@
 //
 //   npm run mock
 //
-// Escribe public/data/sites.json y public/data/sites/{id}.json, todos con `mock: true`.
+// Escribe public/data/sites.json y public/data/sites/{id}.json.
 //
 // - Sol y Tierra: si existe public/data/horizons/{id}.json (`npm run horizons`), se usan esas
 //   posiciones reales de JPL Horizons. Si no, se usa un modelo simplificado.
-// - Terreno: sintético. Se reemplaza por el DEM LOLA (Moon Trek) del backend en la tarea 11.
-// El campo `sources` de cada archivo dice qué se usó.
-//
-// Coherencia: el horizonte se calcula a partir de la misma malla `terrain.heightsM` que dibuja la
-// vista 3D, así que las sombras en 3D coinciden con los porcentajes de luz.
+// - Horizonte y pendiente: si existe assets-src/terrain/lola/{id}.json (en la raíz del repo), se usan los
+//   reales del DEM LOLA (rayos de 150 km con curvatura lunar, pendiente regional a 80 m). Si no, se
+//   calculan sobre un terreno sintético de respaldo.
+// - Terreno 3D: ya no va en el JSON. La vista 3D carga public/models/terrain/{id}.glb (LOLA).
+// El campo `sources` de cada archivo dice qué se usó, y `mock` es true solo si algo es sintético o modelado.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { SAMPLES, SITES, START, STEP_HOURS } from './sites.mjs'
+import { DSN_MIN_ELEVATION_DEG, SAMPLES, SITES, START, STEP_HOURS } from './sites.mjs'
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'data')
+const ASSETS = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'assets-src')
+// Primero el horizonte de `npm run horizon` (crestas incluidas); si no está, el de build_terrains.py.
+const LOLA_DIRS = [join(ASSETS, 'horizon'), join(ASSETS, 'terrain', 'lola')]
+
+/** Horizonte y pendiente reales (LOLA) del sitio, o null si no están con las coordenadas actuales. */
+function lolaFor(site) {
+  for (const dir of LOLA_DIRS) {
+    const path = join(dir, `${site.id}.json`)
+    if (!existsSync(path)) continue
+    const d = JSON.parse(readFileSync(path, 'utf8'))
+    const h = d.horizon
+    if (d.id !== site.id || !h || h.azimuthStepDeg !== 1 || h.elevationDeg?.length !== 360 || !d.slope) {
+      console.warn(`⚠ ${site.id}: ${path} no tiene el formato esperado.`)
+      continue
+    }
+    if (Math.abs(d.lat - site.lat) > 0.005 || Math.abs(d.lon - site.lon) > 0.005) {
+      console.warn(`⚠ ${site.id}: ${path} es de (${d.lat}, ${d.lon}) y sites.mjs dice (${site.lat}, ${site.lon}). Corre \`npm run horizon\`.`)
+      continue
+    }
+    const horizon = { azimuthStepDeg: 1, elevationDeg: h.elevationDeg.map((v) => round(v, 3)) }
+    if (h.distanceKm?.length === 360) horizon.distanceKm = h.distanceKm
+    if (h.obstacleHeightM?.length === 360) horizon.obstacleHeightM = h.obstacleHeightM
+    return {
+      horizon,
+      slope: { atSiteDeg: round(d.slope.atSiteDeg, 2), max100mDeg: round(d.slope.max100mDeg, 2) },
+      reference: d.reference ?? null,
+    }
+  }
+  return null
+}
+
 const HORIZONS_DIR = join(OUT_DIR, 'horizons')
+
+/** La Luna vista desde la DSN (`npm run horizons`), o null si no está para el periodo actual. */
+function dsnData() {
+  const path = join(HORIZONS_DIR, 'dsn.json')
+  if (!existsSync(path)) return null
+  const d = JSON.parse(readFileSync(path, 'utf8'))
+  if (d.start !== START || d.stepHours !== STEP_HOURS || !d.stations?.every((s) => s.el?.length === SAMPLES)) {
+    console.warn('⚠ dsn.json no coincide con el periodo. Corre `npm run horizons`.')
+    return null
+  }
+  return {
+    minElevationDeg: DSN_MIN_ELEVATION_DEG,
+    stations: d.stations.map(({ id, name, antenna, el }) => ({ id, name, antenna, el })),
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Parámetros generales
@@ -78,7 +124,10 @@ function tracks(site) {
       h.site?.lon === site.lon &&
       h.sun?.el?.length === SAMPLES &&
       h.earth?.el?.length === SAMPLES
-    if (ok) return { sun: h.sun, earth: h.earth, ephemeris: 'jpl-horizons' }
+    if (ok) {
+      const body = (b) => (b.distKm?.length === SAMPLES ? { az: b.az, el: b.el, distKm: b.distKm } : { az: b.az, el: b.el })
+      return { sun: body(h.sun), earth: body(h.earth), ephemeris: 'jpl-horizons' }
+    }
     console.warn(`⚠ ${site.id}: la caché de Horizons no coincide con el sitio o el periodo. Corre \`npm run horizons\`.`)
   }
   return { ...modelTracks(site), ephemeris: 'model' }
@@ -402,43 +451,53 @@ function siteInfo(site) {
 function main() {
   mkdirSync(join(OUT_DIR, 'sites'), { recursive: true })
 
-  const index = { sites: SITES.map(siteInfo), mock: true }
-  writeFileSync(join(OUT_DIR, 'sites.json'), JSON.stringify(index, null, 2) + '\n')
-
   const rows = []
+  let anyMock = false
+  const dsn = dsnData()
   for (const site of SITES) {
     const { sun, earth, ephemeris } = tracks(site)
-    const t = calibrateTerrain(site)
+    const lola = lolaFor(site)
+    // Respaldo: terreno sintético solo si no hay datos LOLA para este sitio.
+    const t = lola ? { horizon: lola.horizon.elevationDeg, slope: lola.slope } : calibrateTerrain(site)
+    const terrainSource = lola ? 'lola' : 'synthetic'
+    const isMock = ephemeris !== 'jpl-horizons' || terrainSource !== 'lola'
+    if (isMock) anyMock = true
 
     /** @type {import('../src/types').SiteData} */
     const data = {
       site: siteInfo(site),
       start: START,
       stepHours: STEP_HOURS,
-      horizon: { azimuthStepDeg: 1, elevationDeg: t.horizon },
+      horizon: lola ? lola.horizon : { azimuthStepDeg: 1, elevationDeg: t.horizon },
       slope: t.slope,
       sun,
       earth,
-      terrain: { size: SIZE, extentKm: EXTENT_KM, heightsM: t.heightsM },
-      sources: { ephemeris, terrain: 'synthetic' },
-      mock: true,
+      // Sin `terrain` con LOLA: la vista 3D usa public/models/terrain/{id}.glb. Solo el respaldo lo incluye.
+      ...(lola ? {} : { terrain: { size: SIZE, extentKm: EXTENT_KM, heightsM: t.heightsM } }),
+      sources: { ephemeris, terrain: terrainSource },
+      ...(dsn && ephemeris === 'jpl-horizons' ? { dsn } : {}),
+      ...(lola?.reference ? { reference: lola.reference } : {}),
+      mock: isMock,
     }
     writeFileSync(join(OUT_DIR, 'sites', `${site.id}.json`), JSON.stringify(data) + '\n')
 
     rows.push({
       sitio: site.id,
       'Sol y Tierra': ephemeris === 'jpl-horizons' ? 'Horizons' : 'modelo',
+      relieve: terrainSource === 'lola' ? 'LOLA' : 'sintético',
       'luz %': round(percentVisible(sun, t.horizon), 1),
       'com. %': round(percentVisible(earth, t.horizon), 1),
       'horiz. máx °': round(Math.max(...t.horizon), 2),
       'horiz. mín °': round(Math.min(...t.horizon), 2),
       'pend. °': t.slope.atSiteDeg,
       'pend. 100 m °': t.slope.max100mDeg,
-      'escala relieve': round(t.scale, 3),
     })
   }
 
-  console.log(`Datos de prueba en ${OUT_DIR}`)
+  const index = { sites: SITES.map(siteInfo), mock: anyMock }
+  writeFileSync(join(OUT_DIR, 'sites.json'), JSON.stringify(index, null, 2) + '\n')
+
+  console.log(`Datos en ${OUT_DIR}${anyMock ? ' (algún sitio usa datos de respaldo)' : ' · Sol y Tierra: JPL Horizons · relieve: LOLA'}`)
   console.log(`${SITES.length} sitios · ${SAMPLES} muestras cada ${STEP_HOURS} h desde ${START}\n`)
   console.table(rows)
 }
