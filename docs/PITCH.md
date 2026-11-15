@@ -1,36 +1,104 @@
-# Pitch de 3 minutos · borrador v1
+# Pitch de 3 minutos · v2 (15 nov)
 
 **Presenta:** Joshua. **Maneja la demo:** Richard. **Preguntas:** Richard responde sobre efemérides (Horizons) y Rafael sobre relieve y horizonte (LOLA).
-Son unas 420 palabras habladas, con máximo 6 diapositivas, y la demo es el centro. **Si se pasa de 3:00, se recorta la sección 4, nunca la demo.**
-Todos los números salen de `docs/CASO_DEMO.md`. Si la app muestra otros números, se usan los de la app.
+**Presentación:** Canva `GeoAthecmoon_SpaceApps2026_ES` (6 diapositivas).
+Las cifras salen de `README.md`, `docs/VALIDACION_NASA.md` y `docs/CASO_DEMO.md`. **Si la app muestra otro número, se dice el de la app.**
 
----
+## Texto de cada diapositiva
 
-### 0:00–0:25 · Gancho (diapositiva 1: foto del polo sur lunar)
-> "Imaginen que su lanzamiento a la Luna se retrasa cinco días. ¿Su sitio de alunizaje en el polo sur todavía tendrá sol para los paneles? ¿Podrá hablar con la Tierra? Hoy, responder eso exige combinar tres herramientas de expertos de la NASA. Nosotros lo respondemos en diez segundos."
+| # | Diapositiva | Texto | Criterio del jurado |
+|---|---|---|---|
+| 1 | Portada | Se queda igual: «GeoAthecmoon · NASA Space Apps Challenge 2026 · Lunar Landing Site Navigator». | Presentación |
+| 2 | Problema | Título: **«Un atraso de días puede apagar la misión»**. Cuerpo: «En el polo sur lunar el Sol nunca sube más de un par de grados. Una cresta a kilómetros deja el sitio a oscuras o sin contacto con la Tierra. Horizons, QuickMap y Moon Trek tienen los datos, pero no responden: ¿mi misión sobrevive?» | Relevancia, Impacto |
+| 3 | Solución | Título se queda. Bajo la captura: **«6 sitios · 8 760 horas de 2027 · horizonte LOLA a 150 km»** y «Pruébala en vivo: geoathectum.vercel.app». | Validez, Relevancia |
+| 4 | Demo | 1. Malapert, 15 de enero: viabilidad 95 % · 2. Una semana de atraso: se queda sin energía · 3. Copiloto con IA: cada idea se comprueba en el simulador · 4. Mapa: 6 sitios × 365 días | Creatividad |
+| 5 | Impacto y validación | La frase actual se queda. Debajo: **«A menos de 5 puntos del mapa oficial de iluminación de NASA en los 6 sitios · 89.5 % frente a 89 % publicado en Connecting Ridge · 329 pruebas automáticas»**. Los límites (temperatura, polvo, relevos) se dicen de voz. | Validez, Impacto |
+| 6 | Cierre | Se queda. Se suma «EN / ES · funciona en el celular». | Presentación |
 
-### 0:25–0:55 · Problema (diapositiva 2: el panorama del horizonte de Malapert)
-> "En el polo sur, el Sol nunca sube alto: da vueltas rozando el horizonte, a menos de cinco grados. Una montaña a 50 kilómetros basta para dejarte días a oscuras. La Tierra también está baja, y si se esconde, no hay comunicación. Herramientas como JPL Horizons, Quickmap o Moon Trek tienen los datos, pero no te dicen si tu misión sobrevive, ni qué pasa si cambias la fecha."
+## Guion de Joshua
 
-### 0:55–2:05 · Demo en vivo (la app; con el video de 60 s como respaldo)
-1. **Elegir el sitio:** "Elegimos el Macizo Malapert, una montaña de cara a la Tierra. Aquí está su relieve real en 3D."
-2. **Plan original, 15 de enero, Explorador ligero:** "Viabilidad del 95 %. Sol el 100 % del tiempo, la Tierra visible el 85 %. Simulamos los 14 días hora por hora: la batería nunca baja."
-3. **El retraso, en «¿Y si la misión se atrasa?»:** "La app ya nos dice que este plan tolera atrasos de hasta 4 días y 6 horas. ¿Y si el lanzamiento se atrasa una semana? … No: con 7 días de atraso, el Sol pasa más tiempo escondido detrás del relieve, la luz cae del 100 % al 73 % y la batería se agota." *(Respaldo: la fecha a mano el 20 de enero → falla el 2 de febrero y la viabilidad cae al 40 %.)*
-4. **La recomendación:** "La app no solo dice que falla, también propone salidas: esperar en órbita y alunizar en Malapert el 11 de febrero, cambiar a de Gerlache, que tiene sol pero envía solo un tercio de los datos, o apagar instrumentos. Las tres están simuladas con los mismos datos. Es el compromiso real entre energía y comunicación."
+Ritmo: unas 135 palabras por minuto. Lo que va entre corchetes o en cursiva no se dice.
 
-### 2:05–2:30 · Ciencia y datos (diapositiva 3: logos de NASA y capturas de Quickmap)
-> "Nada de esto es inventado. Las posiciones del Sol y la Tierra vienen de JPL Horizons, hora por hora. El relieve viene del altímetro LOLA del Lunar Reconnaissance Orbiter: calculamos el horizonte en 360 direcciones, hasta 150 kilómetros y con la curvatura de la Luna. Validamos alturas e iluminación contra Quickmap y los artículos publicados: en Connecting Ridge nos da 89.5 % de luz en un año, y Mazarico publica 89 %. ¿Qué no modelamos? La temperatura, el polvo y los satélites de relevo. Ese es nuestro siguiente paso."
+### [0:00 – 0:30] Gancho · diapositiva 1, luego 2
+*(De pie, sin mirar la pantalla. Voz calmada, casi de cuento.)*
 
-### 2:30–2:50 · Impacto (diapositiva 4)
-> "Esto sirve a quienes planifican misiones CLPS y Artemis, que necesitan replanificar rápido cuando hay retrasos. También sirve a docentes y al público, para entender por qué el polo sur es tan difícil. Los próximos pasos son coordenadas libres, más sitios y satélites de relevo."
+> En el polo sur de la Luna hay hielo de agua, y crestas donde el Sol brilla casi todo el año. Por eso todos quieren alunizar ahí.
 
-### 2:50–3:00 · Cierre (diapositiva 5: nombre, lema y equipo)
-> "En 10 segundos sabes si un sitio y una fecha sirven en el polo sur lunar, y qué pasa si tu misión se retrasa. Esto es GEOATHECMOON. Somos el equipo GeoAthectum. Gracias."
+`[CAMBIO DE SLIDE → 2]`
 
----
+> Pero el Sol nunca sube más de un par de grados sobre el horizonte: una montaña a kilómetros basta para dejarte a oscuras, o sin contacto con la Tierra.
 
-## Pendientes para pulir (Odelmi y Joshua)
-- [x] Nombre: la app se llama **GEOATHECMOON** y el equipo, **GeoAthectum**.
-- [ ] Agregar en la diapositiva 3 las capturas de Quickmap y Moon Trek (B4) y las fuentes publicadas que encuentre Joshua.
-- [ ] Cronometrar y ajustar a 3:00 exactos. Ensayar 3 veces completas.
-- [ ] Respuestas a preguntas del jurado: sección 4C de `docs/GUIAS_EQUIPO.docx`.
+*(Pausa de un segundo. Mirar al jurado.)*
+
+> Ahora imaginen que su lanzamiento se atrasa una semana. ¿La misión todavía funciona? Hoy, responder eso exige combinar varias herramientas de expertos.
+
+### [0:30 – 1:10] Solución y datos de NASA · diapositiva 3
+`[CAMBIO DE SLIDE → 3]` *(Subir la energía. La primera frase, firme.)*
+
+> Nosotros lo respondemos en diez segundos. Esto es GEOATHECMOON: un planificador y simulador de misiones para el polo sur lunar.
+>
+> Compara seis sitios reales durante todo dos mil veintisiete, hora por hora: ocho mil setecientas sesenta horas por sitio. Las posiciones del Sol y de la Tierra vienen de JPL Horizons. El relieve viene del altímetro LOLA, del orbitador LRO: calculamos el horizonte en trescientas sesenta direcciones, hasta ciento cincuenta kilómetros.
+>
+> Con eso simulamos su nave: batería, paneles y envío de datos.
+
+*(Despacio, marcando cada palabra.)*
+
+> Nuestra regla: el simulador no inventa números.
+
+### [1:10 – 2:15] Demo en vivo e IA · diapositiva 4 y la app
+`[CAMBIO DE SLIDE → 4]` `[MOSTRAR DEMO]` *(Richard ya tiene abierto Malapert, 15 ene 2027, 14 días. Joshua narra lo que se ve; no se adelanta a la pantalla.)*
+
+> Veámoslo. Elegimos el Macizo Malapert y alunizamos el quince de enero, catorce días. Viabilidad: noventa y cinco por ciento. Hay sol todo el tiempo y la misión se completa.
+
+*(Richard baja a «¿Qué pasa si llegas más tarde?» y elige +1 semana.)*
+
+> Ahora, el atraso. Una semana después, mismo sitio, misma nave.
+
+*(Pausa de dos segundos: dejar que el jurado lea el resultado en rojo.)*
+
+> La misión se queda sin energía: el Sol se esconde detrás del relieve y la batería llega a su mínimo. La app nos dice además cuánto atraso admite el plan: cuatro días y seis horas.
+
+*(Richard abre el copiloto de rescate. Tono de pregunta genuina.)*
+
+> ¿Y cómo la rescatamos? Aquí entra la inteligencia artificial. El copiloto propone combinaciones: esperar, cambiar de sitio, apagar instrumentos. Pero no le creemos a ciegas: cada idea se comprueba con el simulador, y solo queda el plan que sobrevive y envía más datos.
+
+*(Richard baja al mapa de supervivencia.)*
+
+> Y con el mapa de supervivencia vemos los seis sitios, los trescientos sesenta y cinco días, de un vistazo: dónde y cuándo la misión sobrevive.
+
+*Si el copiloto tarda o falla: saltar directo al mapa de supervivencia. El plan que elige la IA cambia entre corridas: no se anuncia un sitio de memoria.*
+
+### [2:15 – 2:45] Validación, impacto y escalabilidad · diapositiva 5
+`[CAMBIO DE SLIDE → 5]` *(Tono serio, de quien rinde cuentas.)*
+
+> ¿Se puede confiar en esto? Lo comparamos con el mapa oficial de iluminación de la NASA: en los seis sitios quedamos a menos de cinco puntos. En Connecting Ridge calculamos ochenta y nueve y medio por ciento de luz; lo publicado es ochenta y nueve.
+>
+> No modelamos temperatura, polvo ni satélites de relevo: es el siguiente paso. Agregar más sitios es volver a correr el mismo proceso.
+>
+> Sirve a quien planifica una misión, y a quien quiere entenderla en un aula.
+
+### [2:45 – 3:00] Cierre · diapositiva 6
+`[CAMBIO DE SLIDE → 6]` *(Volver al tono del inicio. La pregunta, lenta.)*
+
+> Si el alunizaje se atrasa, ¿la misión todavía funciona?
+
+*(Pausa.)*
+
+> Ahora cualquiera puede saberlo en segundos. Pruébenla hoy, en inglés o en español: geoathectum punto vercel punto app. Somos GeoAthectum. Gracias.
+
+## Si se pasa de 3:00
+Se recorta en este orden, nunca la demo: la frase del aula (2:15), «agregar más sitios…», y el detalle de las trescientas sesenta direcciones (0:30).
+
+## Plan B
+Video de 60 s con el mismo recorrido, por si falla el wifi. Build local con `npm run preview`.
+
+## Datos de Joshua: qué se usa y qué no
+- **Se usa en el gancho:** hielo de agua en sombra permanente y crestas con luz casi todo el año (nuestro cálculo da 89.5 % en Connecting Ridge).
+- **No decir, porque la app muestra otra cosa:** «Nobile tiene pendientes suaves» (la app da 8.8° y 25 % de luz) y «Malapert ve la Tierra casi siempre» (la app da 75 %).
+- **Solo para preguntas:** el conteo de misiones lunares, la gravedad y la cuenca Aitken.
+
+## Pendientes
+- [x] Textos y notas del orador pasados a Canva (ES).
+- [ ] Dilan: confirmar en producción los textos de «¿Qué pasa si llegas más tarde?» (Richard los cambió en `33198b4`) y que el caso de Malapert sigue dando 95 % y 4 días y 6 horas.
+- [ ] Cronometrar y ensayar 3 veces completas.
+- [ ] Guion de 30 s en inglés para el portal de NASA (espera el visto bueno de este guion).
