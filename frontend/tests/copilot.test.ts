@@ -131,6 +131,15 @@ describe('copiloto: herramientas con el simulador real', () => {
     })
   })
 
+  test('no acepta un plan que envía lo mismo con más espera que otro', () => {
+    const c = makeCase()
+    const run: CopilotRun = { attempts: [], plan: null }
+    executeTool(c, run, sim('b', 0))
+    executeTool(c, run, sim('b', 6))
+    assert.match(JSON.parse(executeTool(c, run, call('propose_plan', { attemptId: 2, rationale: 'Esperar un poco.' }))).error, /menos espera/)
+    assert.deepEqual(JSON.parse(executeTool(c, run, call('propose_plan', { attemptId: 1, rationale: 'Sin esperar.' }))), { ok: true })
+  })
+
   test('respeta el presupuesto de simulaciones', () => {
     const c = makeCase()
     const run: CopilotRun = { attempts: [], plan: null }

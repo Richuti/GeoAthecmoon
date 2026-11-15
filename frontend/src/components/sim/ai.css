@@ -1,0 +1,89 @@
+/* La IA: cristal neutro con un brillo blanco propio. Ámbar sigue siendo solo el Sol y azul solo la Tierra. */
+.ai-panel {
+  position: relative; background: rgb(12 16 24 / 0.9);
+  border: 1px solid rgb(232 235 241 / 0.28);
+  box-shadow: 0 0 0 1px rgb(232 235 241 / 0.04), 0 24px 60px -30px rgb(232 235 241 / 0.25);
+}
+.ai-panel::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(60% 50% at 0% 0%, rgb(232 235 241 / 0.09), transparent 70%);
+}
+.ai-badge {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 8px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--color-void);
+  background: linear-gradient(135deg, #ffffff, #c9d1de);
+  box-shadow: 0 0 18px -4px rgb(232 235 241 / 0.7);
+}
+.ai-badge svg { width: 12px; height: 12px; }
+
+.ai-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ai-steps > li {
+  display: flex; align-items: center; gap: 12px; min-width: 0; padding: 12px 14px;
+  border: 1px solid rgb(232 235 241 / 0.14); border-radius: 12px; background: rgb(5 7 13 / 0.45);
+}
+.ai-steps > li > span {
+  display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid rgb(232 235 241 / 0.35); font-size: 13px; font-weight: 700; color: var(--color-ink);
+}
+.ai-steps b { display: block; font-size: 14px; color: var(--color-ink); }
+.ai-steps small { display: block; margin-top: 2px; font-size: 12px; line-height: 1.35; color: var(--color-ink-muted); }
+
+.ai-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ai-chips > li {
+  padding: 2px 9px; border-radius: 999px; border: 1px solid rgb(232 235 241 / 0.2);
+  font-size: 11px; line-height: 1.5; color: var(--color-ink-muted); background: rgb(232 235 241 / 0.04);
+}
+.ai-chips.is-large > li { font-size: 13px; color: var(--color-ink); padding: 3px 11px; }
+
+.ai-glyph { display: block; width: 100%; height: 52px; overflow: visible; }
+.ai-glyph.is-tall { height: 96px; }
+.ai-glyph__floor { stroke: rgb(255 107 107 / 0.55); stroke-dasharray: 3 3; stroke-width: 1; vector-effect: non-scaling-stroke; }
+
+/* Bitácora */
+.ai-log { display: grid; gap: 8px; }
+.ai-log__item {
+  display: grid; grid-template-columns: 2rem minmax(0, 1fr) 9.5rem 8.5rem; align-items: center; gap: 14px;
+  padding: 12px 14px; border-radius: 14px; border: 1px solid rgb(232 235 241 / 0.12); background: rgb(5 7 13 / 0.5);
+}
+.ai-log__item.is-ok { border-color: rgb(69 212 155 / 0.28); }
+.ai-log__item.is-fail { border-color: rgb(255 107 107 / 0.24); }
+.ai-log__item.is-quiet { border-style: dashed; background: rgb(5 7 13 / 0.3); }
+.ai-log__item.is-chosen { border-color: rgb(232 235 241 / 0.75); background: rgb(232 235 241 / 0.07); }
+.ai-log__num {
+  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid rgb(232 235 241 / 0.3); font-size: 12px; font-weight: 700; color: var(--color-ink);
+}
+.ai-log__label { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--color-ink-muted); }
+.ai-log__tag { padding: 1px 8px; border-radius: 999px; background: var(--color-ink); color: var(--color-void); font-size: 10px; font-weight: 700; }
+.ai-log__idea { margin-top: 2px; font-size: 14px; line-height: 1.4; color: var(--color-ink); overflow-wrap: anywhere; }
+.ai-log__result { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
+.ai-log__result b { font-size: 13px; }
+.ai-log__result span { font-size: 12px; color: var(--color-ink-muted); }
+.ai-log__result.is-ok b { color: var(--color-ok); }
+.ai-log__result.is-fail b { color: var(--color-critical); }
+.ai-log__item.is-thinking { grid-template-columns: 2rem minmax(0, 1fr); border-style: dashed; }
+.ai-log__item.is-thinking .ai-log__idea { color: var(--color-ink-muted); }
+.ai-log__item.is-thinking .ai-log__num { display: flex; gap: 3px; border: none; }
+.ai-log__item.is-thinking .ai-log__num i { width: 5px; height: 5px; border-radius: 50%; background: var(--color-ink); }
+
+.ai-best { padding: 16px; border-radius: 16px; border: 1px solid rgb(232 235 241 / 0.22); background: rgb(5 7 13 / 0.55); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ai-log__item { animation: ai-in 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .ai-steps.is-live > li > span { animation: ai-pulse 1.8s ease-in-out infinite; }
+  .ai-steps.is-live > li:nth-child(2) > span { animation-delay: 0.6s; }
+  .ai-steps.is-live > li:nth-child(3) > span { animation-delay: 1.2s; }
+  .ai-log__item.is-thinking .ai-log__num i { animation: ai-dot 1.1s ease-in-out infinite; }
+  .ai-log__item.is-thinking .ai-log__num i:nth-child(2) { animation-delay: 0.15s; }
+  .ai-log__item.is-thinking .ai-log__num i:nth-child(3) { animation-delay: 0.3s; }
+}
+@keyframes ai-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes ai-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes ai-dot { 0%, 100% { opacity: 0.25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+
+@media (max-width: 720px) {
+  .ai-steps { grid-template-columns: 1fr; }
+  .ai-log__item { grid-template-columns: 2rem minmax(0, 1fr); }
+  .ai-log__glyph { grid-column: 2; }
+  .ai-log__result { grid-column: 2; flex-direction: row; justify-content: space-between; align-items: baseline; }
+}

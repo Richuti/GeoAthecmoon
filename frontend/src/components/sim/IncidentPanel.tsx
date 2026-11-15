@@ -95,7 +95,7 @@ export function IncidentPanel({ data, cfg, startIndex, missionDays, onTryStart, 
         <>
           <p role="status" className="glass-surface mb-6 max-w-3xl p-5 text-base leading-relaxed text-ink">{originalResult.summary.survived
             ? 'No queda espacio en los datos de 2027 para probar un atraso con toda la duración de tu misión. Elige una fecha anterior para explorar este escenario.'
-            : 'Este plan ya falla sin ningún atraso. Reproduce la misión para ver cuándo se queda sin energía o cambia la fecha, el sitio o el módulo.'}</p>
+            : 'Este plan ya falla sin ningún atraso. Más abajo, la IA busca cómo salvarlo con el simulador.'}</p>
           {children}
         </>
       ) : (

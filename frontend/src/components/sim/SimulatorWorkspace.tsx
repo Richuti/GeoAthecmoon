@@ -1,19 +1,22 @@
 // Un espacio de trabajo lunar: el plan arriba, el terreno en el centro y la evidencia debajo.
 // Conserva la tipografía y los colores de vuelo; evita marcos repetidos y columnas con scroll independiente.
-import { useRef, useState, type ComponentProps, type CSSProperties } from 'react'
-import { dayNumber, formatDate, formatDateTime, sampleTime } from '../../lib/time'
+import { useMemo, useRef, useState, type ComponentProps } from 'react'
+import { formatDate } from '../../lib/time'
 import { PRESETS } from '../../sim/lander'
 import { useAppState } from '../../state'
 import type { SiteData } from '../../types'
 import { Button, cx, Disclosure, Select } from '../ui'
-import { TimeScale } from '../TimeScale'
 import { ViewerPanel } from '../ViewerPanel'
 import { MissionSetup } from './MissionSetup'
 import { MissionOptions, MissionResult, type MissionResultProps } from './MissionResult'
 import { MissionTrace } from './MissionTrace'
 import { EarthMoonJourney } from './EarthMoonJourney'
 import { IncidentPanel } from './IncidentPanel'
+import { PlanRescue } from './PlanRescue'
+import { planRescueCase, type IncidentOption } from '../../sim/incident'
+import { seriesOf } from '../../sim/search'
 import { MissionLive } from './MissionLive'
+import { MissionTimeline } from './MissionTimeline'
 import { SurvivalMap } from './SurvivalMap'
 
 interface WorkspaceProps {
@@ -30,6 +33,20 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
   const { state, actions } = useAppState()
   const [view, setView] = useState<'plan' | 'journey' | 'surface'>('plan')
   const heading = useRef<HTMLHeadingElement>(null)
+  const [rescueSignal, setRescueSignal] = useState(0)
+  // La mejor salida sencilla si la misión falla: el «así lo resolvemos» del control de misión (simulada).
+  const failing = report && !report.result.summary.survived ? report.result : null
+  const rescueFix = useMemo(() => {
+    if (!failing) return null
+    const sites = Object.values(state.data).map((d) => ({ data: d, series: seriesOf(d) }))
+    const c = planRescueCase({ data, cfg: setup.cfg, startIndex: failing.from, missionDays: failing.plan.missionDays, sites, series: sites.find((s) => s.data.site.id === data.site.id)?.series })
+    return c?.options.reduce<IncidentOption | null>((best, o) => (!best || o.summary.dataSentMb > best.summary.dataSentMb ? o : best), null) ?? null
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `failing` resume el plan que falla
+  }, [failing, state.data, data, setup.cfg])
+  const askRescue = () => {
+    document.getElementById('rescate-ia')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setRescueSignal((n) => n + 1)
+  }
   const navigate = (next: typeof view) => {
     actions.setPlaying(false)
     setView(next)
@@ -100,9 +117,14 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
               data={data} result={result} index={state.index} playing={state.playing}
               onPlay={() => actions.setPlaying(true)} onPause={() => actions.setPlaying(false)} />} />
         </div>
-        <MissionResult {...report} />
+        <MissionResult {...report} onRescue={askRescue} />
       </div>
-        <MissionTransport data={data} report={report} onSeek={onSeek} />
+        <MissionTimeline data={data} result={report.result} lit={lit} contact={contact} index={state.index} playing={state.playing}
+          speed={state.speed} survivalThreshold={survivalThreshold} onToggle={actions.togglePlay} onSeek={onSeek} onSpeed={actions.setSpeed}
+          fix={rescueFix} onPlay={() => actions.setPlaying(true)} onPause={() => actions.setPlaying(false)} onRescue={report.result.summary.survived ? undefined : askRescue} />
+        {!report.result.summary.survived && <PlanRescue key={`${data.site.id}:${report.result.from}:${report.result.plan.missionDays}:${JSON.stringify(setup.cfg)}`}
+          data={data} cfg={setup.cfg} startIndex={report.result.from} missionDays={report.result.plan.missionDays} startSignal={rescueSignal}
+          onApply={(siteId, cfg, start) => { if (siteId !== data.site.id) report.onTrySite(siteId); if (JSON.stringify(cfg) !== JSON.stringify(setup.cfg)) setup.onCfg(cfg); report.onTryStart(start) }} />}
         <SurvivalMap data={data} cfg={setup.cfg} missionDays={report.result.plan.missionDays} landing={report.result.from} tolerance={report.tolerance}
           onPick={(siteId, start) => { if (siteId !== data.site.id) report.onTrySite(siteId); report.onTryStart(start) }} />
         <MissionOptions {...report} />
@@ -115,40 +137,5 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
         <p className="mt-2 max-w-4xl text-sm leading-relaxed text-ink-muted">Los módulos son configuraciones de referencia, no naves reales. El panel gira para seguir al Sol. Hay contacto cada vez que la Tierra está a la vista, con una antena de la Red de Espacio Profundo (DSN) disponible para recibir los datos. La misión falla si la batería baja al 20 %. La luz y el contacto se calculan hora por hora con JPL Horizons y el horizonte LOLA de cada sitio. El viaje de la Tierra a la Luna es una transferencia orbital idealizada.</p>
       </Disclosure>
     </main>
-  )
-}
-
-function MissionTransport({ data, report, onSeek }: { data: SiteData; report: MissionResultProps; onSeek: (index: number) => void }) {
-  const { state, actions } = useAppState()
-  const from = report.result.from
-  const end = from + report.result.series.soc.length - 1
-  const fill = end > from ? ((state.index - from) / (end - from)) * 100 : 0
-  const date = sampleTime(data, state.index)
-  const { missionDays } = report.result.plan
-  const failedAt = report.result.summary.failedAtIndex
-  const day = Math.min(missionDays, Math.max(1, dayNumber(data, state.index, from)))
-  const atEnd = state.index >= end
-  return (
-    <section aria-label="Reproducir la misión" className="glass-surface my-6 flex flex-wrap items-center gap-x-6 gap-y-4 px-4 py-4 sm:px-6">
-      <Button variant="primary" className="min-h-12" onClick={actions.togglePlay}>
-        {state.playing ? 'Pausar' : atEnd ? '↻ Ver de nuevo' : state.index > from ? '▶ Continuar' : '▶ Reproducir la misión'}
-      </Button>
-      <div className="min-w-56 flex-1">
-        <div className="flex items-baseline justify-between gap-3">
-          <p className="text-sm font-bold tabular-nums text-ink">Día {day} de {missionDays}</p>
-          <p className="text-xs tabular-nums text-ink-muted">{formatDateTime(date)}</p>
-        </div>
-        <input type="range" className="range mt-2 w-full" aria-label="Momento de la misión" aria-valuetext={`Día ${day} de ${missionDays}, ${formatDateTime(date)}`}
-          min={from} max={end} value={state.index} onChange={(e) => onSeek(Number(e.target.value))} style={{ '--fill': `${fill}%` } as CSSProperties} />
-        <div className="mt-1 flex justify-between gap-3 text-xs text-ink-faint">
-          <span>Alunizaje · {formatDate(sampleTime(data, from))}</span>
-          {failedAt !== null
-            ? <span className="text-critical">Sin energía · {formatDateTime(sampleTime(data, failedAt))}</span>
-            : <span>Fin · {formatDate(sampleTime(data, report.result.to))}</span>}
-        </div>
-      </div>
-      <TimeScale speed={state.speed} onSpeed={actions.setSpeed} spanHours={report.result.series.soc.length * data.stepHours}
-        spanLabel={failedAt !== null ? 'hasta la falla' : `la misión de ${missionDays} días`} />
-    </section>
   )
 }

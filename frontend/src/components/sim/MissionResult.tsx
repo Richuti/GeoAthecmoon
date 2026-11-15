@@ -20,7 +20,7 @@ export interface MissionResultProps {
 const percentLabel = (value: number) => (value > 0 && value < 1) || (value > 99 && value < 100) ? value.toFixed(1) : Math.round(value).toString()
 
 /** El resultado acompaña al terreno; la evidencia continúa debajo de la reproducción. */
-export function MissionResult({ data, result, tolerance, assessment }: MissionResultProps) {
+export function MissionResult({ data, result, tolerance, assessment, onRescue }: MissionResultProps & { onRescue?: () => void }) {
   const s = result.summary
   const failDay = s.failedAtIndex === null ? null : dayNumber(data, s.failedAtIndex, result.from)
   const hours = (result.to - result.from) * data.stepHours
@@ -43,6 +43,7 @@ export function MissionResult({ data, result, tolerance, assessment }: MissionRe
         {s.survived ? `Sobrevive los ${result.plan.missionDays} días.` : `Sin energía el día ${failDay}.`}
       </p>
       {assessment.cappedByMission && <p className="mt-2 text-xs leading-relaxed text-ink-muted">Con este módulo, la energía insuficiente limita la viabilidad al 40 %.</p>}
+      {!s.survived && onRescue && <Button variant="primary" className="mt-4 min-h-12 w-full" onClick={onRescue}>✦ Pedir a la IA un plan de rescate</Button>}
       <Disclosure className="mt-5" title="Balance y tolerancia a atrasos" description="Batería, datos enviados y margen si cambia el alunizaje.">
         <dl className="mt-3 space-y-3 text-sm">
         <div className="flex items-baseline justify-between gap-4"><dt className="text-ink-muted">Batería más baja</dt><dd className={cx('font-bold tabular-nums', s.survived ? 'text-sun' : 'text-critical')}>{Math.round(s.minSocPct)} %</dd></div>

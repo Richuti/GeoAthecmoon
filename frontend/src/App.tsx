@@ -11,6 +11,7 @@ import { PlannerGuide } from './components/PlannerGuide'
 import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
 import { TimeScale } from './components/TimeScale'
+import { AiPlanner } from './components/AiPlanner'
 import { DelayCheck } from './components/DelayCheck'
 import { PlanCompare, type SavedPlan } from './components/PlanCompare'
 import { SiteConditions } from './components/SiteConditions'
@@ -241,6 +242,9 @@ function Planner() {
               } : null}
             />
           ) : <PlannerGuide sites={sites} selectedId={p.data.site.id} errors={state.dataErrors} onSelect={actions.select}
+            assistant={<AiPlanner reference={p.data} preset={preset} cfg={cfg} missionDays={missionDays}
+              onPreset={(id) => { setPreset(id); setCfg(PRESETS[id].config) }}
+              onApply={(siteId, start, days) => { actions.select(siteId); actions.setMissionDays(days); seek(start); transition(() => setPlannerStep(2), 'forward') }} />}
             step={plannerStep} onStep={setPlannerStep}
             date={sampleTime(p.data, i)} missionDays={missionDays} schedule={
                 <section aria-label="Fecha y duración del plan" className="glass-surface grid grid-cols-1 items-end gap-5 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">

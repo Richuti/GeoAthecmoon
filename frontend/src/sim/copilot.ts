@@ -265,6 +265,12 @@ export function executeTool(c: CopilotCase, run: CopilotRun, call: ToolCall): st
     if (best && best.id !== a.id && best.result.summary.dataSentMb > a.result.summary.dataSentMb * (1 + BETTER_MARGIN)) {
       return JSON.stringify({ error: `El intento ${best.id} también sobrevive y envía más datos. Elige ese, o simula una combinación mejor.` })
     }
+    // Ni uno que envía lo mismo (dentro del margen) con más espera que otro.
+    const sameButSooner = run.attempts.find((x) => x.id !== a.id && x.result.summary.survived && x.waitHours < a.waitHours
+      && x.result.summary.dataSentMb >= a.result.summary.dataSentMb * (1 - BETTER_MARGIN))
+    if (sameButSooner) {
+      return JSON.stringify({ error: `El intento ${sameButSooner.id} envía lo mismo con menos espera. Elige ese, o simula una combinación mejor.` })
+    }
     run.plan = { attempt: a, rationale: rationale.slice(0, MAX_RATIONALE_CHARS) }
     return JSON.stringify({ ok: true })
   }
@@ -295,10 +301,10 @@ export class CopilotError extends Error {
 }
 
 /** Envío por defecto: la función de Vercel /api/copilot (la clave de OpenAI nunca llega al navegador). */
-export const sendToApi: Send = async (messages, signal) => {
+export const makeSend = (mode: 'rescue' | 'plan'): Send => async (messages, signal) => {
   let res: Response
   try {
-    res = await fetch('/api/copilot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages }), signal })
+    res = await fetch('/api/copilot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode, messages }), signal })
   } catch (err) {
     if ((err as Error)?.name === 'AbortError') throw err
     throw new CopilotError('network', 'No hay conexión con el copiloto.')
@@ -309,6 +315,8 @@ export const sendToApi: Send = async (messages, signal) => {
   if (!res.ok || !body?.message) throw new CopilotError(body?.error ?? 'upstream', 'El copiloto no respondió. Prueba otra vez.')
   return body.message
 }
+
+export const sendToApi: Send = makeSend('rescue')
 
 /**
  * Busca un plan de rescate. Llama a `onUpdate` cada vez que hay un intento nuevo o un mensaje del modelo.
