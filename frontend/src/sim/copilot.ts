@@ -304,7 +304,7 @@ export class CopilotError extends Error {
 export const makeSend = (mode: 'rescue' | 'plan'): Send => async (messages, signal) => {
   let res: Response
   try {
-    res = await fetch('/api/copilot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode, messages }), signal })
+    res = await fetch('/api/copilot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode, messages, lang: (globalThis as { document?: { documentElement: { lang: string } } }).document?.documentElement.lang ?? 'es' }), signal })
   } catch (err) {
     if ((err as Error)?.name === 'AbortError') throw err
     throw new CopilotError('network', 'No hay conexión con el copiloto.')

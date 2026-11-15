@@ -158,6 +158,9 @@ export function validMessages(value: unknown): Message[] | null {
   return out
 }
 
+/** Con la interfaz en inglés, el texto que lee el usuario (idea y explicación) va en inglés. */
+const ENGLISH = '\n\nIMPORTANT: the user interface is in English. Write every natural-language field (idea, rationale and any explanation) in English, not Spanish, even though these instructions are in Spanish. Keep the same rules (no figures in the rationale).'
+
 export async function POST(request: Request): Promise<Response> {
   const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {}
   const key = env.OPENAI_API_KEY?.trim()
@@ -185,7 +188,7 @@ export async function POST(request: Request): Promise<Response> {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
       body: JSON.stringify({
         model: env.OPENAI_MODEL?.trim() || DEFAULT_MODEL,
-        messages: [{ role: 'system', content: mode.prompt }, ...messages],
+        messages: [{ role: 'system', content: mode.prompt + ((body as { lang?: unknown })?.lang === 'en' ? ENGLISH : '') }, ...messages],
         tools: mode.tools,
         tool_choice: 'required',
         parallel_tool_calls: true,

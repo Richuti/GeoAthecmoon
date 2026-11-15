@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import { warmBackend } from './api'
 import { AppStateProvider } from './state'
+import './i18n' // versión en inglés (por defecto) con selector EN / ES
 
 warmBackend()
 
