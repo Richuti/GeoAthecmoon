@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
+import { Help } from './components/Help'
 import { SkyPlot } from './components/SkyPlot'
 import { dataNotice } from './api'
 import { Sources } from './components/Sources'
@@ -169,6 +170,7 @@ function Planner() {
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
           {p && !notice && <Badge>Datos reales · JPL Horizons y LOLA (NASA)</Badge>}
           {notice && <Badge tone="caution">Datos de prueba</Badge>}
+          <Help />
           <Sources data={p?.data} />
         </div>
       </header>

@@ -86,6 +86,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
   - Validación contra el mapa de iluminación de NASA (AVGVISIB, 2009–2013), con observador a ras de suelo como el mapa: luz a menos de 5 puntos en los 6 sitios (mediana 2.6). Con el panel a 2 m, en las crestas se ve más Sol (Connecting Ridge: 93 % frente a 72 % a ras de suelo).
   - Eclipse detectado: el 17 ago 2027, hacia las 06:00 UTC, la Tierra tapa hasta el 42.9 % del Sol en Malapert (eclipse penumbral de Luna de ese día).
   - Las 242 pruebas pasan y `npm run build` compila.
+- **Terrenos 3D con las coordenadas verificadas** (después de D1): `connecting-ridge`, `de-gerlache-rim`, `mons-mouton` y `malapert-massif` se regeneraron con `build_terrains.py` (antes estaban en las coordenadas viejas y el módulo quedaba hasta 1.7 km fuera del sitio). Comprobado: sitio en (0, 0, 0), objeto `Ground`, 20 × 20 km, y horizonte y pendiente idénticos a los de `public/data` (diferencia 0°). Shackleton y Nobile no cambian de coordenadas.
 - **Aviso para el backend:** `backend/build.py` no escribe los campos nuevos (`distKm`, `distanceKm`, `dsn`, `reference`); si se regenera con él, se pierden.
 - **Commit sugerido:** `Tarea D1: un año de datos con coordenadas verificadas, eclipses, crestas, DSN y validación con NASA`
 
@@ -362,7 +363,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - Sliders para ajustar los pesos.
 - **Commit:** `Tarea 8: panel de métricas y viabilidad`
 
-### 8.3 Ayuda en lenguaje simple · MVP
+### 8.3 Ayuda en lenguaje simple · MVP · [ ] · Implementado, pendiente de revisión de Richard
+- **Hecho:** `src/components/Help.tsx`, botón «¿Cómo leer esto?» en el encabezado (en las dos vistas). Abre un glosario con horizonte, elevación, azimut, luz solar, ventana de comunicación, DSN, eclipse, pendiente, viabilidad y tolerancia a atrasos: qué es y por qué importa en el polo sur. Las métricas ya tenían su tooltip.
 - Un botón "¿Cómo leer esto?" con un glosario corto: horizonte, elevación, pendiente y ventana de comunicación.
 - Tooltips en cada métrica.
 - **Commit:** `Tarea 8.3: ayuda y glosario`

@@ -79,7 +79,7 @@ export function Sources({ data }: { data?: SiteData }) {
         <div className="flex flex-col gap-5 p-5 sm:p-7">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 id="sources-title" className="font-display text-3xl font-bold uppercase leading-none">Fuentes</h2>
+              <h2 id="sources-title" className="text-2xl font-bold leading-tight">Fuentes</h2>
               <p className="mt-2 text-sm leading-relaxed text-ink-muted">De dónde sale cada dato de la app y quién hizo cada modelo.</p>
             </div>
             <Button size="sm" onClick={() => dialog.current?.close()} autoFocus>Cerrar</Button>
