@@ -31,7 +31,7 @@ Our sunlight results are within 5 points of NASA's official LOLA illumination ma
 **Simulator:**
 
 1. **Prepare the mission:** site, landing date, duration and lander (illustrative presets, or your own battery, panel and instruments).
-2. **Travel:** an Earth–Moon trip computed as an educational two-body transfer.
+2. **Travel:** the flight to the chosen site and arrival date: launch from Kennedy (animation over real USGS terrain), a two-body Earth–Moon transfer to the real Earth–Moon distance on that day (JPL Horizons), capture into a 100 km polar lunar orbit and a powered descent with Apollo 11 lunar module data.
 3. **Evaluate:** viability, hours of light and contact, slope, whether the battery lasts, and how many days of delay the mission tolerates. **Play the mission** replays it over the terrain hour by hour.
 4. **Simulate a setback:** a trajectory correction delays the arrival. The app shows what happens and offers fixes that are all simulated: wait in orbit, change site or run fewer instruments.
 5. **Rescue copilot (AI):** if the mission fails, an AI combines those levers and **checks every idea with the simulator**, keeping the plan that survives and sends the most data.

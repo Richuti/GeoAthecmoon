@@ -32,7 +32,7 @@ Nuestros resultados de luz solar quedan a menos de 5 puntos de los mapas oficial
 **Simulador:**
 
 1. **Prepara la misión.** Elige el sitio, la fecha de alunizaje y la duración. El módulo trae una configuración inicial; los presets son ilustrativos.
-2. **Viaja.** El recorrido Tierra–Luna usa una transferencia orbital calculada (modelo educativo de dos cuerpos).
+2. **Viaja.** El vuelo hasta el sitio y la fecha de llegada elegidos: despegue desde Kennedy (animación sobre el relieve real de USGS), transferencia Tierra–Luna de dos cuerpos hasta la distancia Tierra–Luna real de ese día (JPL Horizons), captura en una órbita lunar polar de 100 km y descenso propulsado con datos del módulo lunar del Apolo 11.
 3. **Evalúa.** Ves la viabilidad, las horas de luz y de contacto, la pendiente, si la batería aguanta y cuántos días de atraso tolera la misión.
    Puedes pulsar **Ver la misión** para recorrerla sobre el terreno: batería, potencia del panel, consumo y envío de datos siguen la misma serie calculada. Los avisos explican cuándo se oculta el Sol, se pierde el contacto o cambia el estado de energía; la reproducción se detiene al fallar.
 4. **Simula un imprevisto.** Una corrección de trayectoria atrasa la llegada. Un escenario independiente muestra las nuevas fechas, la pérdida de luz, el estado junto a la nave y la batería hora por hora. Puedes saltar al momento crítico, reproducirlo, volver al plan original o aplicar una salida comprobada: esperar para alunizar, cambiar de sitio o encender menos instrumentos. Explorar el escenario conserva el plan original y su cursor.
