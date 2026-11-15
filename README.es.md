@@ -68,7 +68,8 @@ Tabla completa sitio por sitio en [`docs/VALIDACION_NASA.md`](docs/VALIDACION_NA
 
 - **JPL Horizons (NASA/JPL):** posición y distancia del Sol y la Tierra desde cada sitio, y de la Luna desde las antenas DSN.
 - **LOLA / LRO (NASA, PDS):** relieve del polo sur (DEM `LDEM_80S_80M`) y mapas de iluminación para la validación.
-- **Quickmap (ASU) y Moon Trek (NASA):** verificación de las coordenadas de los sitios.
+- **Quickmap (ASU):** verificación de las coordenadas de los sitios (6 de 6 con marcador visible).
+- **Moon Trek (NASA):** referencia 3D del relieve del polo sur.
 - Modelos 3D de NASA 3D Resources y texturas de Solar System Scope (CC BY 4.0). Lista completa en [`docs/CREDITOS.md`](docs/CREDITOS.md) y en el panel «Fuentes» de la app.
 
 Proyecto creado por nuestro equipo para el NASA Space Apps Challenge 2026. El material de NASA se usa según las NASA Images and Media Usage Guidelines, sin sus insignias.

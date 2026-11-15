@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { warmBackend } from './api'
 import { AppStateProvider } from './state'
 import './i18n' // versión en inglés (por defecto) con selector EN / ES
@@ -19,8 +20,10 @@ window.history.scrollRestoration = 'manual'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AppStateProvider>
-      <App />
-    </AppStateProvider>
+    <AppErrorBoundary>
+      <AppStateProvider>
+        <App />
+      </AppStateProvider>
+    </AppErrorBoundary>
   </StrictMode>,
 )
