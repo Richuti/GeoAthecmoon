@@ -467,6 +467,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - Simplificación: tres campos principales; ajustes del módulo y gráfica detallada de batería, datos y eventos desplegables. Las cifras y unidades de los sliders se anuncian a lectores de pantalla.
 - **Probado:** conservación de energía y momento angular, condiciones de salida y encuentro; recorrido completo en navegador con escritorio, móvil, teclado y movimiento reducido. La simulación y comparación de sitios siguen funcionando.
 - **Commit sugerido:** `Tarea SU6: viaje Tierra-Luna calculado y simplificación accesible del simulador`.
+- **Corrección de sincronización, pendiente de revisión y subida de Richard:** el inicio espera a los modelos; reloj, nave y Luna comparten `journeyAt`. La reproducción avanza por cuadros y la cámara conserva ambos cuerpos en la aproximación, también en móvil. `transferView.ts` calcula el encuadre sin generar geometría. Verificado con 277 pruebas, build y capturas a 1440 y 390 px; carga retrasada, pausa, retroceso, repetición, llegada y evaluación de superficie.
 
 ### SU7. Imprevisto en el alunizaje · [ ] · Implementado, pendiente de revisión de Richard
 - **Idea:** después del viaje, en «Evaluar», el botón «Simular el imprevisto» plantea que una corrección de trayectoria atrasa la llegada. El usuario ve si su misión todavía funciona y elige cómo salvarla. Es la pregunta del reto llevada a una decisión.

@@ -1,10 +1,9 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { formatDateTime, formatDuration } from '../../lib/time'
-import { lunarTransfer, transferAt } from '../../sim/transfer'
+import { journeyAt, lunarTransfer } from '../../sim/transfer'
 import { Button } from '../ui'
 
 const TransferViewer = lazy(() => import('./TransferViewer'))
-const LAUNCH_END = 0.12
 
 class JourneyError extends Component<{ children: ReactNode; onFail: () => void }, { failed: boolean }> {
   state = { failed: false }
@@ -31,16 +30,19 @@ export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: 
     return () => mq.removeEventListener('change', change)
   }, [])
   useEffect(() => {
-    if (!playing) return
-    let previous = performance.now()
-    const timer = window.setInterval(() => {
-      const now = performance.now()
-      const increment = (now - previous) / 18000
+    if (!playing || (!ready && !failed)) return
+    let previous: number | null = null
+    let frame = 0
+    const advance = (now: number) => {
+      // Si un cuadro tarda en dibujarse, el viaje espera en vez de saltar una fase.
+      const increment = previous === null ? 0 : Math.min(now - previous, 100) / 18000
       previous = now
       setProgress(p => Math.min(1, p + increment))
-    }, 60)
-    return () => window.clearInterval(timer)
-  }, [playing])
+      frame = window.requestAnimationFrame(advance)
+    }
+    frame = window.requestAnimationFrame(advance)
+    return () => window.cancelAnimationFrame(frame)
+  }, [playing, ready, failed])
   useEffect(() => { if (progress >= 1) setPlaying(false) }, [progress])
   useEffect(() => {
     const pauseWhenHidden = () => { if (document.hidden) setPlaying(false) }
@@ -48,9 +50,8 @@ export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: 
     return () => document.removeEventListener('visibilitychange', pauseWhenHidden)
   }, [])
 
-  const flight = Math.max(0, (progress - LAUNCH_END) / (1 - LAUNCH_END))
-  const sample = transferAt(orbit, flight * orbit.durationSeconds)
-  const launch = progress < LAUNCH_END
+  const sample = useMemo(() => journeyAt(orbit, progress), [orbit, progress])
+  const launch = sample.launch
   const complete = progress >= 1
   const phase = launch ? 'Despegue desde la Tierra' : complete ? 'Encuentro con la Luna' : 'Transferencia Tierra–Luna'
   const departure = new Date(arrivalMs - orbit.durationSeconds * 1000)
@@ -59,7 +60,7 @@ export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: 
 
   return <section aria-label="Viaje Tierra–Luna">
     <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-4 border-y border-seam py-4">
-      <Button variant="primary" size="lg" aria-label={playing ? 'Pausar viaje' : 'Reproducir viaje'} onClick={() => { if (complete) setProgress(0); setPlaying(p => !p) }}>{playing ? 'Pausar viaje' : complete ? 'Repetir viaje' : 'Iniciar viaje'}</Button>
+      <Button variant="primary" size="lg" disabled={!ready && !failed} aria-label={playing ? 'Pausar viaje' : 'Reproducir viaje'} onClick={() => { if (complete) setProgress(0); setPlaying(p => !p) }}>{!ready && !failed ? 'Cargando viaje…' : playing ? 'Pausar viaje' : complete ? 'Repetir viaje' : 'Iniciar viaje'}</Button>
       <label className="min-w-40 flex-1 text-sm text-ink-muted">Avance del viaje
         <input type="range" aria-label="Avance del viaje Tierra–Luna" aria-valuetext={`${phase}. ${launch ? 'Ascenso ilustrativo' : formatDuration(sample.seconds / 3600) + ' de transferencia'}.`}
           min={0} max={1} step={0.001} value={progress} onChange={e => seek(Number(e.target.value))} className="range mt-2 w-full" style={{ '--fill': `${progress * 100}%` } as CSSProperties} />
@@ -69,7 +70,7 @@ export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: 
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
       <div className="relative h-[25rem] min-w-0 overflow-hidden bg-black sm:h-[28rem]">
         <JourneyError onFail={onFail}>
-          <Suspense fallback={null}><TransferViewer orbit={orbit} progress={progress} reduced={reduced} onReady={onReady} /></Suspense>
+          <Suspense fallback={null}><TransferViewer orbit={orbit} sample={sample} reduced={reduced} onReady={onReady} /></Suspense>
         </JourneyError>
         {!ready && !failed && <p role="status" className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-ink-muted">Cargando Tierra, Luna y nave…</p>}
         <div className="pointer-events-none absolute inset-x-0 top-0 p-5 sm:p-6">

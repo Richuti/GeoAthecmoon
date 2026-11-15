@@ -1,6 +1,8 @@
 # Viaje Tierra–Luna
 
-La vista conecta el recorrido desde la Tierra con la evaluación del sitio lunar. Ofrece reproducción, pausa y avance manual; no reproduce nada automáticamente. «Evaluar este alunizaje» aplica el plan elegido y abre la simulación de superficie.
+La vista conecta el recorrido desde la Tierra con la evaluación del sitio lunar. Ofrece reproducción, pausa y avance manual; no reproduce nada automáticamente. «Evaluar misión en la Luna» aplica el plan elegido y abre la simulación de superficie.
+
+El botón de inicio espera a que carguen los modelos. `journeyAt` proporciona el mismo instante a las cifras, la nave y la Luna, también al retroceder o repetir. Durante la aproximación la cámara encuadra ambos cuerpos; no se adelanta a la Luna dejando la nave fuera de pantalla.
 
 ## Qué se calcula
 

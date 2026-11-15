@@ -3,10 +3,10 @@ import { Html, useGLTF } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
-import { EARTH_RADIUS_KM, MOON_RADIUS_KM, transferAt, type TransferOrbit } from '../../sim/transfer'
+import { EARTH_RADIUS_KM, MOON_RADIUS_KM, transferAt, type journeyAt, type TransferOrbit } from '../../sim/transfer'
+import { encounterFrame } from '../../sim/transferView'
 
 const KM_PER_UNIT = 50000
-const LAUNCH_END = 0.12
 const smooth = (from: number, to: number, x: number) => { const t = Math.max(0, Math.min(1, (x - from) / (to - from))); return t * t * (3 - 2 * t) }
 
 /** Centra y normaliza un GLB sin generar ni modificar su geometría. */
@@ -27,13 +27,13 @@ function useModel(url: string) {
 
 interface SceneProps {
   orbit: TransferOrbit
-  progress: number
+  sample: ReturnType<typeof journeyAt>
   reduced: boolean
   onReady: () => void
   line: RefObject<SVGPathElement | null>
 }
 
-function TransferScene({ orbit, progress, reduced, onReady, line }: SceneProps) {
+function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
   const earth = useModel('/models/earth.glb')
   const moon = useModel('/models/moon.glb')
   const rocket = useModel('/models/launch_vehicle.glb')
@@ -50,18 +50,14 @@ function TransferScene({ orbit, progress, reduced, onReady, line }: SceneProps) 
   }), [orbit])
   const point = useMemo(() => new THREE.Vector3(), [])
   const direction = useMemo(() => new THREE.Vector3(), [])
-  const look = useMemo(() => new THREE.Vector3(), [])
   const target = useMemo(() => new THREE.Vector3(), [])
   const up = useMemo(() => new THREE.Vector3(0, 1, 0), [])
   useEffect(onReady, [onReady])
 
-  useFrame((_, dt) => {
-    const flight = Math.max(0, Math.min(1, (progress - LAUNCH_END) / (1 - LAUNCH_END)))
-    const sample = transferAt(orbit, flight * orbit.durationSeconds)
-    const ascent = Math.min(1, progress / LAUNCH_END)
-    const isLaunch = progress < LAUNCH_END
-    const x = isLaunch ? (EARTH_RADIUS_KM + orbit.parkingAltitudeKm * ascent) / KM_PER_UNIT : sample.xKm / KM_PER_UNIT
-    const y = isLaunch ? 0 : sample.yKm / KM_PER_UNIT
+  useFrame(() => {
+    const { flight, ascent, launch: isLaunch } = sample
+    const x = sample.shipXKm / KM_PER_UNIT
+    const y = sample.shipYKm / KM_PER_UNIT
     const mx = sample.moonXKm / KM_PER_UNIT
     const my = sample.moonYKm / KM_PER_UNIT
     moonGroup.current?.position.set(mx, my, 0)
@@ -70,14 +66,6 @@ function TransferScene({ orbit, progress, reduced, onReady, line }: SceneProps) 
     const close = reduced ? 0 : smooth(0.72, 1, flight)
     const top = Math.max(my, orbit.semiMinorKm / KM_PER_UNIT)
     const wideDistance = Math.max(top / (2 * Math.tan(21 * Math.PI / 180)), 7.7 / (2 * Math.tan(21 * Math.PI / 180) * size.width / size.height)) * 1.7
-    const distance = THREE.MathUtils.lerp(THREE.MathUtils.lerp(THREE.MathUtils.lerp(0.42, 0.7, ascent), wideDistance, wide), 0.23, close)
-    target.set(x, y, 0).lerp(new THREE.Vector3(-3.84, top / 2, 0), wide).lerp(new THREE.Vector3(mx, my, 0), close)
-    look.copy(target)
-    point.copy(target).add(new THREE.Vector3(0, 0, distance))
-    if (reduced) camera.position.copy(point)
-    else camera.position.lerp(point, 1 - Math.exp(-dt * 7))
-    camera.lookAt(look)
-    camera.updateMatrixWorld()
     const moonSeparationKm = Math.hypot(x - mx, y - my) * KM_PER_UNIT
     const desiredShipSize = THREE.MathUtils.lerp(THREE.MathUtils.lerp(0.04, 0.15, wide), 0.002, close)
     const clearanceKm = Math.min(sample.radiusKm - EARTH_RADIUS_KM, moonSeparationKm - MOON_RADIUS_KM)
@@ -87,6 +75,15 @@ function TransferScene({ orbit, progress, reduced, onReady, line }: SceneProps) 
     const moonRadius = Math.min(MOON_RADIUS_KM * (1 + 4 * wide * (1 - close) ** 2), Math.max(MOON_RADIUS_KM, moonSeparationKm - visualSize * KM_PER_UNIT * 0.6))
     earthGroup.current?.scale.setScalar(earthRadius * 2 / KM_PER_UNIT)
     moonGroup.current?.scale.setScalar(moonRadius * 2 / KM_PER_UNIT)
+
+    // El acercamiento incluye a la nave y a la Luna hasta el encuentro.
+    // La cámara usa el mismo instante que los modelos, también al arrastrar o repetir.
+    const encounter = encounterFrame(sample, moonRadius, visualSize * KM_PER_UNIT, size.width / size.height)
+    const distance = THREE.MathUtils.lerp(THREE.MathUtils.lerp(THREE.MathUtils.lerp(0.42, 0.7, ascent), wideDistance, wide), encounter.distanceKm / KM_PER_UNIT, close)
+    target.set(x, y, 0).lerp(new THREE.Vector3(-3.84, top / 2, 0), wide).lerp(new THREE.Vector3(encounter.xKm / KM_PER_UNIT, encounter.yKm / KM_PER_UNIT, 0), close)
+    camera.position.copy(target).add(new THREE.Vector3(0, 0, distance))
+    camera.lookAt(target)
+    camera.updateMatrixWorld()
 
     if (ship.current) {
       direction.set(isLaunch ? 1 : sample.vxKmS, isLaunch ? 0 : sample.vyKmS, 0).normalize()
@@ -120,17 +117,17 @@ function TransferScene({ orbit, progress, reduced, onReady, line }: SceneProps) 
       <group ref={landerGroup}><primitive object={lander} dispose={null} /></group>
       <Html position={[0.7, 0.3, 0]} style={{ pointerEvents: 'none' }}><span aria-hidden className="whitespace-nowrap text-xs text-ink">Nave</span></Html>
     </group>
-    {progress > 0.16 && progress < 0.9 && <Html position={[-orbit.apoapsisKm / KM_PER_UNIT, -0.3, 0]} center style={{ pointerEvents: 'none' }}>
+    {sample.flight > 0.05 && sample.flight < 0.88 && <Html position={[-orbit.apoapsisKm / KM_PER_UNIT, -0.3, 0]} center style={{ pointerEvents: 'none' }}>
       <span aria-hidden className="whitespace-nowrap text-xs text-ink-muted">Encuentro previsto</span>
     </Html>}
   </>
 }
 
-export default function TransferViewer({ orbit, progress, reduced, onReady }: Omit<SceneProps, 'line'>) {
+export default function TransferViewer({ orbit, sample, reduced, onReady }: Omit<SceneProps, 'line'>) {
   const line = useRef<SVGPathElement>(null)
   return <>
     <Canvas dpr={[1, 1.5]} camera={{ position: [0.14, 0, 0.42], fov: 42, near: 0.00001, far: 100 }} aria-hidden>
-      <Suspense fallback={null}><TransferScene orbit={orbit} progress={progress} reduced={reduced} onReady={onReady} line={line} /></Suspense>
+      <Suspense fallback={null}><TransferScene orbit={orbit} sample={sample} reduced={reduced} onReady={onReady} line={line} /></Suspense>
     </Canvas>
     <svg aria-hidden className="pointer-events-none absolute inset-0 size-full overflow-hidden"><path ref={line} fill="none" stroke="#e8ebf1" strokeOpacity={0.3} strokeWidth={1} strokeDasharray="4 5" /></svg>
   </>

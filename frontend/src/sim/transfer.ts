@@ -8,6 +8,7 @@ export const EARTH_RADIUS_KM = 6378.1
 export const MOON_RADIUS_KM = 1737.4
 export const MOON_DISTANCE_KM = 384400
 export const MOON_PERIOD_SECONDS = 27.3217 * 86400
+export const LAUNCH_END = 0.12
 
 export interface TransferOrbit {
   parkingAltitudeKm: number
@@ -78,5 +79,20 @@ export function transferAt(orbit: TransferOrbit, elapsedSeconds: number) {
     speedKmS: Math.hypot(vxKmS, vyKmS),
     moonXKm: MOON_DISTANCE_KM * Math.cos(moonAngle),
     moonYKm: MOON_DISTANCE_KM * Math.sin(moonAngle),
+  }
+}
+
+/** Un mismo instante para los controles, las cifras y los modelos del viaje. */
+export function journeyAt(orbit: TransferOrbit, progress: number) {
+  if (!Number.isFinite(progress)) throw new RangeError('El avance debe ser un número finito.')
+  const bounded = Math.max(0, Math.min(1, progress))
+  const flight = Math.max(0, (bounded - LAUNCH_END) / (1 - LAUNCH_END))
+  const launch = bounded < LAUNCH_END
+  const ascent = Math.min(1, bounded / LAUNCH_END)
+  const sample = transferAt(orbit, flight * orbit.durationSeconds)
+  return {
+    ...sample, flight, launch, ascent,
+    shipXKm: launch ? EARTH_RADIUS_KM + orbit.parkingAltitudeKm * ascent : sample.xKm,
+    shipYKm: launch ? 0 : sample.yKm,
   }
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { EARTH_GM_KM3_S2, EARTH_RADIUS_KM, MOON_DISTANCE_KM, MOON_RADIUS_KM, lunarTransfer, transferAt } from '../src/sim/transfer.ts'
+import { EARTH_GM_KM3_S2, EARTH_RADIUS_KM, LAUNCH_END, MOON_DISTANCE_KM, MOON_RADIUS_KM, journeyAt, lunarTransfer, transferAt } from '../src/sim/transfer.ts'
 
 const orbit = lunarTransfer()
 const close = (actual: number, expected: number, tolerance = 1e-6) => assert.ok(Math.abs(actual - expected) < tolerance, `${actual} ≠ ${expected}`)
@@ -67,4 +67,36 @@ test('cambiar la órbita inicial modifica los cálculos', () => {
 test('rechaza parámetros o tiempos inválidos', () => {
   for (const altitude of [0, 199, 2001, NaN, Infinity]) assert.throws(() => lunarTransfer(altitude), RangeError)
   assert.throws(() => transferAt(orbit, NaN), RangeError)
+})
+
+test('ascenso y transferencia comparten un reloj sin salto de posición al salir de órbita', () => {
+  const surface = journeyAt(orbit, 0)
+  const before = journeyAt(orbit, LAUNCH_END - 1e-10)
+  const orbital = journeyAt(orbit, LAUNCH_END)
+  close(surface.shipXKm, EARTH_RADIUS_KM)
+  assert.equal(before.launch, true)
+  assert.equal(orbital.launch, false)
+  close(before.shipXKm, orbital.shipXKm)
+  close(before.shipYKm, orbital.shipYKm)
+  close(before.moonXKm, orbital.moonXKm)
+  close(before.moonYKm, orbital.moonYKm)
+  assert.equal(orbital.seconds, 0)
+})
+
+test('avance, nave y Luna comparten el instante al avanzar, retroceder y repetir', () => {
+  for (const progress of [0, .5, .95, 1, .8, .3, 0]) {
+    const s = journeyAt(orbit, progress)
+    const expected = transferAt(orbit, s.seconds)
+    close(s.moonXKm, expected.moonXKm)
+    close(s.moonYKm, expected.moonYKm)
+    if (!s.launch) {
+      close(s.shipXKm, expected.xKm)
+      close(s.shipYKm, expected.yKm)
+    }
+  }
+  const arrival = journeyAt(orbit, 1)
+  close(Math.hypot(arrival.shipXKm - arrival.moonXKm, arrival.shipYKm - arrival.moonYKm) - MOON_RADIUS_KM, 100)
+  assert.deepEqual(journeyAt(orbit, -1), journeyAt(orbit, 0))
+  assert.deepEqual(journeyAt(orbit, 2), arrival)
+  assert.throws(() => journeyAt(orbit, NaN), RangeError)
 })

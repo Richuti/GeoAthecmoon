@@ -312,7 +312,6 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
                   <SceneText scene={sc} index={k} />
                 </article>
               ))}
-              <p className="absolute right-4 top-16 text-[0.6875rem] text-ink-faint sm:right-8">Ilustración · los datos no salen de la imagen</p>
             </div>
           </section>
         </>
@@ -326,15 +325,24 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
 
 function StoryBar({ onOpen, solid }: { onOpen: () => void; solid: boolean }) {
   return (
-    <div className={cx('pointer-events-none fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b px-4 py-4 transition-colors duration-300 sm:px-8',
-      solid ? 'border-seam bg-void' : 'border-transparent')}>
-      <p className="pointer-events-auto font-display text-xl font-extrabold uppercase leading-none tracking-[0.03em] text-ink [text-shadow:0_1px_12px_rgb(0_0_0/0.8)]">
-        GEOATHECMOON
-      </p>
-      <Button variant="secondary" size="sm" className="pointer-events-auto bg-void/70" onClick={onOpen}>
-        Abrir el planificador
-      </Button>
-    </div>
+    <header aria-label="Cabecera de la portada"
+      className={cx('pointer-events-none fixed inset-x-0 top-0 z-40 px-5 py-4 transition-colors duration-300 sm:px-10 sm:py-6 lg:px-16',
+        solid && 'bg-void')}>
+      <div className="flex items-center justify-between gap-3 sm:gap-8">
+        <p className="font-display text-[clamp(1.5rem,7vw,2rem)] font-extrabold uppercase leading-none tracking-[0.01em] text-ink sm:text-4xl lg:text-5xl">
+          GEOATHECMOON
+        </p>
+        <Button variant="primary" size="sm" aria-label="Abrir el planificador"
+          className="pointer-events-auto min-h-12 sm:px-5 sm:text-base" onClick={onOpen}>
+          <span className="sm:hidden">Planificador</span>
+          <span className="hidden sm:inline">Abrir el planificador</span>
+          <span aria-hidden className="hidden text-xl leading-none sm:inline">→</span>
+        </Button>
+      </div>
+      {!solid && <p className="mt-3 text-right text-xs leading-relaxed text-ink-muted">
+        Ilustración · los datos no salen de la imagen
+      </p>}
+    </header>
   )
 }
 
@@ -374,8 +382,8 @@ function SceneText({ scene, index, still = false }: { scene: Scene; index: numbe
       {/* Velo solo donde el texto cae sobre el suelo iluminado (celular, sujeto al centro) */}
       {ground && <div aria-hidden className="absolute inset-0 bg-[linear-gradient(to_top,rgb(5_7_13/0.92)_0%,rgb(5_7_13/0.7)_38%,transparent_62%)] lg:hidden" />}
 
-      <div className={cx('absolute inset-x-0 px-5 sm:px-10 lg:bottom-auto lg:top-0 lg:px-16 lg:pt-28',
-        ground ? (still ? 'bottom-10' : 'bottom-16') : 'top-0 pt-24 sm:pt-28')}>
+      <div className={cx('absolute inset-x-0 px-5 sm:px-10 lg:bottom-auto lg:top-0 lg:px-16 lg:pt-40',
+        ground ? (still ? 'bottom-10' : 'bottom-16') : 'top-0 pt-36 sm:pt-40')}>
         <h2 id={`escena-${scene.id}`}
           className={cx('font-display font-extrabold uppercase leading-[0.9] tracking-[0.005em] text-ink text-balance',
             scene.narrow ? 'max-w-3xl lg:max-w-[30vw]' : 'max-w-4xl',
