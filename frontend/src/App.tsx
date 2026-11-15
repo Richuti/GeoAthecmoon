@@ -187,10 +187,10 @@ function Planner() {
 
   return (
     <div className="flight-console flex min-h-dvh flex-col">
-      <header className="flight-header flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4 sm:px-8">
+      <header className="flight-header flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3.5 sm:px-8 sm:py-4">
         <Brand />
-        <Segmented label="Modo" options={MODES} value={mode} onChange={changeMode} />
-        <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
+        <Segmented label="Modo" options={MODES} value={mode} onChange={changeMode} className="w-full sm:w-auto" />
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto lg:ml-auto">
           {notice && <Badge tone="caution">Datos de prueba</Badge>}
           <LangToggle />
           <Help />

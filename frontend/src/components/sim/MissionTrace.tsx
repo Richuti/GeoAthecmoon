@@ -133,8 +133,9 @@ export function MissionTrace({
         <Strip runs={contactRuns} len={len} className="fill-earth" />
         <span />
         <div className="relative h-4">
-          {dayTicks.map((d) => (
-            <span key={d} className="absolute top-0.5 -translate-x-1/2 whitespace-nowrap font-mono text-[0.625rem] text-ink-faint first:translate-x-0"
+          {dayTicks.map((d, n) => (
+            // En pantallas angostas se muestra una fecha de cada dos para que no se encimen.
+            <span key={d} className={`absolute top-0.5 -translate-x-1/2 whitespace-nowrap font-mono text-[0.625rem] text-ink-faint first:translate-x-0${n % 2 ? ' max-sm:hidden' : ''}`}
               style={{ left: `${((d * 24) / data.stepHours / len) * 100}%` }}>
               {formatShortDate(sampleTime(data, from + (d * 24) / data.stepHours))}
             </span>

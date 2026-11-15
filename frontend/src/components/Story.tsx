@@ -332,10 +332,10 @@ function StoryBar({ onOpen, solid }: { onOpen: () => void; solid: boolean }) {
       className={cx('story-header pointer-events-none fixed inset-x-0 top-0 z-40 px-5 py-4 transition-colors duration-300 sm:px-10 sm:py-6 lg:px-16',
         solid && 'bg-void')}>
       <div className="flex items-center justify-between gap-3 sm:gap-8">
-        <p className="story-brand font-display text-[clamp(1.5rem,7vw,2rem)] font-extrabold uppercase leading-none tracking-[0.01em] text-ink sm:text-4xl lg:text-5xl">
+        <p className="story-brand min-w-0 font-display text-[clamp(1.125rem,5.4vw,2rem)] font-extrabold uppercase leading-none tracking-[0.01em] text-ink sm:text-4xl lg:text-5xl">
           GEOATHECMOON
         </p>
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           <LangToggle className="pointer-events-auto" />
           <PlannerButton onOpen={onOpen} compact />
         </div>

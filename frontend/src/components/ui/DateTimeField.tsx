@@ -194,7 +194,7 @@ export function DateTimeField({ id, label, value, min, max, onChange, hint }: {
           </div>
         </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-5 py-3">
+      <div className="date-picker__footer sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-5 py-3">
         <p className="text-xs text-ink-muted">Datos del {shortDate(lo)} al {shortDate(hi)}</p>
         <button type="button" className="date-picker__done" onClick={() => close()}>Listo</button>
       </div>

@@ -145,6 +145,8 @@
 /* Selector de fecha y hora propio (DateTimeField): se monta en <body>, fuera de .flight-console. */
 .flight-console .date-trigger { border-radius: 16px; border-color: rgb(255 255 255 / 0.22); background: rgb(3 7 14 / 0.35); }
 .flight-console .date-trigger[aria-expanded='true'] { border-color: rgb(255 255 255 / 0.7); }
+/* Con poca altura (móvil horizontal) el calendario se desplaza por dentro, pero «Listo» queda siempre a la vista. */
+.date-picker__footer { background: #101620; border-radius: 0 0 23px 23px; }
 .date-picker {
   --color-ink-muted: #c1c7d4;
   --color-ink-faint: #a3acbe;
