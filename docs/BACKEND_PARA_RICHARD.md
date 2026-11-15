@@ -5,6 +5,9 @@
 ## En una línea
 El backend es un **pipeline en Python que corre offline**. Combina el **relieve real de LOLA** (DEM de 80 m/px) con **tus posiciones de JPL Horizons**, genera los JSON del contrato y los copia a `frontend/public/data/`. No hay servidor, API ni base de datos: la app sigue leyendo archivos estáticos.
 
+## ⚠️ Desde el sáb 18:11, `public/data` es de la rama `frontend`
+Richard regeneró los datos con un año de efemérides, las coordenadas verificadas y campos opcionales nuevos (`dsn`, `reference`, `distKm` y el detalle del horizonte). **No hay que volver a correr `python backend/export.py`**: pisaría esos datos con la versión de 60 días y sin los campos nuevos. Ahora `export.py` se niega a correr salvo que se use `--force`. El pipeline de Python queda como **validación cruzada**: sus valores coinciden con los de la app con diferencias menores de 0.5 puntos.
+
 ## Rutas de la API
 No hay servidor. Las rutas del contrato son **archivos JSON estáticos** que Vercel sirve junto con la app.
 
@@ -20,21 +23,8 @@ No hay servidor. Las rutas del contrato son **archivos JSON estáticos** que Ver
 - **No hay más rutas** (ninguna de escritura). Si algún día hacemos el servidor en vivo, que es un extra, expondría estas mismas 2 rutas con la misma forma, y solo habría que llenar `VITE_API_URL`.
 
 ## Qué cambia para ti
-- **Los datos de prueba se reemplazaron por los reales** con `python backend/export.py`. Cada `SiteData` trae ahora `sources: { ephemeris: 'jpl-horizons', terrain: 'lola' }`. No toqué `public/data/horizons/` (tu caché).
-- **El contrato no cambia.** `docs/CONTRATO_DATOS.md` y `frontend/src/types.ts` siguen igual.
-- **Archivos de `frontend/` que toca el PR #1** (no hay más):
-  - `public/data/sites.json` y los 6 `public/data/sites/{id}.json`.
-  - `tests/horizon.test.ts`: los % de luz esperados ahora son los reales. Python calcula los mismos números, así que esta prueba sirve de **validación cruzada TS ↔ Python**.
-
-    | Sitio | Antes (mock) | Ahora (real) |
-    |---|---|---|
-    | Connecting Ridge | 82.5 | 97.5 |
-    | Shackleton | 73.3 | 68.9 |
-    | de Gerlache | 69.9 | 94.3 |
-    | Malapert | 56.1 | 78 |
-    | Mons Mouton | 46.8 | 46.9 |
-    | Nobile | 38.3 | 24.8 |
-- **El PR #1 no choca con tu rama `frontend`.** Lo probé con `git merge-tree` y no hay conflictos.
+- **El PR #1 ya no toca `frontend/`** (desde el sáb 18:40). Devolví esos archivos a su versión de `main`, así que tu rama `frontend` entra sin conflictos y su `public/data` es la que queda.
+- **El contrato:** tus campos opcionales nuevos (`dsn`, `reference`, `distKm`, `distanceKm`, `obstacleHeightM`) no rompen nada. `build.py` no los genera, y por eso ya no se exporta desde el backend.
 
 ## El pipeline (`backend/`)
 | Archivo | Qué hace | Comando |
@@ -77,14 +67,14 @@ Periodo: del 1 ene 2027 al 2 mar 2027, de hora en hora (1440 muestras). Detalle 
   | Caso | Tu S2 | Python |
   |---|---|---|
   | Malapert, 15 ene | sobrevive, 85 % de datos enviados | igual |
-  | Malapert, 20 ene | falla el 2 feb a las 06:00 | falla el 2 feb a las 07:00 |
+  | Malapert, 20 ene | falla el 2 feb a las 10:00 (datos de un año) | falla el 2 feb a las 07:00 (60 días) |
   | Connecting Ridge, 20 ene | sobrevive, 28 % de datos enviados | igual |
 
   La hora de diferencia en la falla viene solo de cómo se indexa el evento. La física es la misma.
 
 ## El caso de la demo (`docs/CASO_DEMO.md`)
 Sitio **Macizo Malapert**, preset **Explorador ligero**, misión de 14 días.
-1. **15 ene 2027, 00:00 UTC:** sobrevive con viabilidad del 95 % y tolera 4.5 días de atraso.
+1. **15 ene 2027, 00:00 UTC:** sobrevive con viabilidad del 95 % y tolera 4.25 días de atraso.
 2. **La misión se atrasa 5 días (20 ene):** el Sol se oculta tras el relieve el 1 feb y la batería falla el 2 feb.
 3. **La app recomienda** cambiar a **Connecting Ridge** (sobrevive, pero solo envía el 28 % de los datos) o esperar a Malapert hasta el **12 feb**. No el 11: si aluniza el 11 a las 00:00, llega de noche y falla.
 

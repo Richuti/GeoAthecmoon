@@ -6,44 +6,39 @@
       "lat": -89.67,
       "lon": 197,
       "category": "artemis",
-      "description": "Borde del cráter que está en el mismo polo. Sol casi continuo, pero la Tierra pasa muy baja.",
-      "coordSource": "original del equipo; confirmada en LRO QuickMap con marcador (14 nov 2026)"
+      "description": "Borde del cráter que está en el mismo polo. Sol casi continuo, pero la Tierra pasa muy baja."
     },
     {
       "id": "connecting-ridge",
       "name": "Connecting Ridge",
-      "lat": -89.44,
-      "lon": 222.6,
+      "lat": -89.45,
+      "lon": 222,
       "category": "artemis",
-      "description": "Cresta que une Shackleton con de Gerlache. Muy iluminada y alta sobre su entorno.",
-      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); confirmada en LRO QuickMap con marcador (14 nov 2026)"
+      "description": "Cresta que une Shackleton con de Gerlache. Muy iluminada y alta sobre su entorno."
     },
     {
       "id": "de-gerlache-rim",
       "name": "Borde del cráter de Gerlache",
       "lat": -88.67,
-      "lon": 291.6,
+      "lon": 292,
       "category": "artemis",
-      "description": "Borde de un cráter de 32 km. Buena luz con algunas sombras largas del relieve vecino.",
-      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); confirmada en LRO QuickMap con marcador (14 nov 2026)"
+      "description": "Borde de un cráter de 32 km. Buena luz con algunas sombras largas del relieve vecino."
     },
     {
       "id": "mons-mouton",
       "name": "Mons Mouton",
-      "lat": -84.81,
+      "lat": -84.8,
       "lon": 29.2,
       "category": "clps",
-      "description": "Meseta de cima plana, cerca de donde alunizó IM-2 (2025). Terreno suave y Tierra visible.",
-      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); confirmada en LRO QuickMap con marcador (14 nov 2026)"
+      "description": "Meseta de cima plana, cerca de donde alunizó IM-2 (2025). Terreno suave y Tierra visible."
     },
     {
       "id": "malapert-massif",
       "name": "Macizo Malapert",
-      "lat": -85.99,
-      "lon": 2.1,
+      "lat": -86,
+      "lon": 2.9,
       "category": "artemis",
-      "description": "Montaña cara a la Tierra: buen contacto directo. Ladera con más pendiente.",
-      "coordSource": "cresta más alta cercana en LOLA 80 m (backend); confirmada en LRO QuickMap con marcador (14 nov 2026)"
+      "description": "Montaña cara a la Tierra: buen contacto directo. Ladera con más pendiente."
     },
     {
       "id": "nobile-rim",
@@ -51,8 +46,8 @@
       "lat": -85.4,
       "lon": 37,
       "category": "clps",
-      "description": "Zona que exploraría VIPER. Relieve alto alrededor: menos horas de sol y pendientes fuertes.",
-      "coordSource": "original del equipo; confirmada en LRO QuickMap con marcador (14 nov 2026)"
+      "description": "Zona que exploraría VIPER. Relieve alto alrededor: menos horas de sol y pendientes fuertes."
     }
-  ]
+  ],
+  "mock": true
 }
