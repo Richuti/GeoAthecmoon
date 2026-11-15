@@ -1,5 +1,9 @@
 # Tareas del frontend · GEOATHECMOON
 
+**Cámara del viaje, última decisión de Richard:** restaurado el encuadre automático anterior en despegue, transferencia y descenso, sin controles de giro/zoom. Retirados `JourneyCamera.tsx`, el botón de restablecer y la instrucción de gestos. Se conservan texturas y relieve nuevos, cargas independientes y cámara interactiva al explorar el sitio.
+
+Archivos: `frontend/src/components/Viewer3D.tsx`, `frontend/src/components/sim/LaunchViewer.tsx`, `TransferViewer.tsx`, `DescentViewer.tsx`, `EarthMoonJourney.tsx`, eliminación de `JourneyCamera.tsx` (los nombres abreviados están bajo `sim/`), `frontend/src/i18n/en.ts`, `CLAUDE.md`, `docs/RELIEVE_DESPEGUE.md` y este documento. Validación: 360 pruebas y build; Edge CDP a 1440/390 px verifica encuadre invariable ante arrastre, rueda o gesto táctil en las tres fases. El visor de explorar mantiene sus controles.
+
 **Claridad de propuestas e intentos:** `MissionGlyph` sustituido por `MissionSummary`: batería mínima, datos enviados y resultado expresados en texto. Se aplica al plan propuesto, al mejor intento durante la búsqueda y a la bitácora de ambas herramientas. Sin curvas diminutas ni franjas de colores; explica el mínimo del 20 % y qué porcentaje de mediciones llegó a la Tierra. Cálculos intactos, inglés actualizado.
 
 Archivos de este ajuste: `src/components/AiPlanner.tsx`, `src/components/sim/AiParts.tsx`, `src/components/sim/RescueCopilot.tsx`, `src/components/sim/ai.css`, `src/i18n/en.ts`, `tests/i18n.test.ts` (todos bajo `frontend/`), `CLAUDE.md` y este documento. Verificado: 360 pruebas, build y capturas Edge CDP a 1440/390 px; propuesta calculada con dos intentos, uno fallido y uno viable, sin llamadas reales de pago. Etiquetas visibles, versión inglesa y ausencia de desbordamientos comprobadas.

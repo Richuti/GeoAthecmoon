@@ -2,7 +2,7 @@
 // detrás, alejándose) y detrás de ella al llegar (la Luna crece delante). La trayectoria completa se dibuja en un
 // mapa SVG de la esquina, con las posiciones del modelo orbital (src/sim/transfer.ts).
 import { Html } from '@react-three/drei'
-import { Canvas, useFrame, useLoader } from '@react-three/fiber'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { EARTH_RADIUS_KM, MOON_RADIUS_KM, transferAt, type journeyAt, type TransferOrbit } from '../../sim/transfer'
@@ -10,7 +10,6 @@ import { LAUNCH_SITE, earthDirection, earthNorth } from '../../sim/earthImagery'
 import { DESCENT_CAMERA_START_ELEV_DEG, DESCENT_CAMERA_START_KM, approachState, finalLeg } from '../../sim/transferView'
 import { SpaceBackground } from '../SpaceBackground'
 import { useEarthModel, useFlightModel, useGlobeModel } from './useFlightModel'
-import { useJourneyCamera } from './JourneyCamera'
 
 const KM_PER_UNIT = 50000
 /**
@@ -43,12 +42,10 @@ interface SceneProps {
   sample: ReturnType<typeof journeyAt>
   reduced: boolean
   onReady: () => void
-  cameraReset?: number
-  active?: boolean
 }
 
-function TransferScene({ sample, reduced, onReady, cameraReset = 0, active = true }: SceneProps) {
-  const flightCamera = useJourneyCamera(cameraReset, active)
+function TransferScene({ sample, reduced, onReady }: SceneProps) {
+  const { camera } = useThree()
   const earth = useEarthModel()
   const moon = useGlobeModel('/models/moon.glb')
   // La misma nave del despegue y del alunizaje.
@@ -153,7 +150,10 @@ function TransferScene({ sample, reduced, onReady, cameraReset = 0, active = tru
     if (ambient.current) ambient.current.intensity = 0.75 * (1 - 0.8 * dim)
     if (sun.current) sun.current.intensity = 3 * (1 - 0.8 * dim)
 
-    flightCamera.update(v.cam.divideScalar(KM_PER_UNIT), v.look.divideScalar(KM_PER_UNIT), v.up.copy(up).lerp(Z, upBlend).normalize(), v.a.copy(v.ship).divideScalar(KM_PER_UNIT))
+    camera.position.copy(v.cam).divideScalar(KM_PER_UNIT)
+    camera.up.copy(up).lerp(Z, upBlend).normalize()
+    camera.lookAt(v.look.divideScalar(KM_PER_UNIT))
+    camera.updateMatrixWorld()
 
     if (ship.current) {
       ship.current.position.copy(v.ship).divideScalar(KM_PER_UNIT)
@@ -163,7 +163,6 @@ function TransferScene({ sample, reduced, onReady, cameraReset = 0, active = tru
   })
 
   return <>
-    {flightCamera.orbit}
     <SpaceBackground />
     <ambientLight ref={ambient} intensity={0.75} />
     <directionalLight ref={sun} position={[8, 5, 10]} intensity={3} />
@@ -210,11 +209,11 @@ function TrajectoryMap({ orbit, sample }: { orbit: TransferOrbit; sample: Return
   </svg>
 }
 
-export default function TransferViewer({ orbit, sample, reduced, onReady, active = true, cameraReset = 0 }: SceneProps) {
+export default function TransferViewer({ orbit, sample, reduced, onReady, active = true }: SceneProps & { active?: boolean }) {
   return <>
     <Canvas frameloop={active ? 'always' : 'never'} dpr={[1, 1.5]} gl={{ logarithmicDepthBuffer: true }}
       camera={{ position: [0.14, 0, 0.42], fov: 42, near: 0.000001, far: 100 }} aria-hidden>
-      <Suspense fallback={null}><TransferScene orbit={orbit} sample={sample} reduced={reduced} onReady={onReady} cameraReset={cameraReset} active={active} /></Suspense>
+      <Suspense fallback={null}><TransferScene orbit={orbit} sample={sample} reduced={reduced} onReady={onReady} /></Suspense>
     </Canvas>
     {!sample.launch && !sample.descent && <div aria-hidden className="pointer-events-none absolute bottom-20 left-3 origin-bottom-left scale-[0.62] rounded-hw bg-void/60 p-2 backdrop-blur-sm sm:bottom-14 sm:left-6 sm:scale-100">
       <TrajectoryMap orbit={orbit} sample={sample} />

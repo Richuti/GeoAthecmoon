@@ -28,7 +28,6 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
   const [descentReady, setDescentReady] = useState(false)
   // El despegue no espera a las texturas de la Luna. Si falta la siguiente escena, espera en su fase.
   const ready = progress < LAUNCH_END * .8 ? launchReady : progress < LAUNCH_END ? launchReady && orbitalReady : progress < DESCENT_START ? orbitalReady : descentReady
-  const [cameraReset, setCameraReset] = useState(0)
   const [failed, setFailed] = useState(false)
   /** Horas de viaje por segundo en pantalla durante la transferencia. */
   const [scale, setScale] = useState('5')
@@ -106,20 +105,18 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
       </label>
       <Segmented label="Escala de tiempo del viaje" options={SCALE_OPTIONS} value={scale} onChange={setScale} />
       <Button size="lg" data-tour="sim-skip" onClick={() => seek(1)}>Ir a la llegada</Button>
-      <Button onClick={() => setCameraReset(v => v + 1)}>Restablecer cámara</Button>
     </div>
-    <p className="mb-3 text-xs text-ink-muted">Arrastra para girar alrededor de la nave. Usa la rueda o dos dedos para acercarte.</p>
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
       <div className="journey-stage glass-viewport relative h-[25rem] min-w-0 overflow-hidden bg-black sm:h-[28rem]">
         <JourneyError onFail={onFail}>
             <div className="absolute inset-0" inert={orbitalBlend >= .5} style={{ opacity: 1 - orbitalBlend, pointerEvents: orbitalBlend < .5 ? 'auto' : 'none' }} aria-hidden>
-              <Suspense fallback={null}><LaunchViewer altitudeM={altitudeM} ascent={sample.ascent} reduced={reduced} active={orbitalBlend < 1} onReady={onLaunchReady} cameraReset={cameraReset} /></Suspense>
+              <Suspense fallback={null}><LaunchViewer altitudeM={altitudeM} ascent={sample.ascent} reduced={reduced} active={orbitalBlend < 1} onReady={onLaunchReady} /></Suspense>
             </div>
             <div className="absolute inset-0" inert={terrainOpen || orbitalBlend < .5} style={{ opacity: terrainOpen ? 0 : orbitalBlend, pointerEvents: !terrainOpen && orbitalBlend >= .5 ? 'auto' : 'none' }} aria-hidden>
-              <Suspense fallback={null}><TransferViewer orbit={orbit} sample={sample} reduced={reduced} active={orbitalBlend > 0 && !terrainOpen} onReady={onOrbitalReady} cameraReset={cameraReset} /></Suspense>
+              <Suspense fallback={null}><TransferViewer orbit={orbit} sample={sample} reduced={reduced} active={orbitalBlend > 0 && !terrainOpen} onReady={onOrbitalReady} /></Suspense>
             </div>
             <div className="absolute inset-0" inert={!terrainOpen} style={{ opacity: leg.terrain, maskImage: terrainMask, WebkitMaskImage: terrainMask, pointerEvents: terrainOpen ? 'auto' : 'none' }} aria-hidden>
-              <Suspense fallback={null}><DescentViewer data={data} arrival={arrival} progress={leg.descent} active={sample.descent && sample.descentProgress > APPROACH_FADE[0] - 0.04} onReady={onDescentReady} cameraReset={cameraReset} /></Suspense>
+              <Suspense fallback={null}><DescentViewer data={data} arrival={arrival} progress={leg.descent} active={sample.descent && sample.descentProgress > APPROACH_FADE[0] - 0.04} onReady={onDescentReady} /></Suspense>
             </div>
         </JourneyError>
         {!ready && !failed && <p role="status" className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-ink-muted">Cargando Tierra, Luna y terreno…</p>}

@@ -165,9 +165,8 @@ function Lights({ sky }: { sky: Sky }) {
 }
 
 /** Coloca la cámara al cambiar de sitio: de lado al Sol, para ver las sombras largas. */
-function CameraRig({ siteId, sky, groundY, controls, arrivalProgress, manual }: { siteId: string; sky: Sky; groundY: number; controls: RefObject<OrbitControlsImpl | null>; arrivalProgress?: number; manual: RefObject<boolean> }) {
+function CameraRig({ siteId, sky, groundY, controls, arrivalProgress }: { siteId: string; sky: Sky; groundY: number; controls: RefObject<OrbitControlsImpl | null>; arrivalProgress?: number }) {
   const { camera, size } = useThree()
-  const previousTarget = useRef(new THREE.Vector3())
   const sunAzRef = useRef(sky.sunAz)
   sunAzRef.current = sky.sunAz
 
@@ -193,14 +192,6 @@ function CameraRig({ siteId, sky, groundY, controls, arrivalProgress, manual }: 
     const nearGround = 1 - Math.min(1, frame.altitudeKm / 0.6)
     const targetY = groundY + frame.altitudeKm + SHIP_CENTER_KM * (1 - 0.4 * nearGround)
     const d = frame.cameraDistanceKm
-    if (manual.current && controls.current) {
-      camera.position.y += targetY - previousTarget.current.y
-      controls.current.target.set(0, targetY, 0)
-      controls.current.update()
-      previousTarget.current.set(0, targetY, 0)
-      return
-    }
-    previousTarget.current.set(0, targetY, 0)
     camera.position.set(horizontal.x * Math.cos(elev) * d, targetY + Math.sin(elev) * d, horizontal.z * Math.cos(elev) * d)
     if (camera instanceof THREE.PerspectiveCamera && camera.far < 2000) { camera.far = 2000; camera.updateProjectionMatrix() }
     camera.lookAt(0, targetY, 0)
@@ -330,8 +321,6 @@ export default function Viewer3D({
   shipState?: Mode
 }) {
   const controls = useRef<OrbitControlsImpl | null>(null)
-  const manual = useRef(false)
-  useEffect(() => { manual.current = false }, [resetKey])
   const overlay: DescentOverlay = { sheet: useRef(null), inner: useRef(null), outer: useRef(null), glow: useRef(null), marker: useRef(null) }
   const descending = arrivalProgress !== undefined
   const sunDistance = sky.sunDistanceKm && Number.isFinite(sky.sunDistanceKm) && sky.sunDistanceKm > SUN_RADIUS_KM ? sky.sunDistanceKm : MEAN_SUN_DIST_KM
@@ -359,21 +348,20 @@ export default function Viewer3D({
         {shipState && <Html position={[0, groundY + SHIP_HEIGHT_KM * 0.55, 0]} center zIndexRange={[1, 0]} style={{ pointerEvents: 'none' }}>
           <span aria-hidden className={`incident-ship-label is-${shipState}`}>{shipState === 'failed' ? 'Sin energía' : shipState === 'survival' ? 'Instrumentos apagados' : sky.sunFraction <= 0 ? 'Panel sin Sol' : sky.sunFraction < 1 ? 'Panel con luz parcial' : 'Panel iluminado'}</span>
         </Html>}
-        <CameraRig key={resetKey} siteId={siteId} sky={sky} groundY={groundY} controls={controls} arrivalProgress={arrivalProgress} manual={manual} />
+        <CameraRig key={resetKey} siteId={siteId} sky={sky} groundY={groundY} controls={controls} arrivalProgress={arrivalProgress} />
         <Suspense fallback={null}><SkyBody url="/models/sun.glb" az={sky.sunAz} el={sky.sunEl} radius={SUN_RADIUS_KM} distance={sunDistance} groundY={groundY} unlit /></Suspense>
         <Suspense fallback={null}><SkyBody url="/models/earth.glb" az={sky.earthAz} el={sky.earthEl} radius={EARTH_RADIUS_KM} distance={earthDistance} groundY={groundY} unlit mirror /></Suspense>
         {descending && <DescentEffects groundY={groundY} progress={arrivalProgress} overlay={overlay} />}
       </Suspense>
-      <OrbitControls
+      {!descending && <OrbitControls
         ref={controls}
         makeDefault
-        onStart={() => { manual.current = true }}
         enablePan={arrivalProgress === undefined}
         enableDamping
         minDistance={0.3}
-        maxDistance={descending ? 2000 : 24}
+        maxDistance={24}
         maxPolarAngle={Math.PI * 0.49}
-      />
+      />}
     </Canvas>
     {descending && <svg aria-hidden className="pointer-events-none absolute inset-0 size-full overflow-hidden">
       <defs>

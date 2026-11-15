@@ -7,8 +7,8 @@ import type { SiteData } from '../../types'
 import Viewer3D from '../Viewer3D'
 
 /** Misma malla LOLA y misma iluminación que Explorar sitio, a la fecha elegida. */
-export default function DescentViewer({ data, arrival, progress, active, onReady, cameraReset = 0 }: {
-  data: SiteData; arrival: Date; progress: number; active: boolean; onReady: () => void; cameraReset?: number
+export default function DescentViewer({ data, arrival, progress, active, onReady }: {
+  data: SiteData; arrival: Date; progress: number; active: boolean; onReady: () => void
 }) {
   const [groundY, setGroundY] = useState(0)
   const ground = useCallback((y: number) => { setGroundY(y); onReady() }, [onReady])
@@ -20,5 +20,5 @@ export default function DescentViewer({ data, arrival, progress, active, onReady
     sunDistanceKm: data.sun.distKm?.[i], earthDistanceKm: data.earth.distKm?.[i],
   }
   return <Viewer3D key={data.site.id} siteId={data.site.id} sky={sky} groundY={groundY}
-    onGroundHeight={ground} resetKey={cameraReset} arrivalProgress={progress} active={active} />
+    onGroundHeight={ground} resetKey={0} arrivalProgress={progress} active={active} />
 }

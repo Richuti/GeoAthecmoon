@@ -6,7 +6,6 @@ import { EARTH_LAYERS, LAUNCH_SITE, boundsRad, earthDirection, earthEast } from 
 import { EARTH_RADIUS_KM } from '../../sim/transfer'
 import { LAUNCH_PAD_DECK_M, LAUNCH_SHIP_HEIGHT_M, launchFrame } from '../../sim/transferView'
 import { useEarthModel, useFlightModel } from './useFlightModel'
-import { useJourneyCamera } from './JourneyCamera'
 
 const EARTH_RADIUS_M = EARTH_RADIUS_KM * 1000
 const clamp = (value: number) => Math.max(0, Math.min(1, value))
@@ -45,8 +44,7 @@ float padBlend = smoothstep(0.02, 0.12, min(padEdge.x, padEdge.y));
 if (max(abs(vRegionalUv.x - 0.5), abs(vRegionalUv.y - 0.5)) * 10000.0 < 560.0) discard;
 diffuseColor.rgb = mix(diffuseColor.rgb, texture2D(padMap, clamp(padUv, 0.0, 1.0)).rgb, padBlend);`
 
-function LaunchScene({ altitudeM, ascent, reduced, onReady, onGround, cameraReset, active }: { altitudeM: number; ascent: number; reduced: boolean; onReady: () => void; onGround: (height: number) => void; cameraReset: number; active: boolean }) {
-  const flightCamera = useJourneyCamera(cameraReset, active, true)
+function LaunchScene({ altitudeM, ascent, reduced, onReady, onGround }: { altitudeM: number; ascent: number; reduced: boolean; onReady: () => void; onGround: (height: number) => void }) {
   const earth = useEarthModel()
   const earthShadow = useEarthModel()
   // La misma nave que se ve en la transferencia, el alunizaje y el planificador.
@@ -84,7 +82,7 @@ function LaunchScene({ altitudeM, ascent, reduced, onReady, onGround, cameraRese
     return () => terrain.scene.traverse(o => { if ((o as THREE.Mesh).isMesh) ((o as THREE.Mesh).material as THREE.Material).dispose() })
   }, [terrain, onGround])
   const ship = useRef<THREE.Group>(null)
-  const { scene, size } = useThree()
+  const { camera, scene, size } = useThree()
   const vectors = useMemo(() => ({ target: new THREE.Vector3(), offset: new THREE.Vector3(), day: new THREE.Color('#98bdd6'), night: new THREE.Color('#02040b'), sky: new THREE.Color() }), [])
   const ground = useMemo(() => {
     // Un punto de referencia visual de Florida sobre el GLB existente. Se usa la
@@ -169,7 +167,9 @@ function LaunchScene({ altitudeM, ascent, reduced, onReady, onGround, cameraRese
     vectors.target.set(0, terrain.height + frame.centerY, 0)
     const overhead = reduced ? 0 : clamp((ascent - 0.18) / 0.52)
     vectors.offset.set(THREE.MathUtils.lerp(0.65, 0.35, overhead), THREE.MathUtils.lerp(0.24, 1.3, overhead), THREE.MathUtils.lerp(0.95, 0.65, overhead)).multiplyScalar(frame.distanceM)
-    flightCamera.update(vectors.offset.add(vectors.target), vectors.target)
+    camera.position.copy(vectors.target).add(vectors.offset)
+    camera.lookAt(vectors.target)
+    camera.updateMatrixWorld()
     vectors.sky.copy(vectors.day).lerp(vectors.night, clamp((ascent - 0.5) / 0.4))
     scene.background = vectors.sky
     if (scene.fog instanceof THREE.Fog) {
@@ -181,7 +181,6 @@ function LaunchScene({ altitudeM, ascent, reduced, onReady, onGround, cameraRese
   })
 
   return <>
-    {flightCamera.orbit}
     <fog attach="fog" args={['#98bdd6', 2000, 12000]} />
     <hemisphereLight args={['#d5e9ff', '#72725a', 1.25]} />
     <directionalLight position={[200, 350, 120]} intensity={2.8} castShadow
@@ -243,13 +242,13 @@ function Exhaust({ altitudeM, ascent, groundY, plume, clouds }: { altitudeM: num
 }
 
 /** Escena local en metros. Solo carga GLB; el ascenso es una presentación ilustrativa. */
-export default function LaunchViewer({ altitudeM, ascent, reduced, active, onReady, cameraReset = 0 }: { altitudeM: number; ascent: number; reduced: boolean; active: boolean; onReady: () => void; cameraReset?: number }) {
+export default function LaunchViewer({ altitudeM, ascent, reduced, active, onReady }: { altitudeM: number; ascent: number; reduced: boolean; active: boolean; onReady: () => void }) {
   const [groundY, setGroundY] = useState(0)
   const plume = useRef<HTMLImageElement>(null)
   const clouds = useRef<(HTMLImageElement | null)[]>([])
   return <><Canvas shadows dpr={[1, 1.5]} frameloop={active ? 'always' : 'never'}
     gl={{ antialias: true, logarithmicDepthBuffer: true }} camera={{ position: [300, 120, 400], fov: 42, near: 0.5, far: 30000000 }} aria-hidden>
-    <Suspense fallback={null}><LaunchScene altitudeM={altitudeM} ascent={ascent} reduced={reduced} onReady={onReady} onGround={setGroundY} cameraReset={cameraReset} active={active} /><Exhaust altitudeM={altitudeM} ascent={ascent} groundY={groundY} plume={plume} clouds={clouds} /></Suspense>
+    <Suspense fallback={null}><LaunchScene altitudeM={altitudeM} ascent={ascent} reduced={reduced} onReady={onReady} onGround={setGroundY} /><Exhaust altitudeM={altitudeM} ascent={ascent} groundY={groundY} plume={plume} clouds={clouds} /></Suspense>
   </Canvas>
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       <img ref={plume} src="/textures/flight/engine-plume.png" alt="" className="absolute max-w-none" style={{ opacity: 0 }} />

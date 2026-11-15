@@ -14,8 +14,6 @@ export const EN: Record<string, string> = {
   'Relieve real USGS 3DEP. Ascenso ilustrativo; el cálculo orbital comienza a 200 km.': 'Actual USGS 3DEP terrain. Illustrative ascent; the orbital calculation starts at 200 km.',
   'Elevaciones de Kennedy:': 'Kennedy elevations:',
   '. Suelo real, sin exagerar las alturas.': '. Actual terrain, without vertical exaggeration.',
-  'Restablecer cámara': 'Reset camera',
-  'Arrastra para girar alrededor de la nave. Usa la rueda o dos dedos para acercarte.': 'Drag to orbit the spacecraft. Use the wheel or pinch with two fingers to zoom.',
   'Relieve LOLA (NASA/LRO): 20 km de detalle y 300 km alrededor. Nave agrandada ×4. Sol y Tierra: radios reales y distancias de Horizons; medias si faltan. Arrastra para girar.': 'LOLA terrain (NASA/LRO): 20 km of detail and 300 km around the site. Spacecraft enlarged ×4. Sun and Earth: actual radii and Horizons distances; averages when unavailable. Drag to orbit.',
   'Relieve LOLA (NASA/LRO): 20 km de detalle y 300 km alrededor. Nave agrandada ×4; Sol y Tierra con tamaño angular medio. Arrastra para girar.': 'LOLA terrain (NASA/LRO): 20 km of detail and 300 km around the site. Spacecraft enlarged ×4; Sun and Earth at mean angular size. Drag to orbit.',
   'Tu misión, día a día': 'Your mission, day by day',

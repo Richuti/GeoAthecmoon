@@ -23,7 +23,7 @@ Ruta: `frontend/public/models/kennedy_terrain.glb`. `LaunchViewer.tsx` lo carga 
 - El exportador convierte Mercator a distancias locales mediante el coseno de la latitud central. La desviación de esta aproximación crece fuera del recorte; no usar este GLB como cartografía de precisión. Las UV salen de la latitud/longitud de cada vértice y del recuadro exacto de la ortofoto.
 - Un rayo sobre el GLB mide 14.124 m bajo el cohete. Se elevan plataforma, nave, cámara y efectos con esa referencia; la base del cohete queda 4.85 m sobre el suelo, apoyada en la cubierta. Gantry se ancla a la elevación bajo su propia posición.
 - El globo y su receptor de sombras se recortan bajo el interior del modelo. Los últimos 39 m del terreno se funden con el contexto terrestre para evitar bordes rectos y superficies superpuestas.
-- El modelo pesa aproximadamente 1 MB; la textura cercana se comparte. Se conserva el inicio independiente de las escenas lunar y orbital. Verificado a 1440 y 390 px, con ratón, giro táctil y zoom de dos dedos.
+- El modelo pesa aproximadamente 1 MB; la textura cercana se comparte. Se conserva el inicio independiente de las escenas lunar y orbital. Verificado a 1440 y 390 px. Por decisión posterior de Richard, el viaje usa cámara automática sin giro ni zoom, conservando este relieve y las texturas; el visor para explorar el sitio sigue siendo interactivo.
 
 El modelo conserva las alturas entregadas por el servicio. No se afirma una reconstrucción actual de las estructuras, y la geometría histórica de referencia NASA no corresponde a un lanzamiento específico.
 
