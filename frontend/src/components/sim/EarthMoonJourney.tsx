@@ -101,7 +101,7 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
           <h2 aria-live="polite" className="mt-2 text-xl font-bold text-ink">{phase}</h2>
         </div>
         <p className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/80 px-5 py-3 text-xs leading-relaxed text-ink-muted">
-          {launch ? 'Ascenso ilustrativo. Cohete y plataforma de referencia NASA; el cálculo orbital comienza a 200 km.' : 'Trayectoria orbital idealizada. Tamaños de planetas y nave ampliados en la vista general.'}
+          {launch ? 'Ascenso ilustrativo. Módulo y plataforma de referencia NASA; el cálculo orbital comienza a 200 km.' : 'Trayectoria orbital idealizada. Tamaños de planetas y nave ampliados en la vista general.'}
         </p>
       </div>
       <div className="flex flex-col justify-center px-1 py-2 lg:px-6">

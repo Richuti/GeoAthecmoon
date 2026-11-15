@@ -2,7 +2,8 @@ import { MOON_RADIUS_KM, type journeyAt } from './transfer.ts'
 
 /** Altura real de lander.glb (m): en el despegue se muestra la misma nave que aluniza. */
 export const LAUNCH_SHIP_HEIGHT_M = 9.75
-export const LAUNCH_PAD_DECK_M = 4.85
+/** Cubierta superior de launch_platform.glb, medida con rayos: las patas del módulo se apoyan aquí. */
+export const LAUNCH_PAD_DECK_M = 14.27
 
 /** Presentación local en km; no calcula una maniobra propulsiva lunar. */
 export function descentFrame(progress: number, aspect: number) {

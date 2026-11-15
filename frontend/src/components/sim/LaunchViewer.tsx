@@ -111,7 +111,7 @@ function LaunchScene({ altitudeM, ascent, reduced, onReady }: { altitudeM: numbe
       <primitive object={earth} dispose={null} />
       <primitive object={earthShadow} dispose={null} />
     </group>
-    {/* Anclajes medidos en el GLB NASA: boca a x=0; cubierta a 4.85 m. */}
+    {/* Anclajes medidos en el GLB NASA: boca a x=0; cubierta superior a 14.27 m. */}
     <group position={[9.2, 60, 0]} scale={120}><primitive object={platform} dispose={null} /></group>
     <group ref={ship} position={[0, LAUNCH_PAD_DECK_M + LAUNCH_SHIP_HEIGHT_M / 2, 0]} scale={LAUNCH_SHIP_HEIGHT_M}>
       <primitive object={rocket} dispose={null} />
@@ -142,8 +142,8 @@ function Exhaust({ altitudeM, ascent, plume, clouds }: { altitudeM: number; asce
       if (!cloud) return
       const expansion = clamp(ascent / 0.28)
       const drift = (i - 1.5) * (30 + expansion * 100) * FX
-      const center = project(drift, (10 + expansion * 22) * FX, (i % 2 ? 25 : -20) * FX, 0)
-      const edge = project(drift + (100 + expansion * 160) * FX, (10 + expansion * 22) * FX, (i % 2 ? 25 : -20) * FX, 1)
+      const center = project(drift, LAUNCH_PAD_DECK_M + (10 + expansion * 22) * FX, (i % 2 ? 25 : -20) * FX, 0)
+      const edge = project(drift + (100 + expansion * 160) * FX, LAUNCH_PAD_DECK_M + (10 + expansion * 22) * FX, (i % 2 ? 25 : -20) * FX, 1)
       const width = Math.min(size.width * 2, Math.hypot(edge.x - center.x, edge.y - center.y) * 2)
       Object.assign(cloud.style, { left: `${center.x}px`, top: `${center.y}px`, width: `${width}px`, opacity: `${center.visible ? ignition * (1 - clamp((ascent - 0.35) / 0.35)) * 0.8 : 0}`, transform: `translate(-50%, -50%) scaleX(${i % 2 ? -1 : 1}) rotate(${i * 7 - 10}deg)` })
     })

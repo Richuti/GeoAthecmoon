@@ -45,7 +45,7 @@ export function DelayCheck({ data, vis, cfg, moduleName, startIndex, missionDays
           <h2 id="delay-title" className="text-xl font-bold text-ink">¿Y si la misión se atrasa?</h2>
           <p className="mt-1 text-sm text-ink-muted">Elige un atraso: ámbar es Sol, azul es la Tierra a la vista y ▲ marca dónde se agota la batería.</p>
         </div>
-        <Segmented label="Atraso del alunizaje" options={DELAYS} value={delay} onChange={setDelay} className="max-w-full [&_button]:min-h-10" />
+        <Segmented label="Atraso del alunizaje" options={DELAYS} value={delay} onChange={setDelay} className="w-full sm:w-auto [&_button]:min-h-10 [&_button]:px-1.5 [&_button]:text-xs sm:[&_button]:px-3.5 sm:[&_button]:text-sm" />
       </div>
 
       <p className={cx('mt-5 text-lg font-bold', verdict.tone)} aria-live="polite">{verdict.text}</p>
