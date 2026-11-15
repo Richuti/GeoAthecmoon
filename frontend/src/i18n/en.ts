@@ -735,6 +735,8 @@ export const EN: Record<string, string> = {
   'El Sol está tapado por el relieve': 'The Sun is blocked by terrain',
   'no hay contacto con la Tierra': 'there is no contact with Earth',
   // --- Encontrados en el recorrido en el navegador (dom 15 nov) ---
+  'Sitios': 'Sites', 'Sombra': 'Shadow', 'de': 'of', 'Luz media': 'Medium light', 'terreno suave': 'smooth terrain',
+  'pendiente moderada': 'moderate slope', 'pendiente peligrosa': 'dangerous slope', 'Modo ahorro (': 'Saving mode (', 'Modo supervivencia (': 'Survival mode (',
   "Ayuda": "Help",
   "Datos": "Data",
   "Sitio": "Site",
@@ -908,6 +910,9 @@ export const EN: Record<string, string> = {
 /** Frases con partes variables. {} en español; {0}, {1}… en inglés (permite reordenar). */
 export const EN_PATTERNS: [string, string][] = [
   ['Día {} de la misión', 'Day {0} of the mission'],
+  ['{} · Fuente: {}', '{0} · Source: {1}'],
+  ['{} ({} del tiempo), {} ({}) y {} ({} como máximo).', '{0} ({1} of the time), {2} ({3}) and {4} ({5} at most).'],
+  ['Planificar en {}', 'Plan at {0}'],
   ['Día {} de {}', 'Day {0} of {1}'],
   ['Día {} · {}, {} UTC', 'Day {0} · {1}, {2} UTC'],
   ['Día {} de {}, {}. Batería {} %.', 'Day {0} of {1}, {2}. Battery {3}%.'],
@@ -985,7 +990,6 @@ export const EN_PATTERNS: [string, string][] = [
   ['Después falla, y vuelve a funcionar el {}.', 'Then it fails, and works again on {0}.'],
   ['{} días después', '{0} days later'],
   ['Mapa de supervivencia. Flechas para moverte por sitios y días, Enter para simular. {}', 'Survival map. Arrow keys move across sites and days, Enter simulates. {0}'],
-  ['{} {} de {} de {}', '{0}, {2} {1}, {3}'],
   ['Qué significa: {}', 'What it means: {0}'],
   ['Empezando el {}, la viabilidad sube a {} % ({}).', 'Starting on {0}, viability rises to {1}% ({2}).'],
   ['{} llega a {} % en las mismas fechas ({}).', '{0} reaches {1}% on the same dates ({2}).'],

@@ -18,6 +18,8 @@ const unit = (n: string, one: string, many: string) => `${n} ${n === '1' ? one :
 function inline(s: string): string {
   return s
     .replace(/^(\d+) de (\d+)$/, '$1 of $2')
+    .replace(/(domingo|lunes|martes|miércoles|jueves|viernes|sábado) (\d{1,2}) de (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre) de (\d{4})/g,
+      (_, w, d, m, y) => `${WEEKDAYS[w]}, ${LONG_MONTHS[m]} ${d}, ${y}`)
     .replace(/\b(\d{1,2}) de (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)(?: de (\d{4}))?/g,
       (_, d, m, y) => `${LONG_MONTHS[m]} ${d}${y ? `, ${y}` : ''}`)
     .replace(/\b(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre) de (\d{4})\b/g, (_, m, y) => `${LONG_MONTHS[m]} ${y}`)
@@ -34,6 +36,9 @@ function inline(s: string): string {
     .replace(/(\d) %/g, '$1%')
 }
 
+const STILL_SPANISH = /[áéíóúñ¿¡]|\b(los|las|del|que|con|para|una|la|el|en|y|pero|como|más|se|sus?)\b/
+const WEEKDAYS: Record<string, string> = { domingo: 'Sunday', lunes: 'Monday', martes: 'Tuesday', 'miércoles': 'Wednesday', jueves: 'Thursday', viernes: 'Friday', 'sábado': 'Saturday' }
+
 function tr(core: string, depth = 0): string {
   const hit = DICT.get(core)
   if (hit !== undefined) return hit
@@ -42,8 +47,13 @@ function tr(core: string, depth = 0): string {
       const m = p.re.exec(core)
       if (!m) continue
       const parts = m.slice(1).map((g) => tr(norm(g), depth + 1))
-      return p.en.replace(/\{(\d)\}/g, (_, i) => parts[Number(i)] ?? '')
+      const out = p.en.replace(/\{(\d)\}/g, (_, i) => parts[Number(i)] ?? '')
+      // Un patrón general puede tragarse otra frase: si el resultado sigue en español, no sirve.
+      if (!STILL_SPANISH.test(out)) return out
     }
+    // Varias oraciones en un mismo texto: se traduce cada una.
+    const sentences = core.split(/(?<=[.:])\s+(?=[A-ZÁÉÍÓÚ¿¡])/)
+    if (sentences.length > 1) return sentences.map((x) => tr(x, depth + 1)).join(' ')
   }
   return inline(core)
 }
