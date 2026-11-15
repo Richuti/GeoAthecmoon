@@ -1,71 +1,51 @@
-/* Entrada inspirada en MXL Parts: monograma en franjas, unión y cambio de contraste. */
+﻿/* El logo y su fondo se abren juntos en dos mitades horizontales. */
 .brand-intro {
   position: fixed;
   z-index: 1000;
   inset: 0;
-  display: grid;
-  place-items: center;
   overflow: hidden;
-  background: #0c0e42;
   color: #fff;
-  animation: brand-intro-sequence 2400ms linear both;
+  animation: brand-intro-lifetime 2400ms linear both;
 }
-.brand-intro__identity { display: flex; max-width: 100%; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
-.brand-intro__emblem { position: relative; width: clamp(240px, 43vw, 560px); max-width: calc(100vw - 48px); aspect-ratio: 510 / 355; }
-.brand-intro__slice { position: absolute; inset: 0; width: 100%; height: 100%; }
-.brand-intro__slice--top { clip-path: inset(0 0 66.65%); animation: brand-slice-top 1250ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-.brand-intro__slice--middle { clip-path: inset(33.3% 0 33.3%); animation: brand-slice-middle 1250ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-.brand-intro__slice--bottom { clip-path: inset(66.65% 0 0); animation: brand-slice-bottom 1250ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-.brand-intro__band {
+.brand-intro__half {
   position: absolute;
-  inset-inline: -4%;
-  top: 50%;
-  display: grid;
-  min-height: 48px;
-  place-items: center;
+  inset: 0;
   background: #0c0e42;
-  font-family: var(--font-display);
-  font-size: clamp(24px, 3.4vw, 44px);
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: 0.08em;
-  animation: brand-band 1250ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-duration: 2400ms;
+  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+  animation-fill-mode: both;
 }
-.brand-intro__name { margin-top: 24px; font-size: clamp(14px, 1.5vw, 20px); font-weight: 700; line-height: 1.3; letter-spacing: 0.18em; animation: brand-signature 550ms ease 1050ms both; }
-.brand-intro__caption { margin-top: 8px; font-size: 11px; line-height: 1.5; letter-spacing: 0.12em; text-transform: uppercase; color: #c4c7e6; animation: brand-signature 550ms ease 1150ms both; }
-.brand-intro__skip { position: absolute; right: 32px; bottom: 28px; min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.3); color: #e8ebf1; font-size: 12px; cursor: pointer; }
-.brand-intro__skip:hover { border-color: rgb(255 255 255 / 0.7); background: rgb(255 255 255 / 0.06); }
+.brand-intro__half--top { clip-path: inset(0 0 50%); animation-name: brand-open-top; }
+.brand-intro__half--bottom { clip-path: inset(50% 0 0); animation-name: brand-open-bottom; }
+.brand-intro__identity {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(240px, 43vw, 560px);
+  max-width: calc(100vw - 48px);
+  aspect-ratio: 510 / 355;
+  transform: translate(-50%, -50%);
+}
+.brand-intro__emblem { display: block; width: 100%; height: 100%; }
+.brand-intro__signature { position: absolute; top: 100%; inset-inline: -12px; padding-top: 24px; text-align: center; }
+.brand-intro__name { font-size: clamp(14px, 1.5vw, 20px); font-weight: 700; line-height: 1.3; letter-spacing: 0.18em; }
+.brand-intro__caption { margin-top: 8px; font-size: 11px; line-height: 1.5; letter-spacing: 0.12em; text-transform: uppercase; color: #c4c7e6; }
+.brand-intro__skip { position: absolute; right: 32px; bottom: 28px; min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.3); color: #e8ebf1; font-size: 12px; cursor: pointer; background: #0c0e42; }
+.brand-intro__skip:hover { border-color: rgb(255 255 255 / 0.7); }
 .brand-intro__skip:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
-@keyframes brand-slice-top {
-  0% { opacity: 0; transform: translate(-12%, -12%); }
-  18%, 45% { opacity: 1; transform: translate(-3%, -8%); }
-  100% { opacity: 1; transform: none; }
+@keyframes brand-open-top {
+  0%, 38% { transform: translateY(0); }
+  100% { transform: translateY(-51%); }
 }
-@keyframes brand-slice-middle {
-  0% { opacity: 0; transform: translateX(16%); }
-  18%, 45% { opacity: 1; transform: translateX(5%); }
-  100% { opacity: 1; transform: none; }
+@keyframes brand-open-bottom {
+  0%, 38% { transform: translateY(0); }
+  100% { transform: translateY(51%); }
 }
-@keyframes brand-slice-bottom {
-  0% { opacity: 0; transform: translate(12%, 12%); }
-  18%, 45% { opacity: 1; transform: translate(3%, 8%); }
-  100% { opacity: 1; transform: none; }
-}
-@keyframes brand-band {
-  0% { opacity: 0; transform: translateY(-50%) scaleX(0.8); }
-  20%, 56% { opacity: 1; transform: translateY(-50%) scaleX(1); }
-  100% { opacity: 0; transform: translateY(-50%) scaleX(0.85); }
-}
-@keyframes brand-signature { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@keyframes brand-intro-sequence {
-  0%, 45% { opacity: 1; filter: none; }
-  45.01%, 82% { opacity: 1; filter: grayscale(1) invert(1); }
-  100% { opacity: 0; filter: grayscale(1) invert(1); }
-}
+/* El evento de la raíz desmonta la entrada tras salir ambas mitades. */
+@keyframes brand-intro-lifetime { from { visibility: visible; } to { visibility: visible; } }
 @media (max-width: 639px) {
-  .brand-intro__identity { padding: 20px; }
-  .brand-intro__emblem { width: min(76vw, 360px); max-width: calc(100vw - 48px); }
-  .brand-intro__name { margin-top: 24px; font-size: 13px; letter-spacing: 0.14em; }
+  .brand-intro__identity { width: min(76vw, 360px); }
+  .brand-intro__name { font-size: 13px; letter-spacing: 0.14em; }
   .brand-intro__caption { font-size: 10px; }
   .brand-intro__skip { right: 20px; bottom: 20px; }
 }

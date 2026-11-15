@@ -2,6 +2,8 @@
 
 Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python) lo hace otro integrante.
 
+- **Corrección de la entrada (14 nov), implementada; pendiente de revisión y subida de Richard:** sustituye las tres franjas y la inversión de contraste por un corte horizontal en dos mitades. Logo y fondo se abren hacia arriba y abajo para descubrir la landing desde el centro. Verificado: 278 pruebas, build, capturas de la apertura a 1440/390 px, ajuste a 320 px, salto con botón/Escape, movimiento reducido y regreso sin repetir la intro.
+
 ## Cómo trabajamos
 
 1. Se hace **un solo paso a la vez** (por ejemplo, 4.2).

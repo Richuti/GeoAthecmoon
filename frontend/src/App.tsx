@@ -237,15 +237,15 @@ function Planner() {
             <div className="grid items-start gap-8 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
               <SiteSelector sites={sites} selectedId={p.data.site.id} summaries={views} errors={state.dataErrors} onSelect={actions.select} />
               <div className="min-w-0 space-y-7">
-                <section aria-label="Fecha y duración del plan" className="glass-surface grid items-end gap-5 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">
-                  <div>
+                <section aria-label="Fecha y duración del plan" className="glass-surface grid grid-cols-1 items-end gap-5 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="min-w-0">
                     <label htmlFor="explore-date" className="mb-2 block text-sm text-ink-muted">Fecha de alunizaje · UTC</label>
                     <input id="explore-date" type="datetime-local" step={3600} value={toInputValue(sampleTime(p.data, i))}
                       min={toInputValue(sampleTime(p.data, 0))} max={toInputValue(sampleTime(p.data, p.data.sun.el.length - 1))}
                       onChange={e => { const date = fromInputValue(e.target.value); if (date && e.target.validity.valid) seek(indexAt(p.data, date, p.data.sun.el.length)) }}
                       className="min-h-12 w-full min-w-0 border border-seam-strong bg-void px-3 text-base text-ink" />
                   </div>
-                  <div><p className="mb-2 text-sm text-ink-muted">Días en la superficie</p>
+                  <div className="min-w-0"><p className="mb-2 text-sm text-ink-muted">Días en la superficie</p>
                     <Segmented label="Duración de la misión" options={MISSION_LENGTHS.some(o => o.value === String(missionDays)) ? MISSION_LENGTHS : [...MISSION_LENGTHS, { value: String(missionDays), label: `${missionDays} d` }]} value={String(missionDays)} onChange={v => actions.setMissionDays(Number(v))} className="min-h-12 w-full items-center [&_button]:min-h-10" />
                   </div>
                 </section>

@@ -61,10 +61,10 @@ export function MissionSetup({
 
   return (
     <section aria-label="Configurar misión">
-      <div className="grid items-start gap-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
           {siteControl}
 
-            <div>
+            <div className="min-w-0">
               <label htmlFor="mission-date" className="mb-2 block text-sm text-ink-muted">Fecha de alunizaje · UTC</label>
               <input id="mission-date" type="datetime-local" value={toInputValue(timelineDate)}
                 min={toInputValue(minDate)} max={toInputValue(maxDate)} step={3600}

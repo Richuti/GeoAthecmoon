@@ -34,17 +34,18 @@ export function BrandIntro() {
   if (!visible) return null
   return <section className="brand-intro" aria-label="Presentación de GEOATHECMOON"
     onAnimationEnd={e => { if (e.target === e.currentTarget) dismiss() }}>
-    <div className="brand-intro__identity">
-      <div className="brand-intro__emblem" aria-hidden>
-        {/* Las franjas muestran el mismo archivo original; no se redibuja el logo. */}
-        {['top', 'middle', 'bottom'].map(slice => <svg key={slice} className={`brand-intro__slice brand-intro__slice--${slice}`} viewBox="245 285 510 355">
+    {/* Dos copias coincidentes: el corte cruza exactamente el centro del logo. */}
+    {['top', 'bottom'].map(half => <div key={half} className={`brand-intro__half brand-intro__half--${half}`} aria-hidden>
+      <div className="brand-intro__identity">
+        <svg className="brand-intro__emblem" viewBox="245 285 510 355">
           <image href="/brand/logo.png" width="1000" height="1000" />
-        </svg>)}
-        <span className="brand-intro__band">GEOATHECMOON</span>
+        </svg>
+        <div className="brand-intro__signature">
+          <p className="brand-intro__name">GEOATHECMOON</p>
+          <p className="brand-intro__caption">Planificador lunar</p>
+        </div>
       </div>
-      <p className="brand-intro__name">GEOATHECMOON</p>
-      <p className="brand-intro__caption">Planificador lunar</p>
-    </div>
+    </div>)}
     <button className="brand-intro__skip" type="button" onClick={dismiss}>Saltar intro <span aria-hidden>↗</span></button>
   </section>
 }
