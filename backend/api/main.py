@@ -17,7 +17,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
 DATA = Path(__file__).resolve().parents[2] / "frontend" / "public" / "data"
-ORIGINS = os.environ.get("ALLOWED_ORIGINS", "https://geoathectum.vercel.app,http://localhost:5173").split(",")
+# Dominio público: geoathecmoon.vercel.app. Se mantiene el anterior por si sigue activo como alias en Vercel.
+DEFAULT_ORIGINS = "https://geoathecmoon.vercel.app,https://geoathectum.vercel.app,http://localhost:5173"
+ORIGINS = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",") if o.strip()]
 CACHE = "public, max-age=3600"
 
 SITES_RAW = (DATA / "sites.json").read_bytes()
