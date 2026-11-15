@@ -294,7 +294,7 @@ function Brand() {
         />
       </svg>
       <div className="leading-tight">
-        <p className="font-display text-2xl font-extrabold uppercase leading-none tracking-[0.03em]">GeoAthectum</p>
+        <p className="font-display text-2xl font-extrabold uppercase leading-none tracking-[0.03em]">GEOATHECMOON</p>
         <p className="mt-0.5 text-[0.6875rem] text-ink-faint">Planificador de alunizaje · Polo sur lunar</p>
       </div>
     </a>

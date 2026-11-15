@@ -3,8 +3,6 @@
 // - Cada escena es una ilustración fija. Mientras se lee, la cámara avanza muy lento (acercamiento y paneo).
 // - La escena siguiente sube desde abajo recortada con la silueta REAL del horizonte del sitio de referencia
 //   (LOLA): la imagen nueva asoma detrás de la cresta.
-// - Abajo, una franja fija muestra ese horizonte y el Sol de JPL Horizons. El scroll avanza los días: cuando el
-//   relieve tapa al Sol, la ilustración se oscurece. La luz de la portada la deciden los datos, no la imagen.
 // - Al final, el cierre y un pie de página con la marca gigante rellena con la textura de la superficie lunar.
 //
 // Rendimiento: un solo bucle requestAnimationFrame escribe estilos y atributos; React no se vuelve a dibujar
@@ -14,7 +12,6 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 import type { StoryFacts } from '../lib/storyFacts'
 import { storyCues, storyVideoProgress } from '../lib/storyTiming'
 import { formatDate, formatDateTime, sampleTime } from '../lib/time'
-import { visibility } from '../lib/visibility'
 import type { SiteData } from '../types'
 import { Button, cx } from './ui'
 
@@ -45,12 +42,6 @@ interface Scene {
 }
 
 const MEDIA = '/media'
-/** Días de datos que recorre la franja del horizonte durante todo el scroll (una vuelta del Sol, aprox.). */
-const BAND_DAYS = 30
-/** Escala vertical ampliada cerca de 0°, la misma de la franja de horizonte del planificador. */
-const K = 0.75
-const s = (el: number) => Math.asinh(el / K)
-const BAND_RANGE: [number, number] = [-2, 8]
 /** Altura de la cresta en el barrido entre escenas, en % de la pantalla. */
 const RIDGE_AMP = 16
 
@@ -147,7 +138,7 @@ function buildScenes(f: StoryFacts | null): Scene[] {
       ) : (
         <>Elegir bien la fecha puede cambiar por completo la luz y el contacto de una misión.</>
       ),
-      readout: ex && { value: ex.best, decimals: 0, unit: '/100', label: `Viabilidad en la mejor fecha · ${ex.siteName}`, source: 'GeoAthectum · JPL Horizons + LOLA' },
+      readout: ex && { value: ex.best, decimals: 0, unit: '/100', label: `Viabilidad en la mejor fecha · ${ex.siteName}`, source: 'GEOATHECMOON · JPL Horizons + LOLA' },
     },
     {
       id: 'noche',
@@ -187,16 +178,12 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
   const reduced = useReducedMotion()
   const scenes = buildScenes(facts)
   const profile = useMemo(() => ridgeProfile(reference?.horizon.elevationDeg), [reference])
-  const lit = useMemo(() => (reference ? visibility(reference).lit : null), [reference])
 
   const journey = useRef<HTMLElement | null>(null)
   const layers = useRef<Array<HTMLDivElement | null>>([])
   const images = useRef<Array<HTMLImageElement | null>>([])
   const texts = useRef<Array<HTMLElement | null>>([])
   const edge = useRef<SVGPolylineElement | null>(null)
-  const stage = useRef<HTMLDivElement | null>(null)
-  const band = useRef<BandHandle | null>(null)
-  const bandWrap = useRef<HTMLDivElement | null>(null)
   const [active, setActive] = useState(0)
 
   useEffect(() => {
@@ -204,7 +191,6 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
     const n = scenes.length
     let raf = 0
     let lastActive = -1
-    let light = 1
 
     const frame = () => {
       const track = journey.current
@@ -256,20 +242,6 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
         el.style.setProperty('--visible', (k === n - 1 ? 1 : 1 - smooth(0.62, 0.74, local)).toFixed(4))
       })
 
-      // La franja del horizonte no está en la primera pantalla: entra desde abajo al pasar a la segunda escena.
-      const bandIn = smooth(0.75, 1.15, pos)
-      if (bandWrap.current) {
-        bandWrap.current.style.opacity = bandIn.toFixed(3)
-        bandWrap.current.style.transform = `translate3d(0, ${((1 - bandIn) * 100).toFixed(1)}%, 0)`
-        bandWrap.current.style.visibility = bandIn > 0 ? 'visible' : 'hidden'
-      }
-
-      // Los datos deciden la luz: si el relieve real tapa al Sol, la ilustración se oscurece (solo con la franja a la vista).
-      const idx = band.current?.update(g) ?? null
-      const target = idx === null || !lit || bandIn < 1 ? 1 : lit[idx] ? 1 : 0.5
-      light += (target - light) * 0.08
-      stage.current?.style.setProperty('--light', light.toFixed(3))
-
       // Pasado el viaje (cierre y pie de página) se ocultan los capítulos.
       const shown = r.bottom < vh * 0.6 ? -1 : scene
       if (shown !== lastActive) {
@@ -282,7 +254,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
     return () => cancelAnimationFrame(raf)
     // Las escenas cambian de texto, no de cantidad: el bucle no necesita reiniciarse.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reduced, profile, lit])
+  }, [reduced, profile])
 
   const goTo = (k: number) => {
     const el = journey.current
@@ -318,8 +290,8 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
         <>
           <ChapterNav scenes={scenes} active={active} onGo={goTo} />
           <section ref={journey} aria-label="Viaje al polo sur lunar" className="relative" style={{ height: `${scenes.length * 115 + 30}svh` }}>
-            <div ref={stage} className="sticky top-0 h-dvh overflow-hidden bg-void" style={{ '--light': 1 } as CSSProperties}>
-              <div className="absolute inset-0" style={{ filter: 'brightness(var(--light))' }}>
+            <div className="sticky top-0 h-dvh overflow-hidden bg-void">
+              <div className="absolute inset-0">
                 {scenes.map((sc, k) => (
                   <div key={sc.id} ref={(el) => { layers.current[k] = el }} className="absolute inset-0 overflow-hidden"
                     style={{ visibility: k === 0 ? 'visible' : 'hidden' }}>
@@ -340,9 +312,6 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
                   <SceneText scene={sc} index={k} />
                 </article>
               ))}
-              <div ref={bandWrap} className="absolute inset-x-0 bottom-0 z-10" style={{ opacity: 0, visibility: 'hidden', transform: 'translate3d(0, 100%, 0)' }}>
-                {reference && <HorizonBand ref={band} data={reference} lit={lit} />}
-              </div>
               <p className="absolute right-4 top-16 text-[0.6875rem] text-ink-faint sm:right-8">Ilustración · los datos no salen de la imagen</p>
             </div>
           </section>
@@ -360,7 +329,7 @@ function StoryBar({ onOpen, solid }: { onOpen: () => void; solid: boolean }) {
     <div className={cx('pointer-events-none fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b px-4 py-4 transition-colors duration-300 sm:px-8',
       solid ? 'border-seam bg-void' : 'border-transparent')}>
       <p className="pointer-events-auto font-display text-xl font-extrabold uppercase leading-none tracking-[0.03em] text-ink [text-shadow:0_1px_12px_rgb(0_0_0/0.8)]">
-        GeoAthectum
+        GEOATHECMOON
       </p>
       <Button variant="secondary" size="sm" className="pointer-events-auto bg-void/70" onClick={onOpen}>
         Abrir el planificador
@@ -393,7 +362,7 @@ function ChapterNav({ scenes, active, onGo }: { scenes: Scene[]; active: number;
 
 /**
  * Texto de una escena. Las ilustraciones tienen el horizonte a media altura y cielo negro arriba:
- * el relato va en el cielo y el dato abajo, junto a la franja del horizonte real, para no tapar nunca
+ * el relato va en el cielo y el dato abajo, sobre el suelo, para no tapar nunca
  * la cresta, el Sol, la Tierra ni el módulo. En el celular, si el sujeto llena el ancho, el relato baja al suelo.
  */
 function SceneText({ scene, index, still = false }: { scene: Scene; index: number; still?: boolean }) {
@@ -406,7 +375,7 @@ function SceneText({ scene, index, still = false }: { scene: Scene; index: numbe
       {ground && <div aria-hidden className="absolute inset-0 bg-[linear-gradient(to_top,rgb(5_7_13/0.92)_0%,rgb(5_7_13/0.7)_38%,transparent_62%)] lg:hidden" />}
 
       <div className={cx('absolute inset-x-0 px-5 sm:px-10 lg:bottom-auto lg:top-0 lg:px-16 lg:pt-28',
-        ground ? (still ? 'bottom-10' : 'bottom-36') : 'top-0 pt-24 sm:pt-28')}>
+        ground ? (still ? 'bottom-10' : 'bottom-16') : 'top-0 pt-24 sm:pt-28')}>
         <h2 id={`escena-${scene.id}`}
           className={cx('font-display font-extrabold uppercase leading-[0.9] tracking-[0.005em] text-ink text-balance',
             scene.narrow ? 'max-w-3xl lg:max-w-[30vw]' : 'max-w-4xl',
@@ -428,9 +397,9 @@ function SceneText({ scene, index, still = false }: { scene: Scene; index: numbe
         )}
       </div>
 
-      {/* Escritorio: el dato abajo, sobre el suelo y junto a la franja del horizonte real */}
+      {/* Escritorio: el dato abajo, sobre el suelo */}
       {scene.readout && (
-        <div className={cx('absolute left-16 hidden lg:block', still ? 'bottom-10' : 'bottom-32')}
+        <div className={cx('absolute left-16 hidden lg:block', still ? 'bottom-10' : 'bottom-12')}
           style={still ? undefined : { opacity: 'var(--readout)', clipPath: 'inset(-1rem calc((1 - var(--readout)) * 100%) 0 0)' }}>
           <ReadoutBox r={scene.readout} />
         </div>
@@ -450,84 +419,6 @@ function ReadoutBox({ r }: { r: Readout }) {
       <p className="mt-2 text-sm text-ink">{r.label}</p>
       <p className="mt-0.5 text-xs text-ink-faint">Fuente: {r.source}</p>
     </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Franja del horizonte real: la firma de la portada
-// ---------------------------------------------------------------------------
-
-interface BandHandle {
-  /** Mueve el Sol al instante que corresponde al avance `g` (0–1) y devuelve el índice de la muestra. */
-  update: (g: number) => number
-}
-
-function HorizonBand({ ref, data, lit }: { ref: React.Ref<BandHandle>; data: SiteData; lit: boolean[] | null }) {
-  const [minEl, maxEl] = BAND_RANGE
-  const top = s(maxEl)
-  const span = top - s(minEl)
-  const y = (el: number) => top - s(Math.max(minEl - 1, Math.min(maxEl + 1, el)))
-  const h = data.horizon.elevationDeg
-  const step = 360 / h.length
-  const samples = Math.min(data.sun.el.length, Math.round((BAND_DAYS * 24) / data.stepHours))
-
-  const paths = useMemo(() => {
-    const relief = `M0,${span + 1} ` + h.map((el, k) => `L${(k * step).toFixed(2)},${y(el).toFixed(3)}`).join(' ') + ` L360,${y(h[0]).toFixed(3)} L360,${span + 1} Z`
-    let track = ''
-    let prev = Number.NaN
-    for (let i = 0; i < samples; i += 2) {
-      const az = data.sun.az[i]
-      track += `${Number.isNaN(prev) || Math.abs(az - prev) > 180 ? 'M' : 'L'}${az.toFixed(2)},${y(data.sun.el[i]).toFixed(3)} `
-      prev = az
-    }
-    return { relief, track }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data])
-
-  const sun = useRef<HTMLSpanElement | null>(null)
-  const label = useRef<HTMLSpanElement | null>(null)
-  const last = useRef(-1)
-
-  useEffect(() => {
-    if (typeof ref === 'function') ref(handle)
-    else if (ref) (ref as React.RefObject<BandHandle | null>).current = handle
-  })
-  const handle: BandHandle = {
-    update: (g) => {
-      const i = Math.min(samples - 1, Math.round(g * (samples - 1)))
-      if (i === last.current) return i
-      last.current = i
-      const visible = lit ? lit[i] : true
-      const el = data.sun.el[i]
-      if (sun.current) {
-        sun.current.style.left = `${(data.sun.az[i] / 360) * 100}%`
-        sun.current.style.top = `${(y(el) / span) * 100}%`
-        sun.current.dataset.visible = String(visible)
-      }
-      if (label.current) {
-        label.current.textContent = `${formatDateTime(sampleTime(data, i))} · Sol ${el.toFixed(1)}° · ${visible ? 'iluminado' : 'tapado por el relieve'}`
-      }
-      return i
-    },
-  }
-
-  return (
-    <figure className="relative border-t border-seam bg-void/85 px-4 pb-2 pt-2 sm:px-8" aria-label={`Horizonte real de ${data.site.name} y recorrido del Sol`}>
-      <figcaption className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-0.5 text-[0.6875rem] leading-snug">
-        <span className="text-ink-muted">Horizonte real · {data.site.name} · LOLA + JPL Horizons</span>
-        <span ref={label} className="font-mono text-ink-faint" />
-      </figcaption>
-      <div className="relative mt-1.5 h-12 sm:h-14">
-        <svg aria-hidden viewBox={`0 0 360 ${span}`} preserveAspectRatio="none" className="absolute inset-0 size-full">
-          <line x1={0} x2={360} y1={y(0)} y2={y(0)} stroke="var(--color-seam-strong)" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
-          <path d={paths.track} fill="none" stroke="var(--color-sun)" strokeOpacity={0.35} vectorEffect="non-scaling-stroke" />
-          <path d={paths.relief} fill="var(--color-relief)" stroke="var(--color-relief-edge)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
-        </svg>
-        <span ref={sun} aria-hidden data-visible="true"
-          className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-sun bg-sun data-[visible=false]:bg-void"
-          style={{ left: '0%', top: '50%' }} />
-      </div>
-    </figure>
   )
 }
 
@@ -614,8 +505,8 @@ function Footer({ onOpen }: { onOpen: () => void }) {
           </defs>
         </svg>
         {/* Una sola palabra en todos los anchos: en el celular, más alta y algo más angosta para que pese igual. */}
-        <GiantWord text="GEOATHECTUM" viewBox="0 0 1000 150" fontSize={168} y={140} textLength={992} className="hidden sm:block" />
-        <GiantWord text="GEOATHECTUM" viewBox="0 0 1000 205" fontSize={232} y={192} textLength={994} className="sm:hidden" />
+        <GiantWord text="GEOATHECMOON" viewBox="0 0 1000 150" fontSize={168} y={140} textLength={992} className="hidden sm:block" />
+        <GiantWord text="GEOATHECMOON" viewBox="0 0 1000 205" fontSize={232} y={192} textLength={994} className="sm:hidden" />
       </div>
     </footer>
   )

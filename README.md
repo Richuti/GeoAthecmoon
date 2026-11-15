@@ -1,4 +1,4 @@
-# GeoAthectum · Lunar Landing Site Navigator
+# GEOATHECMOON · Lunar Landing Site Navigator
 
 Proyecto para el **NASA Space Apps Challenge 2026**, reto *Lunar Landing Site Navigator*.
 
@@ -6,7 +6,7 @@ Proyecto para el **NASA Space Apps Challenge 2026**, reto *Lunar Landing Site Na
 >
 > *In 10 seconds you know whether a site and a date work at the lunar south pole, and what happens if your mission is delayed.*
 
-En el polo sur de la Luna el Sol nunca sube más de un par de grados: una cresta a varios kilómetros basta para dejar un sitio a oscuras o cortar el contacto con la Tierra. GeoAthectum compara **6 sitios** del polo sur durante **todo 2027, hora por hora**, con posiciones reales del Sol y la Tierra (JPL Horizons) y el relieve real (LOLA). Después **simula tu módulo**: batería, paneles y envío de datos.
+En el polo sur de la Luna el Sol nunca sube más de un par de grados: una cresta a varios kilómetros basta para dejar un sitio a oscuras o cortar el contacto con la Tierra. GEOATHECMOON compara **6 sitios** del polo sur durante **todo 2027, hora por hora**, con posiciones reales del Sol y la Tierra (JPL Horizons) y el relieve real (LOLA). Después **simula tu módulo**: batería, paneles y envío de datos.
 
 ## Cómo se usa
 
@@ -84,7 +84,7 @@ npm run mock       # arma public/data/sites/{id}.json
 ## Estructura
 
 ```
-GeoAthectum/
+GEOATHECMOON/
 ├── frontend/          React 19 + Vite + TypeScript + Tailwind, React Three Fiber para el 3D
 │   ├── src/lib/       luz, contacto, viabilidad, recomendaciones, cielo (eclipses, DSN, crestas)
 │   ├── src/sim/       módulo, simulación hora por hora, búsquedas, imprevisto, viaje Tierra–Luna

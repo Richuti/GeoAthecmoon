@@ -72,7 +72,7 @@ async function fetchTrack(params, label) {
   let lastError
   for (let attempt = 1; attempt <= RETRIES; attempt++) {
     try {
-      const res = await fetch(url, { headers: { 'User-Agent': 'geoathectum-data-script' } })
+      const res = await fetch(url, { headers: { 'User-Agent': 'geoathecmoon-data-script' } })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
       if (json.error) throw new Error(json.error)

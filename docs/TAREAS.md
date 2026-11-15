@@ -1,4 +1,4 @@
-# Tareas del frontend · GeoAthectum
+# Tareas del frontend · GEOATHECMOON
 
 Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python) lo hace otro integrante.
 
@@ -566,7 +566,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Commit:** `Tarea C3.1: portada narrativa con scroll`
 - **Ajuste de secuencia pendiente de revisión y subida de Richard:** `src/lib/storyTiming.ts` y `tests/storyTiming.test.ts`. Apariciones por tiempo de video y fundidos dentro de un solo escenario; póster como respaldo y relato estático completo con movimiento reducido. Verificado en Edge con escritorio y móvil.
 
-- **Portada rehecha, pendiente de revisión y subida de Richard:** ya no usa videos (se borraron del repo, unos 28 MB). Usa 5 imágenes fijas (`public/media/escena-1..5-*.jpg`, prompts en `docs/MEDIOS_VISUALES.md`). El cambio de escena sube recortado con la silueta real del horizonte de Shackleton; una franja fija muestra ese horizonte con el Sol de JPL Horizons, y la imagen se oscurece cuando el relieve real tapa al Sol. El relato va en el cielo y el dato junto a la franja. Pie de página con «GEOATHECTUM» relleno con el mapa de luz LOLA del polo sur. Sin menciones de IA.
+- **Portada rehecha, pendiente de revisión y subida de Richard:** ya no usa videos (se borraron del repo, unos 28 MB). Usa 5 imágenes fijas (`public/media/escena-1..5-*.jpg`, prompts en `docs/MEDIOS_VISUALES.md`). El cambio de escena sube recortado con la silueta real del horizonte de Shackleton; la franja fija del horizonte y el Sol se retiró por decisión de Richard. El relato va en el cielo y el dato sobre el suelo. Pie de página con «GEOATHECMOON» relleno con la textura de la superficie lunar de Solar System Scope (CC BY 4.0). Sin menciones de IA.
 
 ### C3.2 Imagen para compartir · Extra · [ ] · Implementado, pendiente de revisión de Richard
 - **Hecho:** `frontend/public/og.jpg` (1200×630, fondo I1 con las fuentes de la app), etiquetas Open Graph y Twitter en `frontend/index.html`, y `frontend/vite.config.ts`, que pone `https://$VERCEL_PROJECT_PRODUCTION_URL` en `%SITE_URL%` (en local las rutas quedan relativas).

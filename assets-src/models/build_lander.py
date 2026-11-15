@@ -1,4 +1,4 @@
-"""Genera lander.glb para GeoAthectum.
+"""Genera lander.glb para GEOATHECMOON.
 Coordenadas glTF: Y arriba, frente/norte hacia -Z, este hacia +X. 1 unidad = 1 m.
 Jerarquía:
   Lander (raíz)

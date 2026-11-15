@@ -98,7 +98,7 @@ function buildObj(data, siteHeightM) {
   const y = (row, col) => (heightAt(t, row, col) - siteHeightM) / 1000
 
   const lines = [
-    `# GeoAthectum · terreno de ${data.site.name} (${data.site.id})`,
+    `# GEOATHECMOON · terreno de ${data.site.name} (${data.site.id})`,
     `# ${n} × ${n} puntos sobre ${t.extentKm} km. 1 unidad = 1 km. Y arriba, norte = -Z, este = +X.`,
     `# El sitio está en (0, 0, 0). Alturas relativas al sitio (${siteHeightM.toFixed(1)} m).`,
     `# Fuente del terreno: ${data.sources?.terrain ?? 'desconocida'}. No cambies la forma grande: de ella salen la luz y el horizonte.`,

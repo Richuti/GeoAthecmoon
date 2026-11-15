@@ -1,4 +1,4 @@
-# Sistema de diseño · GeoAthectum
+# Sistema de diseño · GEOATHECMOON
 
 **Dirección: "hardware de vuelo".** La app se ve como el panel de un instrumento: rótulos esténcil como los que se pintan sobre el hardware espacial, una tipografía de cabina para todo lo que se lee, y marcos finos en lugar de tarjetas.
 

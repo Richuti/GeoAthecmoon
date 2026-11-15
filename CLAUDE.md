@@ -1,4 +1,4 @@
-# GeoAthectum · Contexto para Claude Code
+# GEOATHECMOON · Contexto para Claude Code
 
 ## Qué es
 Proyecto del equipo para el **NASA Space Apps Challenge 2026** (14 y 15 de noviembre de 2026, tema "The Next Frontier"). Reto: **Lunar Landing Site Navigator** (antes "CLPS Lunar Mission Browser").
@@ -53,7 +53,7 @@ Con eso da un **porcentaje de viabilidad** y, si no conviene, **recomienda un si
 
 ## Estructura
 ```
-GeoAthectum/
+GEOATHECMOON/
 ├── CLAUDE.md
 ├── README.md
 ├── docs/CONTRATO_DATOS.md   ← formato JSON backend → frontend

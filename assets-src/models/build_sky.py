@@ -1,4 +1,4 @@
-"""Genera sun.glb y earth.glb para GeoAthectum (esferas de radio 1).
+"""Genera sun.glb y earth.glb para GEOATHECMOON (esferas de radio 1).
 Uso:  python build_sky.py [ruta/blue_marble.jpg]
 Sin textura, la Tierra sale en azul liso (marcador provisional).
 """
