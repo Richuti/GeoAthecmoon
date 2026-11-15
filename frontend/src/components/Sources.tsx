@@ -142,7 +142,7 @@ export function Sources({ data }: { data?: SiteData }) {
           <Section title="Sobre el proyecto">
             <ul className="flex flex-col gap-2 text-sm leading-relaxed text-ink-muted">
               <li>Proyecto creado por nuestro equipo para el NASA Space Apps Challenge 2026. Usa datos y modelos públicos de NASA según sus normas de uso de imágenes y medios.</li>
-              <li>Las imágenes y videos de la portada son ilustraciones generadas con IA. Ningún dato sale de ellas.</li>
+              <li>Las imágenes de la portada son ilustraciones; ningún dato sale de ellas.</li>
               <li>Los módulos del simulador son configuraciones de referencia, no naves reales.</li>
             </ul>
           </Section>

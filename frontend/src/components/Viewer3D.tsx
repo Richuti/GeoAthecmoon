@@ -217,7 +217,8 @@ export default function Viewer3D({
 
   return (
     <Canvas
-      shadows
+      // PCFShadowMap explícito: three 0.187 quitó PCFSoftShadowMap (el valor de `shadows` a secas) y avisaba en consola.
+      shadows="percentage"
       dpr={[1, 1.75]}
       camera={{ fov: 45, near: 0.01, far: 200, position: [6, 2.5, 6] }}
       gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}

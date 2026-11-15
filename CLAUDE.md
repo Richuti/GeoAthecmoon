@@ -49,7 +49,7 @@ Con eso da un **porcentaje de viabilidad** y, si no conviene, **recomienda un si
   - Paneles como marcos finos con el nombre en el borde.
   - Fuentes locales en `public/fonts`.
 - **Nada de diseño con cara de IA:** sin tarjetas redondeadas genéricas, etiquetas en mono espaciada, píldoras con punto ni gradientes. Antes de entregar una pantalla, capturas en escritorio y móvil.
-- **Imágenes y videos:** los genera Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son ilustraciones con la leyenda "Ilustración generada con IA"; ningún dato sale de ellas.
+- **Imágenes y videos:** los genera Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son ilustraciones; ningún dato sale de ellas. **Decisión de Richard (14 nov): la app no menciona la IA en ningún lugar**, ni en leyendas ni en el panel de fuentes. Si hace falta aclarar, se dice «Ilustración · los datos no salen de la imagen».
 
 ## Estructura
 ```

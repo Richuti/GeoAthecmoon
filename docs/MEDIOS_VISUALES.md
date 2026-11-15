@@ -4,11 +4,78 @@ Richard genera estos medios con su herramienta de IA y los guarda en `frontend/p
 
 Los prompts están en **inglés** porque los generadores rinden mejor así.
 
+> **Cambio (14 nov, noche): la portada ya no usa videos.** Usa **5 imágenes fijas** (E1–E5, abajo). El movimiento lo pone el código: acercamiento y paneo lentos, el cambio de escena recortado con la silueta real del horizonte LOLA, y la imagen se oscurece cuando el relieve real tapa al Sol. Los videos V1–V5 quedan como referencia y ya no se cargan. Mientras no estén las imágenes nuevas, los archivos `escena-*.jpg` son copias de los pósters viejos.
+
+## Portada con imágenes fijas (E1–E5) · lo que se usa ahora
+
+**Formato de todas:** 16:9, **2560 × 1440** (o lo más grande que permita la herramienta). Guardar como JPG de calidad 82–85, de menos de 600 KB, en `frontend/public/media/` con el nombre exacto. Pegar al final de cada prompt el **bloque de estilo** y, si la herramienta lo acepta, el **negative prompt** de la sección «Reglas».
+
+**Composición (importante para que el texto se lea):**
+- El **tercio inferior izquierdo** queda oscuro y tranquilo, sin detalles: ahí va el título.
+- La **línea del horizonte** va entre el 50 % y el 60 % de la altura.
+- El código acerca la imagen hasta un 13 %, así que nada importante debe quedar pegado a los bordes.
+- En el celular se recorta a lo alto. Por eso cada prompt dice dónde va el sujeto principal.
+
+| Id | Archivo | Escena | Sujeto principal |
+|---|---|---|---|
+| E1 | `escena-1-amanecer.jpg` | El problema: la luz depende del relieve | Sol en el horizonte, a la derecha |
+| E2 | `escena-2-sol.jpg` | La luz: el Sol gira y las sombras también | Sol a la izquierda, sombras largas cruzando |
+| E3 | `escena-3-tierra.jpg` | La comunicación: la Tierra baja | Tierra asomando tras una cresta, un poco a la derecha |
+| E4 | `escena-4-descenso.jpg` | La fecha: el módulo baja | Módulo en el centro, arriba |
+| E5 | `escena-5-noche.jpg` | La noche: solo queda la batería | Módulo en el centro, casi a oscuras |
+
+### E1 · Amanecer polar
+```
+Wide cinematic landscape at the lunar south pole. A jagged crater rim crosses the frame at mid-height;
+only its upper crest is lit by the Sun, which sits right on the horizon on the right third of the frame,
+half hidden by a distant mountain, a small intense white disc with a tight warm glow. The lit crest glows
+amber, everything below the crest falls into deep black shadow. The bottom-left third of the frame is a
+dark, calm, almost featureless slope in shadow. Horizon line at 55% of the height. Ultra sharp detail on
+the lit rock, 16:9.
+```
+
+### E2 · El Sol que gira
+```
+Low-angle view across a wide, gently rolling lunar plain at the south pole. The Sun hugs the horizon on
+the left third of the frame. Small rounded hills and boulders cast extremely long, razor-sharp black
+shadows that stretch diagonally across the whole frame toward the lower right, like the hands of a
+clock. Fine regolith texture catching the grazing light. The bottom-left corner stays dark and simple.
+Horizon line at 55% of the height. 16:9.
+```
+
+### E3 · La Tierra baja
+```
+The Earth seen from the lunar south pole, very low on the horizon slightly right of center, about four
+times wider than the full Moon looks from Earth, half of its disc hidden behind a dark mountain ridge in
+silhouette. The Earth shows blue oceans and white clouds, lit from the side as a gibbous phase. The
+ridge and the foreground are dark grey regolith with faint grazing amber light on a few rocks. Black sky.
+The bottom-left third is dark and calm. Horizon line at 58% of the height. 16:9.
+```
+
+### E4 · Descenso
+```
+A small generic robotic lunar lander descending the last 50 meters toward a crater rim at the lunar
+south pole, centered in the upper half of the frame. Four landing legs with round footpads, gold and
+silver thermal foil, one flat solar panel and a small dish antenna, no logos, no markings. A faint,
+almost invisible engine plume; regolith dust blown radially outward in straight lines close to the
+ground (no air, no billowing smoke). Low grazing sunlight from the right, long shadow of the lander on
+the ground below. The bottom-left third stays dark. 16:9.
+```
+
+### E5 · Noche lunar
+```
+The same generic lunar lander standing on the regolith at the lunar south pole just after the Sun has
+set behind a mountain ridge. Only a thin amber rim of light remains on the very top of the ridge in the
+background. The lander, centered, is almost in darkness, softly lit by faint cold bluish earthshine, with
+two tiny green status lights and frost-like highlights on the foil. Long darkness across the
+foreground. Black sky. The bottom-left third is very dark. Horizon line at 52% of the height. 16:9.
+```
+
 ---
 
 ## Reglas (importante)
 
-1. **Son ilustraciones, no datos.** En la app cada medio lleva la leyenda pequeña *"Ilustración generada con IA"*. Los datos (luz, horizonte, Sol y Tierra) siempre salen de JPL Horizons y del terreno, nunca de estas imágenes.
+1. **Son ilustraciones, no datos.** La app no menciona la IA en ningún lugar (decisión de Richard, 14 nov); solo dice *"Ilustración · los datos no salen de la imagen"*. Los datos (luz, horizonte, Sol y Tierra) siempre salen de JPL Horizons y del terreno, nunca de estas imágenes.
 2. **Sin marcas ni misiones reales:** sin logos de NASA, banderas, nombres, ni módulos reconocibles (Nova-C, Starship, Blue Ghost, etc.). El módulo es genérico y propio, como el `lander.glb` de Richard.
 3. **Física correcta**, que el jurado lo nota:
    - Cielo **negro** (no hay atmósfera) y sin estrellas, porque la exposición del suelo iluminado las borra.

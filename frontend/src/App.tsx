@@ -78,7 +78,10 @@ export default function App() {
   const { state } = useAppState()
   const facts = useMemo(() => storyFacts(Object.values(state.data)), [state.data])
 
-  if (view === 'story') return <Story facts={facts} onOpen={() => (window.location.hash = 'planificador')} />
+  if (view === 'story') {
+    const reference = facts ? Object.values(state.data).find((d) => d.site.name === facts.refName) : undefined
+    return <Story facts={facts} reference={reference} onOpen={() => (window.location.hash = 'planificador')} />
+  }
   return <Planner />
 }
 

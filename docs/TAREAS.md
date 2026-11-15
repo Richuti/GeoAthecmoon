@@ -292,7 +292,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Listo cuando:** con el mismo sitio y el mismo preset, una fecha con noche larga falla y otra con mucha luz sobrevive.
 - **Commit:** `Tarea S2: motor de simulación de energía y datos`
 
-### S3. Búsqueda de fechas y sitios que funcionan · MVP
+### S3. Búsqueda de fechas y sitios que funcionan · MVP · [x]
+- **Hecho** (subido con SU1–SU3): `src/sim/search.ts` con `scanStarts`, `bestViableStart`, `bestStart`, `delayTolerance` y `compareSites`, con pruebas en `tests/search.test.ts`. Los nombres finales son esos, no los de la lista de abajo.
 - **Archivo:** `src/sim/search.ts`.
 - `scanStartDates(data, config)`: simula empezando cada 6 h dentro del periodo, siempre que quepa la misión completa, y devuelve qué fechas sobreviven y con qué margen.
 - `bestAlternative(allSites, config, startIndex)`: el mismo inicio en los otros sitios, ordenado por resultado.
@@ -331,6 +332,9 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Temporal:** `src/design/preview.ts` carga los datos y hace cálculos mínimos para revisar el diseño con datos reales. Lo reemplazan 4.1, 4.2, la tarea 5 y S1.
 - **Commit:** `Tarea C0: sistema de diseño "hardware de vuelo" y layout final`
 
+### 6. Línea de tiempo · MVP · [x]
+- **Hecho:** la función `Timeline` de `src/App.tsx` (no un archivo aparte) con `src/components/WindowsBar.tsx`. El slider recorre todo el periodo (8760 muestras desde D1) y la barra pone una fecha por mes cuando el periodo pasa de 70 días.
+
 ### 6.1 Slider de fecha y hora · MVP
 - **Archivo:** `src/components/Timeline.tsx`. Slider sobre las 1440 muestras, con la fecha en UTC bien visible.
 
@@ -341,6 +345,9 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - Dos franjas: luz en ámbar y comunicación en azul, con un cursor en el instante actual. Al hacer clic se salta a esa fecha.
 - **Commit:** `Tarea 6: línea de tiempo con ventanas de luz y comunicación`
 
+### 7. Gráfico polar del cielo · MVP · [x]
+- **Hecho y subido** (`de60a03`): `src/components/SkyPlot.tsx`, en el modo explorar.
+
 ### 7.1 Gráfico polar: base · MVP
 - **Archivo:** `src/components/SkyPlot.tsx`. Círculos de elevación y puntos cardinales, con el norte arriba.
 - La escala radial está ampliada cerca de 0°, porque las elevaciones van de -5° a 15°.
@@ -350,8 +357,11 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ### 7.3 Trayectorias y posición actual · MVP
 - Trayectorias del Sol (ámbar) y de la Tierra (azul) en el periodo, con el punto actual de cada uno. El punto se ve hueco cuando está tapado por el relieve.
-- **Implementado, pendiente de revisión de Richard:** `src/components/SkyPlot.tsx`, montado en el modo explorar, antes del panel «Ahora».
 - **Commit:** `Tarea 7: gráfico polar del cielo`
+
+### 8. Métricas y viabilidad · MVP · [x]
+- **Hecho:** las funciones `Now` (Sol, Tierra, cuenta regresiva y pendiente) y `Viability` (puntaje, factores, avisos y recomendación con «Probar esa fecha» y «Ver sitio») de `src/App.tsx`, no un `Metrics.tsx` aparte.
+- **No se hizo:** los sliders para ajustar los pesos. Los pesos son fijos (`DEFAULT_WEIGHTS`) y se muestran junto a cada factor.
 
 ### 8.1 Tarjetas de métricas · MVP
 - **Archivo:** `src/components/Metrics.tsx`.
@@ -363,7 +373,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - Sliders para ajustar los pesos.
 - **Commit:** `Tarea 8: panel de métricas y viabilidad`
 
-### 8.3 Ayuda en lenguaje simple · MVP · [ ] · Implementado, pendiente de revisión de Richard
+### 8.3 Ayuda en lenguaje simple · MVP · [x]
 - **Hecho:** `src/components/Help.tsx`, botón «¿Cómo leer esto?» en el encabezado (en las dos vistas). Abre un glosario con horizonte, elevación, azimut, luz solar, ventana de comunicación, DSN, eclipse, pendiente, viabilidad y tolerancia a atrasos: qué es y por qué importa en el polo sur. Las métricas ya tenían su tooltip.
 - Un botón "¿Cómo leer esto?" con un glosario corto: horizonte, elevación, pendiente y ventana de comunicación.
 - Tooltips en cada métrica.
@@ -525,7 +535,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ## Fase C3 · Portada narrativa con scroll
 
-> Medios generados por Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son **ilustraciones**: cada una lleva la leyenda "Ilustración generada con IA", y ningún dato sale de ellas.
+> Medios generados por Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son **ilustraciones** y ningún dato sale de ellas. Por decisión de Richard (14 nov), la app no menciona la IA en ningún lugar.
 
 ### C3.1 Portada con video que avanza con el scroll · [x]
 - **Hecho (adelantado a pedido de Richard):**
@@ -547,7 +557,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
   - Cada video empieza a cargar cuando se acerca su escena.
   - Truco para que iOS permita mover el video.
   - Con "reducir movimiento" se ven pósters fijos.
-  - "Ilustración generada con IA" en cada escena.
+  - ~~"Ilustración generada con IA" en cada escena~~: retirado por decisión de Richard (sin menciones de IA en la app).
 - **Probado:** 21 pruebas en el navegador real (scroll, texto, contador, índice, botones, movimiento reducido y móvil sin desborde), más las 25 del planificador.
 - **Archivo:** `src/components/Story.tsx`. Cuatro o cinco escenas con V1–V5. El scroll mueve el `currentTime` del video. Se pausa con `prefers-reduced-motion` y entonces muestra el póster.
 - Cada escena tiene una frase corta con un dato real de la app. Por ejemplo: *"En Shackleton el Sol nunca sube más de 1.3°"* (calculado de los datos de Horizons, no escrito a mano).
@@ -556,7 +566,10 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Commit:** `Tarea C3.1: portada narrativa con scroll`
 - **Ajuste de secuencia pendiente de revisión y subida de Richard:** `src/lib/storyTiming.ts` y `tests/storyTiming.test.ts`. Apariciones por tiempo de video y fundidos dentro de un solo escenario; póster como respaldo y relato estático completo con movimiento reducido. Verificado en Edge con escritorio y móvil.
 
-### C3.2 Imagen para compartir · Extra
+- **Portada rehecha, pendiente de revisión y subida de Richard:** ya no usa videos (se borraron del repo, unos 28 MB). Usa 5 imágenes fijas (`public/media/escena-1..5-*.jpg`, prompts en `docs/MEDIOS_VISUALES.md`). El cambio de escena sube recortado con la silueta real del horizonte de Shackleton; una franja fija muestra ese horizonte con el Sol de JPL Horizons, y la imagen se oscurece cuando el relieve real tapa al Sol. El relato va en el cielo y el dato junto a la franja. Pie de página con «GEOATHECTUM» relleno con el mapa de luz LOLA del polo sur. Sin menciones de IA.
+
+### C3.2 Imagen para compartir · Extra · [ ] · Implementado, pendiente de revisión de Richard
+- **Hecho:** `frontend/public/og.jpg` (1200×630, fondo I1 con las fuentes de la app), etiquetas Open Graph y Twitter en `frontend/index.html`, y `frontend/vite.config.ts`, que pone `https://$VERCEL_PROJECT_PRODUCTION_URL` en `%SITE_URL%` (en local las rutas quedan relativas).
 - `public/og.jpg` (1200×630): el fondo I1 con el título en la tipografía de la app, compuesto en HTML y capturado.
 - Más las etiquetas Open Graph en `index.html`.
 
@@ -564,12 +577,13 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ## Fase D · Cierre
 
-### 11.1 Conectar con el backend real · MVP · [ ] · Implementado, pendiente de revisión de Richard
+### 11.1 Conectar con el backend real · MVP · [x]
 - Configurar `VITE_API_URL`, revisar el checklist de `docs/CONTRATO_DATOS.md` con los datos reales y mostrar un aviso cuando se usan datos de prueba.
 - **Hecho:** checklist revisado sobre `backend/out` y `public/data` (los dos pasan; detalle y diferencias en `docs/CONTRATO_DATOS.md`). `VITE_API_URL` queda vacía: la app lee los JSON estáticos de `public/data`, también en Vercel. `dataNotice` (`src/api.ts`, con pruebas en `tests/api.test.ts`) avisa en el encabezado si un sitio trae datos de prueba. Anotado qué tendría que agregar `backend/build.py` para no perder los campos opcionales de D1.
 - **Commit sugerido:** `Tarea 11.1: datos reales verificados contra el contrato y aviso de datos de prueba`
 
-### 11.2 Fuentes de datos y créditos · MVP · NASA
+### 11.2 Fuentes de datos y créditos · MVP · NASA · [x]
+- **Hecho:** `src/components/Sources.tsx`. Los enlaces a QuickMap y Moon Trek llevan a cada visor con las coordenadas del sitio a la vista, no a un enlace directo al punto.
 - Panel "Fuentes" que acredita a JPL Horizons, Moon Trek, Quickmap (datos del LRO) y CSA Moon Exploration.
 - Cada sitio tiene enlaces "Ver en Quickmap" y "Ver en Moon Trek".
 - **Créditos de modelos y texturas,** tomados de `docs/CREDITOS.md` (la fuente única: si cambia, se actualiza el panel):
@@ -581,11 +595,13 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Términos de uso:** Quickmap es de Arizona State University, no del gobierno de EE. UU. Hay que respetar sus condiciones de uso y no presentarlo como aval de la NASA.
 - **Commit:** `Tarea 11.2: panel de fuentes y créditos`
 
-### 11.3 Deploy en Vercel · MVP
+### 11.3 Deploy en Vercel · MVP · [x]
+- **Hecho:** Root Directory `frontend`, Vite, sin `VITE_API_URL`; se publica desde `main` (`git push origin frontend:main`). El backend irá aparte a Render.
 - Build estático de `frontend/` con las variables de entorno configuradas.
 - **Commit:** `Tarea 11: backend real, fuentes y deploy`
 
-### 12. Validación para el pitch · Extra · NASA
+### 12. Validación para el pitch · Extra · NASA · [ ] · Implementado, pendiente de revisión de Richard
+- **Hecho:** `docs/VALIDACION_NASA.md`. Con la misma regla que el mapa oficial AVGVISIB del equipo LOLA (a ras de suelo), nuestra luz queda a menos de 5 puntos en los 6 sitios. Connecting Ridge con el panel a 2 m da 89.5 %, contra 88–89 % publicado. Incluye las comprobaciones de Rafael (alturas con QuickMap, marcadores de Dilan, fuentes de Joshua), respuestas para el jurado y límites. Faltan las capturas de Moon Trek, que son manuales.
 - Comparar nuestro horizonte y nuestro % de luz con lo que muestran **Quickmap** (capas de iluminación o relieve del polo sur, si las tiene) y **Moon Trek** en los mismos sitios, y hacer capturas para el pitch.
 - Usar **CSA Moon Exploration** para el contexto: el papel de Canadá en Artemis y por qué importa elegir bien el sitio.
 - Escribir las limitaciones: no modelamos temperatura, polvo ni satélites de relevo, y el terreno de prueba no es real.
