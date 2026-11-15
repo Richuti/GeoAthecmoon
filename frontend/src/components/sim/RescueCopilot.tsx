@@ -9,7 +9,7 @@ import {
 } from '../../sim/copilot'
 import type { LanderConfig } from '../../sim/lander'
 import { Button, cx } from '../ui'
-import { AiBadge, AiLog, AiSteps, MissionGlyph, type LogEntry } from './AiParts'
+import { AiBadge, AiLog, AiSteps, MissionSummary, type LogEntry } from './AiParts'
 import './copilot.css'
 
 type Status = 'idle' | 'running' | 'done' | 'error'
@@ -114,8 +114,8 @@ export function RescueCopilot({ copilotCase, onApply, id = 'copilot', title = '�
             {leader ? <>
               <p className="mt-2 text-lg font-bold leading-tight text-ink">{leader.siteName}</p>
               <p className="text-sm text-ink-muted">{landingLabel(copilotCase, leader)}</p>
-              <div className="mt-3"><MissionGlyph result={leader.result} series={leader.series} tall /></div>
-              <p className="mt-2 text-sm"><b className="text-earth tabular-nums">{gb(leader.result.summary.dataSentMb)}</b> <span className="text-ink-muted">enviados · batería mín. {Math.round(leader.result.summary.minSocPct)} %</span></p>
+              <div className="mt-3"><MissionSummary result={leader.result} tall /></div>
+              <p className="mt-2 text-sm"><b className="text-ink tabular-nums">{gb(leader.result.summary.dataSentMb)}</b> <span className="text-ink-muted">enviados</span></p>
             </> : <p className="mt-2 text-sm text-ink-muted">Todavía ninguno sobrevive.</p>}
           </aside>
         </div>
@@ -169,8 +169,7 @@ function RescuePlan({ copilotCase: c, attempt: a, rationale, attempts, onApply }
           {rationale
             ? <blockquote className="copilot-why mt-5"><p className="text-xs text-ink-muted">Por qué, según la IA</p><p className="mt-2 text-base leading-relaxed text-ink">{rationale}</p></blockquote>
             : <p className="mt-5 text-sm leading-relaxed text-ink-muted">La IA no terminó a tiempo; este es el intento que mejor resultó en el simulador.</p>}
-          <div className="mt-5"><MissionGlyph result={a.result} series={a.series} tall /></div>
-          <p className="mt-2 text-xs text-ink-muted">Batería mínima {Math.round(s.minSocPct)} % · sobre el mínimo del 20 % durante toda la misión.</p>
+          <div className="mt-5"><MissionSummary result={a.result} tall /></div>
         </div>
         <div className="min-w-0">
           <p className="text-sm leading-relaxed text-ink-muted"><span className="text-critical">Sin rescate</span>, la batería llega al mínimo{failedAt !== null ? ` el ${formatDateTime(sampleTime(c.data, failedAt))}` : ''}.</p>

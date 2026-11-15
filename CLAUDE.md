@@ -2,6 +2,8 @@
 
 ## Qué es
 
+- **Resumen de planes e intentos:** retiradas las minigráficas de `MissionGlyph` en `AiPlanner` y `RescueCopilot`. `MissionSummary` muestra batería mínima y datos realmente enviados con etiquetas; la versión ampliada explica el umbral de batería y el denominador de datos. Bitácora neutra, sin marcas de color ni símbolos de éxito/falla; no reintroducir franjas diminutas sin significado visible.
+
 - **Revisión del viaje (15 nov):** cámara orbital manual en las tres fases, restablecimiento automático y escena oculta inerte para no bloquear gestos. Tierra y Sol del visor lunar usan radios reales y `distKm` de Horizons (medias documentadas si faltan), en kilómetros de escena. El despegue puede empezar sin esperar al descenso. Richard autorizó explícitamente generar un GLB offline desde el DEM USGS real: `kennedy_terrain.glb`, exportado por `scripts/build-kennedy-terrain.py`. La app solo lo carga. Plataforma, nave, cámara y efectos se anclan al relieve con rayos; no exagerar alturas ni generarlas desde fotos. Textura cercana `kennedy-pad-naip.jpg`, Gantry NASA y documentación en `docs/RELIEVE_DESPEGUE.md`.
 
 - **Agenda diaria (última revisión de Richard):** las franjas de `PlanStrips` se reemplazan por días seleccionables, horas reales de luz y enlace y explicaciones en texto. Se usa en `PlanCompare` y en el detalle de atrasos. Blanco y gris, sin iconos. No confundir disponibilidad de enlace con volumen de datos enviado; las condiciones después de una falla se identifican como condiciones del sitio, sin actividad de la nave.

@@ -8,7 +8,7 @@ import { PRESETS, type LanderConfig, type PresetId } from '../sim/lander'
 import { seriesOf } from '../sim/search'
 import { useAppState } from '../state'
 import type { SiteData } from '../types'
-import { AiBadge, AiLog, AiSteps, MissionGlyph, type LogEntry } from './sim/AiParts'
+import { AiBadge, AiLog, AiSteps, MissionSummary, type LogEntry } from './sim/AiParts'
 import { Button, cx, Segmented, Select } from './ui'
 import './sim/copilot.css'
 
@@ -128,8 +128,8 @@ export function AiPlanner({ reference, preset, cfg, missionDays, onPreset, onApp
               {leader ? <>
                 <p className="mt-2 text-lg font-bold leading-tight text-ink">{leader.siteName}</p>
                 <p className="text-sm text-ink-muted">{planLanding(req, leader)}</p>
-                <div className="mt-3"><MissionGlyph result={leader.result} series={leader.series} tall /></div>
-                <p className="mt-2 text-sm"><b className="text-earth tabular-nums">{gb(leader.result.summary.dataSentMb)}</b> <span className="text-ink-muted">enviados · batería mín. {Math.round(leader.result.summary.minSocPct)} %</span></p>
+                <div className="mt-3"><MissionSummary result={leader.result} tall /></div>
+                <p className="mt-2 text-sm"><b className="text-ink tabular-nums">{gb(leader.result.summary.dataSentMb)}</b> <span className="text-ink-muted">enviados</span></p>
               </> : <p className="mt-2 text-sm text-ink-muted">Todavía ninguno sobrevive.</p>}
             </aside>
           </div>
@@ -147,11 +147,10 @@ export function AiPlanner({ reference, preset, cfg, missionDays, onPreset, onApp
                   : <p className="mt-5 text-sm text-ink-muted">La IA no terminó a tiempo; este es el intento que mejor resultó en el simulador.</p>}
               </div>
               <div className="min-w-0">
-                <MissionGlyph result={chosen.result} series={chosen.series} tall />
-                <dl className="mt-4 grid grid-cols-3 gap-3 text-sm">
+                <MissionSummary result={chosen.result} tall />
+                <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <div><dt className="text-xs text-ink-muted">Viabilidad</dt><dd className="text-2xl font-bold tabular-nums text-ink">{Math.round(chosen.viability)} %</dd></div>
-                  <div><dt className="text-xs text-ink-muted">Datos a la Tierra</dt><dd className="text-2xl font-bold tabular-nums text-earth">{gb(chosen.result.summary.dataSentMb)}</dd></div>
-                  <div><dt className="text-xs text-ink-muted">Batería mínima</dt><dd className="text-2xl font-bold tabular-nums text-ok">{Math.round(chosen.result.summary.minSocPct)} %</dd></div>
+                  <div><dt className="text-xs text-ink-muted">Datos a la Tierra</dt><dd className="text-2xl font-bold tabular-nums text-ink">{gb(chosen.result.summary.dataSentMb)}</dd></div>
                 </dl>
                 <Button variant="primary" size="lg" className="mt-6 min-h-12 w-full sm:w-auto" onClick={() => onApply(chosen.siteId, chosen.startIndex, Number(days))}>Usar este plan →</Button>
               </div>

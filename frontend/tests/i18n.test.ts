@@ -47,6 +47,13 @@ describe('translate: español → inglés', () => {
     assert.equal(translate('Días siguientes'), 'Next days')
   })
 
+  test('resumen de intentos: explica batería y mediciones en lugar de minigráficas', () => {
+    assert.equal(translate('La misión completa los 14 días.'), 'The mission completes all 14 days.')
+    assert.equal(translate('La misión se detiene antes de completar el plan.'), 'The mission stops before completing the plan.')
+    assert.equal(translate('Sin mediciones'), 'No measurements')
+    assert.equal(translate('La misión se detiene si la batería llega al 20 % de carga. El valor de arriba es la carga más baja alcanzada durante esta simulación.'), 'The mission stops if the battery reaches 20% charge. The value above is the lowest charge reached during this simulation.')
+  })
+
   test('lo que no está en el diccionario queda igual', () => {
     assert.equal(translate('GEOATHECMOON'), 'GEOATHECMOON')
     assert.equal(translate('12:00'), '12:00')

@@ -4,6 +4,12 @@
 // Las partes variables se traducen a su vez (fechas, duraciones, nombres de sitios…).
 
 export const EN: Record<string, string> = {
+  'La misión se detiene antes de completar el plan.': 'The mission stops before completing the plan.',
+  'Sin mediciones': 'No measurements',
+  'Datos enviados es la parte de las mediciones generadas que llegó a la Tierra.': 'Data sent is the share of generated measurements that reached Earth.',
+  'Durante esta simulación no se generaron mediciones para enviar.': 'No measurements were generated to send during this simulation.',
+  'Completa la misión': 'Completes the mission',
+  'Se detiene': 'Stops',
   'Pon tu plan junto a otro sitio o junto a un plan que guardaste. Elige un día de la agenda para ver sus horas de luz y de enlace con la Tierra.': 'Compare your plan with another site or with a saved plan. Choose a day in the agenda to see its hours of light and Earth link availability.',
   'Relieve real USGS 3DEP. Ascenso ilustrativo; el cálculo orbital comienza a 200 km.': 'Actual USGS 3DEP terrain. Illustrative ascent; the orbital calculation starts at 200 km.',
   'Elevaciones de Kennedy:': 'Kennedy elevations:',
@@ -1043,6 +1049,8 @@ export const EN: Record<string, string> = {
 
 /** Frases con partes variables. {} en español; {0}, {1}… en inglés (permite reordenar). */
 export const EN_PATTERNS: [string, string][] = [
+  ['La misión completa los {} días.', 'The mission completes all {0} days.'],
+  ['La misión se detiene si la batería llega al {} % de carga. El valor de arriba es la carga más baja alcanzada durante esta simulación.', 'The mission stops if the battery reaches {0}% charge. The value above is the lowest charge reached during this simulation.'],
   ['Día {} de la misión', 'Mission day {0}'],
   ['{} h con luz', '{0} h of light'],
   ['{} h con enlace', '{0} h with a link'],

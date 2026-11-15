@@ -1,5 +1,9 @@
 # Tareas del frontend · GEOATHECMOON
 
+**Claridad de propuestas e intentos:** `MissionGlyph` sustituido por `MissionSummary`: batería mínima, datos enviados y resultado expresados en texto. Se aplica al plan propuesto, al mejor intento durante la búsqueda y a la bitácora de ambas herramientas. Sin curvas diminutas ni franjas de colores; explica el mínimo del 20 % y qué porcentaje de mediciones llegó a la Tierra. Cálculos intactos, inglés actualizado.
+
+Archivos de este ajuste: `src/components/AiPlanner.tsx`, `src/components/sim/AiParts.tsx`, `src/components/sim/RescueCopilot.tsx`, `src/components/sim/ai.css`, `src/i18n/en.ts`, `tests/i18n.test.ts` (todos bajo `frontend/`), `CLAUDE.md` y este documento. Verificado: 360 pruebas, build y capturas Edge CDP a 1440/390 px; propuesta calculada con dos intentos, uno fallido y uno viable, sin llamadas reales de pago. Etiquetas visibles, versión inglesa y ausencia de desbordamientos comprobadas.
+
 **Relieve terrestre solicitado por Richard, terminado y pendiente de su commit conjunto:** autorizada la conversión offline del DEM USGS a `public/models/kennedy_terrain.glb`. Modelo de aproximadamente 1 MB con alturas reales sin exageración; plataforma, nave, cámara y humo anclados al terreno mediante rayos. Recorte y fundido sobre el globo, ortofoto georreferenciada y Gantry NASA. Exportador reproducible y pruebas del GLB; detalle en `docs/RELIEVE_DESPEGUE.md`. La aplicación sigue cargando GLB, sin generar mallas.
 
 **Cielo del visor corregido, revisión final de Richard:** Tierra y Sol con radios físicos y distancias topocéntricas de Horizons en kilómetros, en la misma escala que el terreno. Si falta `distKm`, se usan las constantes medias de `lib/sky.ts` y se indica. No se agrandan ni se levantan artificialmente sobre el horizonte. Profundidad logarítmica para conservar detalle entre nave y Sol. Solo transforma los GLB existentes; no modifica el motor.

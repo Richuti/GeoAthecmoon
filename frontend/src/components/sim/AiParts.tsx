@@ -25,43 +25,21 @@ export function AiSteps({ live, decide = 'y prueba otra idea, o elige el plan' }
   )
 }
 
-/** La misión en miniatura: franjas de Sol y de Tierra, y la curva de la batería con el mínimo del 20 %. */
-export function MissionGlyph({ result, series, tall = false, className }: { result: SimResult; series: Series; tall?: boolean; className?: string }) {
-  const W = 240
-  const H = tall ? 96 : 52
-  const top = 15
-  const soc = result.series.soc
-  const n = soc.length
-  const x = (k: number) => (n <= 1 ? 0 : (k / (n - 1)) * W)
-  const y = (v: number) => H - 2 - v * (H - top - 4)
-  const runs = (on: (k: number) => boolean) => {
-    const out: Array<[number, number]> = []
-    let s = -1
-    for (let k = 0; k <= n; k++) {
-      const v = k < n && on(k)
-      if (v && s < 0) s = k
-      if (!v && s >= 0) { out.push([s, k]); s = -1 }
-    }
-    return out
-  }
-  const from = result.from
-  const sun = runs((k) => series.lit[from + k])
-  const earth = runs((k) => series.contact[from + k])
-  const stride = Math.max(1, Math.ceil(n / W))
-  const pts: string[] = []
-  for (let k = 0; k < n; k += stride) pts.push(`${x(k).toFixed(1)},${y(soc[k]).toFixed(1)}`)
-  pts.push(`${x(n - 1).toFixed(1)},${y(soc[n - 1]).toFixed(1)}`)
-  const failK = result.summary.failedAtIndex === null ? null : result.summary.failedAtIndex - from
-  const ok = result.summary.survived
+/** Resultados del motor con etiquetas, sin colores ni gráficas diminutas. */
+export function MissionSummary({ result, tall = false, className }: { result: SimResult; tall?: boolean; className?: string }) {
+  const s = result.summary
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className={cx('ai-glyph', tall && 'is-tall', className)} role="img" preserveAspectRatio="none"
-      aria-label={`Batería durante la misión: ${ok ? 'sobrevive' : 'llega al mínimo'}; mínima ${Math.round(result.summary.minSocPct)} %.`}>
-      {sun.map(([s, e]) => <rect key={`s${s}`} x={x(s)} y={0} width={Math.max(0.6, x(e) - x(s))} height={4} className="fill-sun" />)}
-      {earth.map(([s, e]) => <rect key={`e${s}`} x={x(s)} y={7} width={Math.max(0.6, x(e) - x(s))} height={4} className="fill-earth" />)}
-      <line x1={0} x2={W} y1={y(MIN_SOC)} y2={y(MIN_SOC)} className="ai-glyph__floor" />
-      <polyline points={pts.join(' ')} fill="none" className={ok ? 'stroke-ok' : 'stroke-critical'} strokeWidth={tall ? 2 : 1.6} vectorEffect="non-scaling-stroke" />
-      {failK !== null && failK >= 0 && <circle cx={x(failK)} cy={y(MIN_SOC)} r={3} className="fill-critical" />}
-    </svg>
+    <div className={cx('mission-summary', tall && 'is-expanded', className)}>
+      {tall && <p className="mission-summary__verdict">{s.survived ? `La misión completa los ${result.plan.missionDays} días.` : 'La misión se detiene antes de completar el plan.'}</p>}
+      <dl>
+        <div><dt>Batería mínima</dt><dd>{`${Math.round(s.minSocPct)} %`}</dd></div>
+        <div><dt>Datos enviados</dt><dd>{s.dataGeneratedMb > 0 ? `${Math.round(s.dataSentPct)} %` : 'Sin mediciones'}</dd></div>
+      </dl>
+      {tall && <div className="mission-summary__explanation">
+        <p>{`La misión se detiene si la batería llega al ${Math.round(MIN_SOC * 100)} % de carga. El valor de arriba es la carga más baja alcanzada durante esta simulación.`}</p>
+        <p>{s.dataGeneratedMb > 0 ? 'Datos enviados es la parte de las mediciones generadas que llegó a la Tierra.' : 'Durante esta simulación no se generaron mediciones para enviar.'}</p>
+      </div>}
+    </div>
   )
 }
 
@@ -95,9 +73,9 @@ export function AiLog({ entries, thinking = false, thinkingText = 'La IA está p
               <p className="ai-log__idea">{e.quiet ? e.idea : `«${e.idea || 'Probar esta combinación'}»`}</p>
               <ul className="ai-chips" aria-label="Qué cambia">{e.chips.map((c) => <li key={c}>{c}</li>)}</ul>
             </div>
-            <MissionGlyph result={e.result} series={e.series} className="ai-log__glyph" />
+            <MissionSummary result={e.result} className="ai-log__summary" />
             <p className={cx('ai-log__result', ok ? 'is-ok' : 'is-fail')}>
-              <b>{ok ? '✓ Sobrevive' : '✗ Falla'}</b><span className="tabular-nums">{e.metric}</span>
+              <b>{ok ? 'Completa la misión' : 'Se detiene'}</b><span className="tabular-nums">{e.metric}</span>
             </p>
           </li>
         )
