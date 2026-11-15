@@ -1,0 +1,58 @@
+/* Mapa de supervivencia: verde = sobrevive, rojo apagado = falla. El ámbar y el azul siguen reservados al Sol y la Tierra. */
+.survival-map { --row: 30px; --gap: 5px; }
+.survival-scroll { padding-bottom: 4px; }
+/* Solo se desplaza en horizontal cuando no cabe: así el globo de ayuda no queda recortado en escritorio. */
+@media (max-width: 899px) { .survival-scroll { overflow-x: auto; overscroll-behavior-x: contain; } }
+.survival-grid {
+  display: grid; grid-template-columns: 10.5rem minmax(0, 1fr) 6.5rem; column-gap: 14px; row-gap: 8px;
+  min-width: 760px;
+}
+.survival-names, .survival-stats { display: grid; grid-auto-rows: var(--row); row-gap: var(--gap); }
+.survival-names p, .survival-stats p { display: flex; align-items: center; min-width: 0; font-size: 13px; color: var(--color-ink-muted); line-height: 1.15; }
+.survival-names p { justify-content: flex-end; text-align: right; }
+.survival-names p.is-current, .survival-stats p.is-current { color: var(--color-ink); font-weight: 700; }
+.survival-stats p { gap: 4px; flex-wrap: wrap; align-content: center; }
+.survival-stats b { color: var(--color-ink); }
+.survival-stats small { flex-basis: 100%; font-size: 11px; color: var(--color-ink-faint); font-weight: 400; }
+
+.survival-map__body { position: relative; display: grid; grid-auto-rows: var(--row); row-gap: var(--gap); outline: none; cursor: crosshair; touch-action: pan-x pan-y; }
+.survival-map__body:focus-visible { box-shadow: 0 0 0 2px var(--color-ink); border-radius: 6px; }
+.survival-row { position: relative; overflow: hidden; border-radius: 6px; background: rgb(232 235 241 / 0.05); }
+.survival-row.is-current { box-shadow: inset 0 0 0 1px rgb(232 235 241 / 0.55); }
+.survival-row svg { display: block; width: 100%; height: 100%; }
+.survival-row rect.is-safe { fill: var(--color-ok); fill-opacity: 0.85; }
+.survival-row rect.is-partial { fill: var(--color-ok); fill-opacity: 0.32; }
+.survival-row rect.is-fail { fill: var(--color-critical); fill-opacity: 0.26; }
+.survival-loading { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgb(232 235 241 / 0.12), transparent); background-size: 40% 100%; background-repeat: no-repeat; }
+
+.survival-tolerance { position: absolute; top: 2px; bottom: 2px; min-width: 3px; border: 2px solid var(--color-ink); border-radius: 4px; box-shadow: 0 0 0 1px rgb(5 7 13 / 0.6); pointer-events: none; }
+.survival-marker { position: absolute; top: -6px; bottom: -6px; width: 2px; margin-left: -1px; background: var(--color-ink); pointer-events: none; }
+.survival-landing-label { position: relative; height: 18px; }
+.survival-landing-label span { position: absolute; bottom: 0; transform: translateX(-8px); white-space: nowrap; font-size: 12px; font-weight: 700; color: var(--color-ink); }
+.survival-cursor { position: absolute; margin-left: 0; background: rgb(232 235 241 / 0.9); border-radius: 2px; pointer-events: none; }
+.survival-tip {
+  position: absolute; z-index: 2; transform: translate(10px, calc(-100% - 6px)); width: max-content; max-width: 19rem;
+  padding: 8px 11px; border-radius: 10px; border: 1px solid rgb(232 235 241 / 0.3); background: rgb(5 7 13 / 0.96);
+  font-size: 12px; line-height: 1.4; color: var(--color-ink); pointer-events: none;
+}
+.survival-tip.is-left { transform: translate(calc(-100% - 10px), calc(-100% - 6px)); }
+/* En las primeras filas el globo va debajo, para no salirse por arriba. */
+.survival-tip.is-below { transform: translate(10px, calc(var(--row) + 6px)); }
+.survival-tip.is-below.is-left { transform: translate(calc(-100% - 10px), calc(var(--row) + 6px)); }
+.survival-tip span { display: block; margin-top: 2px; color: var(--color-ink-muted); font-size: 11px; }
+.survival-months { position: relative; height: 16px; }
+.survival-months span { position: absolute; top: 0; font-size: 11px; color: var(--color-ink-faint); border-left: 1px solid var(--color-seam-strong); padding-left: 4px; line-height: 16px; }
+.survival-key { display: inline-block; width: 14px; height: 9px; margin-right: 7px; border-radius: 2px; vertical-align: 0; }
+.survival-key.is-safe { background: rgb(69 212 155 / 0.85); }
+.survival-key.is-partial { background: rgb(69 212 155 / 0.32); }
+.survival-key.is-fail { background: rgb(255 107 107 / 0.26); }
+.survival-key.is-tol { border: 2px solid var(--color-ink); }
+@media (prefers-reduced-motion: no-preference) {
+  .survival-loading { animation: survival-scan 1.1s linear infinite; }
+  .survival-row svg { animation: survival-in 380ms ease-out both; }
+}
+@keyframes survival-scan { from { background-position: -40% 0; } to { background-position: 140% 0; } }
+@keyframes survival-in { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 639px) {
+  .survival-grid { grid-template-columns: 8rem minmax(0, 1fr) 4.5rem; min-width: 640px; }
+}

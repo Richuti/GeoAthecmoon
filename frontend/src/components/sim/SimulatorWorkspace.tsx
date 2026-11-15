@@ -14,6 +14,7 @@ import { MissionTrace } from './MissionTrace'
 import { EarthMoonJourney } from './EarthMoonJourney'
 import { IncidentPanel } from './IncidentPanel'
 import { MissionLive } from './MissionLive'
+import { SurvivalMap } from './SurvivalMap'
 
 interface WorkspaceProps {
   data: SiteData
@@ -102,6 +103,8 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
         <MissionResult {...report} />
       </div>
         <MissionTransport data={data} report={report} onSeek={onSeek} />
+        <SurvivalMap data={data} cfg={setup.cfg} missionDays={report.result.plan.missionDays} landing={report.result.from} tolerance={report.tolerance}
+          onPick={(siteId, start) => { if (siteId !== data.site.id) report.onTrySite(siteId); report.onTryStart(start) }} />
         <MissionOptions {...report} />
         <Disclosure className="mt-4" title="Batería, datos y eventos de la misión" description="Revisa el resultado hora por hora y localiza los momentos críticos.">
           <MissionTrace data={data} result={report.result} lit={lit} contact={contact} survivalThreshold={survivalThreshold} index={state.index} onSeek={onSeek} />

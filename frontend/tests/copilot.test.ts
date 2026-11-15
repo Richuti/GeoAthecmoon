@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { afterEach, describe, test } from 'node:test'
 import { POST, SYSTEM_PROMPT, TOOLS, validMessages } from '../api/copilot.ts'
 import {
-  bestAttempt, buildBrief, executeTool, leverConfig, MAX_ATTEMPTS, normalizeLevers, runCopilot,
+  bestAttempt, buildBrief, executeTool, leverConfig, MAX_ATTEMPTS, normalizeLevers, runCopilot, seedAttempts,
   type ChatMessage, type CopilotCase, type CopilotRun, type Send, type ToolCall,
 } from '../src/sim/copilot.ts'
 import { planDelayIncident } from '../src/sim/incident.ts'
@@ -43,12 +45,25 @@ const sim = (siteId: string, waitHours: number, instrumentShare = 1, survivalThr
 describe('copiloto: herramientas con el simulador real', () => {
   test('el caso que recibe el modelo trae la misión, el módulo, los sitios y las salidas sencillas', () => {
     const c = makeCase()
-    const brief = JSON.parse(buildBrief(c).split('\n').at(-1)!)
+    const brief = JSON.parse(buildBrief(c, seedAttempts(c)).split('\n').at(-1)!)
     assert.equal(brief.mision.sitioOriginal, 'a')
     assert.equal(brief.sitios.length, 2)
     assert.equal(brief.modulo.bateriaKWh, explorer.batteryKWh)
-    assert.equal(brief.salidasSencillas.length, c.incident.options.length)
+    assert.equal(brief.puntoDePartida.length, c.incident.options.length)
+    assert.equal(brief.puntoDePartida[0].attemptId, 1)
     assert.equal(brief.limites.simulaciones, MAX_ATTEMPTS)
+  })
+
+  test('las salidas sencillas son el punto de partida y dan lo mismo que el imprevisto', () => {
+    const c = makeCase()
+    const seeds = seedAttempts(c)
+    assert.equal(seeds.length, c.incident.options.length)
+    seeds.forEach((s, k) => {
+      assert.equal(s.seed, true)
+      assert.equal(s.id, k + 1)
+      assert.equal(s.result.summary.survived, c.incident.options[k].summary.survived)
+      assert.ok(Math.abs(s.result.summary.dataSentMb - c.incident.options[k].summary.dataSentMb) < 1e-6)
+    })
   })
 
   test('normaliza las palancas a los rangos del simulador y rechaza sitios desconocidos', () => {
@@ -101,6 +116,21 @@ describe('copiloto: herramientas con el simulador real', () => {
     assert.deepEqual(JSON.parse(executeTool(c, run, call('propose_plan', { attemptId: 2, rationale: 'Todo encendido y sin sombra.' }))), { ok: true })
   })
 
+  test('con los datos reales de Malapert, la espera larga (más de 21 días) no se recorta', () => {
+    const ids = ['malapert-massif', 'connecting-ridge', 'de-gerlache-rim', 'shackleton-rim', 'mons-mouton', 'nobile-rim']
+    const sites = ids.map((id) => {
+      const data = JSON.parse(readFileSync(join(import.meta.dirname, '..', 'public', 'data', 'sites', `${id}.json`), 'utf8')) as SiteData
+      return { data, series: seriesOf(data) }
+    })
+    const incident = planDelayIncident({ data: sites[0].data, cfg: explorer, startIndex: 0, missionDays: 14, sites })
+    assert.ok(incident)
+    const seeds = seedAttempts({ data: sites[0].data, cfg: explorer, missionDays: 14, incident, sites })
+    seeds.forEach((s, k) => {
+      assert.equal(s.result.summary.survived, incident.options[k].summary.survived, s.idea)
+      assert.ok(Math.abs(s.result.summary.dataSentMb - incident.options[k].summary.dataSentMb) < 1e-6, s.idea)
+    })
+  })
+
   test('respeta el presupuesto de simulaciones', () => {
     const c = makeCase()
     const run: CopilotRun = { attempts: [], plan: null }
@@ -124,19 +154,24 @@ describe('copiloto: herramientas con el simulador real', () => {
 describe('copiloto: la conversación', () => {
   test('el modelo prueba, se corrige y entrega un plan válido', async () => {
     const c = makeCase()
+    const k = seedAttempts(c).length
     const seen: ChatMessage[][] = []
+    // Dos ideas nuevas (k + 1 y k + 2); la segunda combina el sitio «b» con un umbral de ahorro distinto.
     const replies = [
-      { content: null, tool_calls: [sim('a', 0, 0.25), sim('b', 0)] },
-      { content: null, tool_calls: [call('propose_plan', { attemptId: 2, rationale: 'Son 2 días mejores' })] },
-      { content: null, tool_calls: [call('propose_plan', { attemptId: 2, rationale: 'En ese sitio el Sol no se oculta durante la misión.' })] },
+      { content: null, tool_calls: [sim('a', 0, 0.25), sim('b', 0, 1, 0.3)] },
+      { content: null, tool_calls: [call('propose_plan', { attemptId: k + 2, rationale: 'Son 2 días mejores' })] },
+      { content: null, tool_calls: [call('propose_plan', { attemptId: k + 2, rationale: 'En ese sitio el Sol no se oculta durante la misión.' })] },
     ]
     const send: Send = async (messages) => { seen.push(structuredClone(messages)); return replies[seen.length - 1] }
     const updates: number[] = []
     const run = await runCopilot(c, { send, onUpdate: (r) => updates.push(r.attempts.length) })
-    assert.equal(run.attempts.length, 2)
-    assert.equal(run.plan?.attempt.id, 2)
+    assert.equal(run.attempts.length, k + 2)
+    assert.equal(run.attempts.filter((a) => a.seed).length, k)
+    assert.equal(run.plan?.attempt.id, k + 2)
     assert.equal(run.plan?.rationale, 'En ese sitio el Sol no se oculta durante la misión.')
-    assert.deepEqual(updates, [2, 2, 2])
+    assert.deepEqual(updates, [k, k + 2, k + 2, k + 2])
+    // El caso que recibe el modelo trae las salidas sencillas como punto de partida.
+    assert.match(seen[0][0].content ?? '', /puntoDePartida/)
     // Cada llamada de herramienta tiene su respuesta, con el mismo id.
     const last = seen.at(-1)!
     const ids = last.filter((m) => m.role === 'assistant').flatMap((m) => m.tool_calls?.map((t) => t.id) ?? [])
@@ -148,9 +183,10 @@ describe('copiloto: la conversación', () => {
     let n = 0
     const send: Send = async () => ({ content: null, tool_calls: [sim('b', n++ * 6)] })
     const run = await runCopilot(c, { send, maxTurns: 3 })
-    assert.equal(run.attempts.length, 3)
+    // El primer intento (sitio «b» sin espera) ya era una salida sencilla: no cuenta como nuevo.
+    assert.equal(run.attempts.filter((a) => !a.seed).length, 2)
     assert.equal(run.plan?.rationale, null)
-    assert.equal(run.plan?.attempt.waitHours, 0)
+    assert.equal(run.plan?.attempt.id, bestAttempt(run.attempts)!.id)
   })
 })
 

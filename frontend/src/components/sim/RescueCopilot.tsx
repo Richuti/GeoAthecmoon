@@ -3,9 +3,8 @@
 // con la misión atrasada y con la mejor salida sencilla. Ningún número sale del modelo.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { formatDateTime, sampleTime } from '../../lib/time'
-import type { OptionKind } from '../../sim/incident'
 import {
-  BETTER_MARGIN, bestAttempt, bestSimpleOption, CopilotError, landingLabel, leverLabels, MAX_ATTEMPTS, runCopilot,
+  bestAttempt, CopilotError, landingLabel, leverLabels, MAX_ATTEMPTS, runCopilot,
   type Attempt, type CopilotCase, type CopilotRun,
 } from '../../sim/copilot'
 import type { LanderConfig } from '../../sim/lander'
@@ -14,8 +13,6 @@ import { Button, cx } from '../ui'
 import './copilot.css'
 
 type Status = 'idle' | 'running' | 'done' | 'error'
-
-const SIMPLE_NAME: Record<OptionKind, string> = { wait: 'Esperar en órbita', site: 'Cambiar de sitio', save: 'Ahorrar energía' }
 
 const gb = (mb: number) => `${(mb / 1000).toFixed(1)} Gb`
 
@@ -57,6 +54,7 @@ export function RescueCopilot({ copilotCase, onApply }: {
   const cancel = () => { abort.current?.abort(); setStatus(run.attempts.length ? 'done' : 'idle'); if (!run.plan) setRun(r => ({ ...r, plan: bestAttempt(r.attempts) ? { attempt: bestAttempt(r.attempts)!, rationale: null } : null })) }
 
   const leader = useMemo(() => bestAttempt(run.attempts), [run.attempts])
+  const explored = run.attempts.filter(a => !a.seed).length
   const chosen = run.plan?.attempt ?? null
 
   return (
@@ -80,12 +78,12 @@ export function RescueCopilot({ copilotCase, onApply }: {
 
       {status === 'running' && (
         <p role="status" className="copilot-status mt-6"><span aria-hidden className="copilot-status__pulse" />
-          {run.attempts.length === 0 ? 'El copiloto estudia el caso…' : `Intento ${run.attempts.length} de ${MAX_ATTEMPTS} comprobado · decidiendo el siguiente…`}
+          {explored === 0 ? 'El copiloto estudia el caso desde las salidas sencillas…' : `Intento ${explored} de ${MAX_ATTEMPTS} comprobado · decidiendo el siguiente…`}
         </p>
       )}
       {error && <p role="alert" className="mt-6 max-w-3xl text-sm leading-relaxed text-caution">{error}</p>}
 
-      {chosen && status !== 'running' && <RescuePlan copilotCase={copilotCase} attempt={chosen} rationale={run.plan?.rationale ?? null} tried={run.attempts.length} onApply={onApply} />}
+      {chosen && status !== 'running' && <RescuePlan copilotCase={copilotCase} attempt={chosen} rationale={run.plan?.rationale ?? null} attempts={run.attempts} onApply={onApply} />}
 
       {run.attempts.length > 0 && (
         <div className="mt-8">
@@ -94,7 +92,7 @@ export function RescueCopilot({ copilotCase, onApply }: {
           <ol className="copilot-attempts mt-4">
             {run.attempts.map(a => (
               <AttemptCard key={a.id} copilotCase={copilotCase} attempt={a}
-                tag={chosen?.id === a.id ? 'Plan elegido' : status === 'running' && leader?.id === a.id ? 'Mejor hasta ahora' : null} />
+                tag={chosen?.id === a.id ? 'Plan elegido' : status === 'running' && leader?.id === a.id ? 'Mejor hasta ahora' : a.seed ? 'Punto de partida' : null} />
             ))}
           </ol>
         </div>
@@ -108,12 +106,12 @@ export function RescueCopilot({ copilotCase, onApply }: {
 function AttemptCard({ copilotCase, attempt: a, tag }: { copilotCase: CopilotCase; attempt: Attempt; tag: string | null }) {
   const s = a.result.summary
   return (
-    <li className={cx('copilot-card', s.survived ? 'is-ok' : 'is-fail', tag && 'is-tagged')}>
+    <li className={cx('copilot-card', s.survived ? 'is-ok' : 'is-fail', a.seed && 'is-seed', tag && tag !== 'Punto de partida' && 'is-tagged')}>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs tabular-nums text-ink-muted">Intento {a.id}</span>
-        {tag ? <span className="copilot-tag">{tag}</span> : <span className={cx('text-xs font-bold', s.survived ? 'text-ok' : 'text-critical')}>{s.survived ? 'Sobrevive' : 'Falla'}</span>}
+        <span className="text-xs tabular-nums text-ink-muted">{a.seed ? 'Salida sencilla' : `Intento ${a.id}`}</span>
+        {tag ? <span className={cx('copilot-tag', tag === 'Punto de partida' && 'is-quiet')}>{tag}</span> : <span className={cx('text-xs font-bold', s.survived ? 'text-ok' : 'text-critical')}>{s.survived ? 'Sobrevive' : 'Falla'}</span>}
       </div>
-      {a.idea && <p className="copilot-card__idea">«{a.idea}»</p>}
+      {a.idea && <p className="copilot-card__idea">{a.seed ? a.idea.replace('Salida sencilla: ', '') : `«${a.idea}»`}</p>}
       <ul className="copilot-chips" aria-label="Palancas">{leverLabels(copilotCase, a).map(l => <li key={l}>{l}</li>)}</ul>
       <MissionGlyph attempt={a} />
       <p className="mt-2 text-xs tabular-nums text-ink-muted">
@@ -163,26 +161,33 @@ function MissionGlyph({ attempt: a, tall = false }: { attempt: Attempt; tall?: b
   )
 }
 
-function RescuePlan({ copilotCase: c, attempt: a, rationale, tried, onApply }: {
-  copilotCase: CopilotCase; attempt: Attempt; rationale: string | null; tried: number
+function RescuePlan({ copilotCase: c, attempt: a, rationale, attempts, onApply }: {
+  copilotCase: CopilotCase; attempt: Attempt; rationale: string | null; attempts: Attempt[]
   onApply: (siteId: string, cfg: LanderConfig, startIndex: number) => void
 }) {
   const s = a.result.summary
-  const simple = bestSimpleOption(c.incident.options)
-  // La salida sencilla gana si envía claramente más datos: se dice y se ofrece aplicarla.
-  const simpleWins = simple !== null && simple.summary.dataSentMb > s.dataSentMb * (1 + BETTER_MARGIN)
+  // La referencia es la mejor salida sencilla, simulada como punto de partida del copiloto.
+  const baseline = bestAttempt(attempts.filter(x => x.seed))
+  const explored = attempts.filter(x => !x.seed).length
   const bars = [
-    ...(simple ? [{ label: `Mejor salida sencilla · ${SIMPLE_NAME[simple.kind]}`, mb: simple.summary.dataSentMb, tone: simpleWins ? 'plan' : 'simple' }] : []),
-    { label: 'Plan del copiloto', mb: s.dataSentMb, tone: simpleWins ? 'simple' : 'plan' },
+    ...(baseline && baseline.id !== a.id ? [{ label: `Mejor salida sencilla · ${baseline.idea.replace('Salida sencilla: ', '')}`, mb: baseline.result.summary.dataSentMb, tone: 'simple' }] : []),
+    { label: a.seed ? `Plan elegido · ${a.idea.replace('Salida sencilla: ', '')}` : 'Plan del copiloto', mb: s.dataSentMb, tone: 'plan' },
   ]
   const max = Math.max(...bars.map(b => b.mb), 1)
-  const gain = simple ? s.dataSentMb - simple.summary.dataSentMb : null
+  const gain = baseline ? s.dataSentMb - baseline.result.summary.dataSentMb : null
   const failedAt = c.incident.delayed.failedAtIndex
+  const verdict = !baseline
+    ? <>Ninguna salida sencilla salvaba la misión. <b className="text-ok">Este plan sí.</b></>
+    : a.seed
+      ? <>El copiloto probó {explored} combinaciones y ninguna supera esta salida: <b className="text-ok">es la mejor opción</b>.</>
+      : gain !== null && gain > 1
+        ? <>El copiloto recupera <b className="text-earth">{gb(gain)} más</b> que la mejor salida sencilla.</>
+        : <>Envía casi lo mismo que la mejor salida sencilla, <b className="text-ok">con menos espera</b>.</>
   return (
     <div className="copilot-plan mt-8" aria-live="polite">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div className="min-w-0">
-          <p className="text-xs text-ink-muted">Plan de rescate · elegido entre {tried} simulaciones</p>
+          <p className="text-xs text-ink-muted">Plan de rescate · {attempts.length} simulaciones comprobadas</p>
           <p className="mt-2 text-3xl font-bold leading-tight text-ink sm:text-4xl">Alunizar el {landingLabel(c, a)}</p>
           <ul className="copilot-chips mt-4" aria-label="Palancas del plan">{leverLabels(c, a).map(l => <li key={l}>{l}</li>)}</ul>
           {rationale
@@ -193,7 +198,7 @@ function RescuePlan({ copilotCase: c, attempt: a, rationale, tried, onApply }: {
         </div>
         <div className="min-w-0">
           <p className="text-sm leading-relaxed text-ink-muted"><span className="text-critical">Sin rescate</span>, la batería llega al mínimo{failedAt !== null ? ` el ${formatDateTime(sampleTime(c.data, failedAt))}` : ''}.</p>
-          <p className="mt-5 text-sm font-bold text-ink">Datos que llegan a la Tierra, con planes que sobreviven</p>
+          <p className="mt-5 text-sm font-bold text-ink">Datos que llegan a la Tierra</p>
           <ul className="copilot-bars mt-4">
             {bars.map(b => (
               <li key={b.label} className={`is-${b.tone}`}>
@@ -202,17 +207,8 @@ function RescuePlan({ copilotCase: c, attempt: a, rationale, tried, onApply }: {
               </li>
             ))}
           </ul>
-          {simpleWins && simple ? <>
-            <p className="mt-4 text-base leading-relaxed text-ink">Esta vez, la salida sencilla «{SIMPLE_NAME[simple.kind]}» envía <b className="text-earth">{gb(simple.summary.dataSentMb - s.dataSentMb)} más</b>. El copiloto no encontró una combinación mejor; te recomendamos esa salida.</p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Button variant="primary" size="lg" className="min-h-12" onClick={() => onApply(simple.siteId, simple.cfg, simple.startIndex)}>Aplicar «{SIMPLE_NAME[simple.kind]}»</Button>
-              <Button size="lg" className="min-h-12" onClick={() => onApply(a.siteId, a.cfg, a.startIndex)}>Aplicar el plan del copiloto</Button>
-            </div>
-          </> : <>
-            {gain !== null && <p className="mt-4 text-base leading-relaxed text-ink">{gain > 1 ? <>El copiloto recupera <b className="text-earth">{gb(gain)} más</b> que la mejor salida sencilla.</> : 'Envía lo mismo que la mejor salida sencilla, con otra combinación.'}</p>}
-            {gain === null && <p className="mt-4 text-base leading-relaxed text-ink">Ninguna salida sencilla salvaba la misión. <b className="text-ok">Este plan sí.</b></p>}
-            <Button variant="primary" size="lg" className="mt-6 min-h-12 w-full sm:w-auto" onClick={() => onApply(a.siteId, a.cfg, a.startIndex)}>Aplicar este plan</Button>
-          </>}
+          <p className="mt-4 text-base leading-relaxed text-ink">{verdict}</p>
+          <Button variant="primary" size="lg" className="mt-6 min-h-12 w-full sm:w-auto" onClick={() => onApply(a.siteId, a.cfg, a.startIndex)}>Aplicar este plan</Button>
         </div>
       </div>
     </div>

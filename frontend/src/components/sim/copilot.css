@@ -27,6 +27,8 @@
 .copilot-card.is-ok { border-color: rgb(69 212 155 / 0.32); }
 .copilot-card.is-tagged { border-color: rgb(232 235 241 / 0.7); background: rgb(232 235 241 / 0.07); }
 .copilot-card__idea { margin-top: 8px; font-size: 13px; line-height: 1.4; color: var(--color-ink); overflow-wrap: anywhere; }
+.copilot-card.is-seed { border-style: dashed; background: rgb(5 7 13 / 0.35); }
+.copilot-tag.is-quiet { background: transparent; color: var(--color-ink-muted); border: 1px solid rgb(232 235 241 / 0.3); }
 .copilot-tag { padding: 2px 8px; border-radius: 999px; background: var(--color-ink); color: var(--color-void); font-size: 11px; font-weight: 700; }
 
 .copilot-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }

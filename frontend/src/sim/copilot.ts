@@ -17,7 +17,7 @@ export const MAX_ATTEMPTS = 12
 /** Vueltas de conversación con el modelo antes de cerrar con el mejor intento. */
 export const MAX_TURNS = 8
 /** Espera en órbita máxima que se permite probar (horas). */
-export const MAX_WAIT_HOURS = 21 * 24
+export const MAX_WAIT_HOURS = 45 * 24
 /** La explicación del plan no puede traer cifras: los números los pone la interfaz. */
 export const MAX_RATIONALE_CHARS = 600
 /** Un plan es «mejor» si envía más de un 2 % más de datos (por debajo de eso, decide la espera más corta). */
@@ -44,6 +44,8 @@ export interface Levers {
 
 export interface Attempt extends Levers {
   id: number
+  /** Salida sencilla del imprevisto, simulada antes de que empiece la IA: es el punto de partida */
+  seed?: boolean
   /** Lo que el modelo quería comprobar */
   idea: string
   siteName: string
@@ -80,7 +82,7 @@ export function maxWaitHours(c: CopilotCase): number {
 }
 
 /** Mensaje inicial: el caso completo, en datos. El modelo no recibe nada más que esto y los resultados. */
-export function buildBrief(c: CopilotCase): string {
+export function buildBrief(c: CopilotCase, seeds: Attempt[] = []): string {
   const { data, cfg, incident } = c
   const brief = {
     mision: {
@@ -114,14 +116,7 @@ export function buildBrief(c: CopilotCase): string {
       descripcion: s.data.site.description ?? '',
       pendienteMaxGrados: s.data.slope.max100mDeg,
     })),
-    salidasSencillas: incident.options.map((o) => ({
-      tipo: o.kind,
-      sitio: o.siteId,
-      esperaHoras: o.waitDays === undefined ? 0 : round(o.waitDays * 24, 0),
-      instrumentos: o.instrumentShare ?? 1,
-      datosEnviadosGb: round(o.summary.dataSentMb / 1000, 2),
-      bateriaMinimaPct: round(o.summary.minSocPct),
-    })),
+    puntoDePartida: seeds.map((a) => attemptReport(c, a)),
     limites: {
       simulaciones: MAX_ATTEMPTS,
       esperaMaxHoras: maxWaitHours(c),
@@ -130,11 +125,12 @@ export function buildBrief(c: CopilotCase): string {
       umbralSupervivencia: [PARAMETER_RANGES.survivalThreshold.min, PARAMETER_RANGES.survivalThreshold.max],
     },
   }
-  const target = bestSimpleOption(incident.options)
+  const target = bestAttempt(seeds)
   return [
-    'Caso de la misión (datos del simulador). Las salidas sencillas mueven una sola palanca;',
-    'busca un plan que sobreviva y envíe más datos que la mejor de ellas, o con menos espera.',
-    target ? `Meta: más de ${round(target.summary.dataSentMb / 1000, 2)} Gb enviados (la mejor salida sencilla, tipo "${target.kind}").` : 'Ninguna salida sencilla sobrevive: cualquier plan que sobreviva ya es un rescate.',
+    'Caso de la misión (datos del simulador). En "puntoDePartida" están las salidas sencillas, ya simuladas',
+    '(cada una mueve una sola palanca) con su attemptId. Parte de la mejor y busca combinaciones que la mejoren:',
+    'más datos enviados, o los mismos datos con menos espera. Si nada la supera, propón ese attemptId.',
+    target ? `Meta: más de ${round(target.result.summary.dataSentMb / 1000, 2)} Gb enviados (attemptId ${target.id}).` : 'Ninguna salida sencilla sobrevive: cualquier plan que sobreviva ya es un rescate.',
     JSON.stringify(brief),
   ].join('\n')
 }
@@ -180,6 +176,26 @@ export function runAttempt(c: CopilotCase, id: number, levers: Levers, idea: str
   return { ...levers, id, idea: idea.slice(0, 140), siteName: site.data.site.name, startIndex: result.from, cfg, result, series: site.series }
 }
 
+const SEED_IDEA: Record<IncidentOption['kind'], string> = {
+  wait: 'Salida sencilla: esperar en órbita',
+  site: 'Salida sencilla: cambiar de sitio',
+  save: 'Salida sencilla: encender menos instrumentos',
+}
+
+/** Las salidas sencillas del imprevisto, como intentos ya simulados: el punto de partida del copiloto. */
+export function seedAttempts(c: CopilotCase): Attempt[] {
+  return c.incident.options.map((o, k) => {
+    // La fecha exacta de la salida, sin recortes: tiene que dar el mismo resultado que el imprevisto.
+    const levers: Levers = {
+      siteId: o.siteId,
+      waitHours: (o.startIndex - c.incident.delayedStart) * c.data.stepHours,
+      instrumentShare: o.instrumentShare ?? 1,
+      survivalThreshold: c.cfg.survivalThreshold,
+    }
+    return { ...runAttempt(c, k + 1, levers, SEED_IDEA[o.kind]), seed: true }
+  })
+}
+
 /** Lo que el modelo ve de un intento: solo resultados del simulador. */
 export function attemptReport(c: CopilotCase, a: Attempt) {
   const s = a.result.summary
@@ -207,11 +223,6 @@ export function bestAttempt(attempts: Attempt[]): Attempt | null {
   return best
 }
 
-/** La mejor salida sencilla del imprevisto (la que envía más datos), para comparar. */
-export function bestSimpleOption(options: IncidentOption[]): IncidentOption | null {
-  return options.reduce<IncidentOption | null>((b, o) => (!b || o.summary.dataSentMb > b.summary.dataSentMb ? o : b), null)
-}
-
 export interface ToolCall { id: string; type?: string; function: { name: string; arguments: string } }
 
 export interface CopilotRun {
@@ -236,7 +247,7 @@ export function executeTool(c: CopilotCase, run: CopilotRun, call: ToolCall): st
     if (typeof levers === 'string') return JSON.stringify({ error: levers })
     const same = run.attempts.find((a) => a.siteId === levers.siteId && a.waitHours === levers.waitHours && a.instrumentShare === levers.instrumentShare && a.survivalThreshold === levers.survivalThreshold)
     if (same) return JSON.stringify({ ...attemptReport(c, same), nota: 'Este intento ya estaba probado.' })
-    if (run.attempts.length >= MAX_ATTEMPTS) return JSON.stringify({ error: 'Se acabó el presupuesto de simulaciones. Llama a propose_plan.' })
+    if (run.attempts.filter((x) => !x.seed).length >= MAX_ATTEMPTS) return JSON.stringify({ error: 'Se acabó el presupuesto de simulaciones. Llama a propose_plan.' })
     const a = runAttempt(c, run.attempts.length + 1, levers, typeof args.idea === 'string' ? args.idea : '')
     run.attempts.push(a)
     return JSON.stringify(attemptReport(c, a))
@@ -307,8 +318,9 @@ export async function runCopilot(
   c: CopilotCase,
   { send = sendToApi, onUpdate, signal, maxTurns = MAX_TURNS }: { send?: Send; onUpdate?: (run: CopilotRun, thought: string | null) => void; signal?: AbortSignal; maxTurns?: number } = {},
 ): Promise<CopilotRun> {
-  const run: CopilotRun = { attempts: [], plan: null }
-  const messages: ChatMessage[] = [{ role: 'user', content: buildBrief(c) }]
+  const run: CopilotRun = { attempts: seedAttempts(c), plan: null }
+  onUpdate?.(run, null)
+  const messages: ChatMessage[] = [{ role: 'user', content: buildBrief(c, run.attempts) }]
   for (let turn = 0; turn < maxTurns && !run.plan; turn++) {
     const reply = await send(messages, signal)
     const calls = (reply.tool_calls ?? []).filter((t) => t?.function?.name)
