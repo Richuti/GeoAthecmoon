@@ -3,13 +3,13 @@
 *Rafael · actualizado dom 15 nov 2026, 00:45 · rama `backend` (PR #1)*
 
 ## En una línea
-El backend es un **pipeline en Python que corre offline**. Combina el **relieve real de LOLA** (DEM de 80 m/px) con **tus posiciones de JPL Horizons**, genera los JSON del contrato y los copia a `frontend/public/data/`. No hay servidor, API ni base de datos: la app sigue leyendo archivos estáticos.
+El backend es un **pipeline en Python que corre offline**. Combina el **relieve real de LOLA** (DEM de 80 m/px) con **tus posiciones de JPL Horizons**, sirve para validar los JSON del contrato. Además hay una **API mínima en Render** (`backend/api/main.py`) que devuelve exactamente los mismos JSON de `frontend/public/data`. Sin base de datos. Si la API tarda más de 6 s, la app usa los archivos estáticos.
 
 ## ⚠️ Desde el sáb 18:11, `public/data` es de la rama `frontend`
 Richard regeneró los datos con un año de efemérides, las coordenadas verificadas y campos opcionales nuevos (`dsn`, `reference`, `distKm` y el detalle del horizonte). **No hay que volver a correr `python backend/export.py`**: pisaría esos datos con una versión sin los campos nuevos. Ahora `export.py` se niega a correr salvo que se use `--force`. El pipeline de Python queda como **validación cruzada** del año completo: en 5 de los 6 sitios, sus % de luz y de contacto coinciden con los de la app con diferencias menores de 0.5 puntos. De Gerlache difiere en 1.0 punto, por un efecto del pixel vecino, por debajo de la resolución del DEM (`docs/validacion/valores.md`).
 
 ## Rutas de la API
-No hay servidor. Las rutas del contrato son **archivos JSON estáticos** que Vercel sirve junto con la app.
+Las rutas del contrato existen de dos formas, con **el mismo contenido byte a byte**: archivos estáticos en Vercel y la API de Render (`backend/api/main.py`, con FastAPI). La API agrega `GET /health`.
 
 | Ruta (contrato) | Lo que sirve Vercel hoy | Devuelve |
 |---|---|---|
@@ -20,7 +20,13 @@ No hay servidor. Las rutas del contrato son **archivos JSON estáticos** que Ver
 - **Cómo se consumen:** deja `VITE_API_URL` **vacía**. Tu `src/api.ts` ya resuelve estas rutas solo, así que no hay que cambiar código ni poner `vercel.json`, CORS o rewrites.
 - **Ejemplo ya desplegado:** `https://<tu-deploy>.vercel.app/data/sites.json` y `https://<tu-deploy>.vercel.app/data/sites/malapert-massif.json`.
 - **De dónde salen:** los genera la rama `frontend` (`npm run horizons`, `npm run horizon` y `npm run mock`). `backend/out/` es la versión de Python para la validación cruzada y **no se exporta**.
-- **No hay más rutas** (ninguna de escritura). Si algún día hacemos el servidor en vivo, que es un extra, expondría estas mismas 2 rutas con la misma forma, y solo habría que llenar `VITE_API_URL`.
+- **No hay más rutas** (ninguna de escritura). La API lee los JSON al arrancar y los devuelve tal cual, sin calcular nada.
+- **API, en detalle:** CORS solo para `https://geoathectum.vercel.app` y `http://localhost:5173` (se puede cambiar con la variable `ALLOWED_ORIGINS`), con gzip y `Cache-Control: public, max-age=3600`. Un id desconocido devuelve 404. Probado en local: los 6 sitios salen idénticos byte a byte a `public/data`.
+- **Deploy en Render** (Web Service, plan gratis, lo hace Rafael):
+  - Repo `Richuti/GeoAthectum`, rama `main` (o `backend` antes del merge). Root Directory vacío.
+  - Runtime Python. Build: `pip install -r backend/api/requirements.txt`. Start: `uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT`.
+  - Health check: `/health`.
+  - Cuando esté arriba, la URL va en `VITE_API_URL` en Vercel. Si los datos de `public/data` cambian, Render los toma en su siguiente deploy.
 
 ## Qué cambia para ti
 - **El PR #1 ya no toca `frontend/`** (desde el sáb 18:40). Devolví esos archivos a su versión de `main`, así que tu rama `frontend` entra sin conflictos y su `public/data` es la que queda.
@@ -34,6 +40,7 @@ No hay servidor. Las rutas del contrato son **archivos JSON estáticos** que Ver
 | `build.py` | Combina el relieve LOLA con tu caché de Horizons (todo 2027) y escribe en `backend/out/` (sin `terrain`) | `python backend/build.py` |
 | `export.py` | Copia `backend/out/` a `frontend/public/data/`. **Ya no se usa:** exige `--force` | — |
 | `validate.py` | Tabla de valores del año, validación cruzada con la app y panoramas del horizonte en `docs/validacion/` | `python backend/validate.py` |
+| `api/main.py` | API en vivo: `/health`, `/sites` y `/sites/{id}`, con los mismos JSON de `public/data` | `uvicorn backend.api.main:app --port 8000` |
 | `sim_demo.py` | Réplica del simulador S1/S2/S3 en Python, para elegir el caso de la demo y comparar con el tuyo | `python backend/sim_demo.py [detalle SITIO PRESET FECHA]` |
 | `sites_verified.json` | Coordenadas finales de los 6 sitios, con su fuente | — |
 
