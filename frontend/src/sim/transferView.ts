@@ -1,4 +1,4 @@
-import { MOON_RADIUS_KM, type journeyAt } from './transfer.ts'
+import { MOON_RADIUS_KM, transferAt, type journeyAt, type TransferOrbit } from './transfer.ts'
 
 /** Altura visual del cohete (launch_vehicle.glb), la misma nave en el despegue, el viaje y el alunizaje. */
 export const LAUNCH_SHIP_HEIGHT_M = 110
@@ -38,4 +38,33 @@ export function encounterFrame(sample: ReturnType<typeof journeyAt>, moonRadiusK
     yKm: (bottom + top) / 2,
     distanceKm: Math.max(11500, halfHeight * 1.55 / Math.tan(21 * Math.PI / 180) + Math.max(MOON_RADIUS_KM, moonRadiusKm)),
   }
+}
+
+const HALF_FOV = 21 * Math.PI / 180
+
+/** Encuadre de cámara (centro y distancia, en km) que contiene un recuadro, con margen. */
+export function fitFrame(box: { minX: number; maxX: number; minY: number; maxY: number }, aspect: number, margin = 1.15) {
+  if (!(aspect > 0) || !(box.maxX >= box.minX) || !(box.maxY >= box.minY)) throw new RangeError('Encuadre no válido.')
+  const halfHeight = Math.max((box.maxY - box.minY) / 2, (box.maxX - box.minX) / (2 * aspect)) * margin
+  return { xKm: (box.minX + box.maxX) / 2, yKm: (box.minY + box.maxY) / 2, distanceKm: halfHeight / Math.tan(HALF_FOV) }
+}
+
+/** Salida: la Tierra entera y la nave en el mismo cuadro, para ver cómo se aleja. */
+export function departureFrame(sample: { shipXKm: number; shipYKm: number }, earthRadiusKm: number, aspect: number) {
+  return fitFrame({
+    minX: Math.min(-earthRadiusKm, sample.shipXKm), maxX: Math.max(earthRadiusKm, sample.shipXKm),
+    minY: Math.min(-earthRadiusKm, sample.shipYKm), maxY: Math.max(earthRadiusKm, sample.shipYKm),
+  }, aspect, 1.35)
+}
+
+/** Vista general: la elipse completa, la Tierra y el arco que recorre la Luna mientras dura el viaje. */
+export function overviewFrame(orbit: TransferOrbit, aspect: number, earthRadiusKm: number, moonRadiusKm: number) {
+  const start = transferAt(orbit, 0)
+  const end = transferAt(orbit, orbit.durationSeconds)
+  return fitFrame({
+    minX: Math.min(-orbit.apoapsisKm, start.moonXKm, end.moonXKm) - moonRadiusKm,
+    maxX: Math.max(orbit.periapsisKm, earthRadiusKm),
+    minY: -Math.max(earthRadiusKm, moonRadiusKm),
+    maxY: Math.max(orbit.semiMinorKm, start.moonYKm + moonRadiusKm, earthRadiusKm),
+  }, aspect, 1.12)
 }

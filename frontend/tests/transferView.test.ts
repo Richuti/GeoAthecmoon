@@ -70,3 +70,43 @@ test('durante el ascenso la cámara no se aleja tanto que el cohete desaparezca'
   const { LAUNCH_CHASE_MAX_M } = await import('../src/sim/transferView.ts')
   for (const altitude of [10000, 65000, 200000]) assert.ok(launchFrame(altitude, 1.6).distanceM <= Math.max(LAUNCH_CHASE_MAX_M, 260))
 })
+
+test('la salida encuadra la Tierra entera y la nave', async () => {
+  const { departureFrame } = await import('../src/sim/transferView.ts')
+  const orbit = lunarTransfer()
+  for (const aspect of [0.46, 1.8]) {
+    for (const p of [0.12, 0.13, 0.16, 0.2]) {
+      const s = journeyAt(orbit, p)
+      const f = departureFrame(s, 6378.1, aspect)
+      const halfH = f.distanceKm * Math.tan(21 * Math.PI / 180)
+      for (const [x, y, r] of [[0, 0, 6378.1], [s.shipXKm, s.shipYKm, 0]]) {
+        assert.ok(Math.abs(y - f.yKm) + r <= halfH + 1e-6, `alto ${p} ${aspect}`)
+        assert.ok(Math.abs(x - f.xKm) + r <= halfH * aspect + 1e-6, `ancho ${p} ${aspect}`)
+      }
+    }
+  }
+})
+
+test('la vista general contiene toda la trayectoria y el recorrido de la Luna', async () => {
+  const { overviewFrame } = await import('../src/sim/transferView.ts')
+  const { transferAt } = await import('../src/sim/transfer.ts')
+  const orbit = lunarTransfer()
+  for (const aspect of [0.46, 1.8]) {
+    const f = overviewFrame(orbit, aspect, 6378.1 * 4, MOON_RADIUS_KM * 5)
+    const halfH = f.distanceKm * Math.tan(21 * Math.PI / 180)
+    for (let j = 0; j <= 50; j++) {
+      const s = transferAt(orbit, orbit.durationSeconds * j / 50)
+      for (const [x, y] of [[s.xKm, s.yKm], [s.moonXKm, s.moonYKm]]) {
+        assert.ok(Math.abs(x - f.xKm) <= halfH * aspect && Math.abs(y - f.yKm) <= halfH, `${j} ${aspect}`)
+      }
+    }
+  }
+})
+
+test('la escala de tiempo convierte la duración real en segundos de pantalla', async () => {
+  const { transferPlaybackSeconds, TIME_SCALES_H_PER_S } = await import('../src/sim/transfer.ts')
+  const orbit = lunarTransfer()
+  const hours = orbit.durationSeconds / 3600
+  for (const k of TIME_SCALES_H_PER_S) assert.ok(Math.abs(transferPlaybackSeconds(orbit, k) * k - hours) < 1e-9)
+  assert.throws(() => transferPlaybackSeconds(orbit, 0), RangeError)
+})
