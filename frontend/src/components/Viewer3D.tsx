@@ -15,6 +15,7 @@ import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { SpaceBackground } from './SpaceBackground'
 import { descentFrame } from '../sim/transferView'
+import { stitchTerrainSeam } from '../sim/terrainSeam'
 import { useFlightModel } from './sim/useFlightModel'
 import type { Mode } from '../sim/simulate'
 import { EARTH_RADIUS_KM, SUN_RADIUS_KM, MEAN_EARTH_DIST_KM, MEAN_SUN_DIST_KM } from '../lib/sky'
@@ -57,15 +58,8 @@ function Terrain({ siteId, onGroundHeight }: { siteId: string; onGroundHeight: (
         const m = o as THREE.Mesh
         m.receiveShadow = true
         m.castShadow = true
-        // El recorte de 20 km se funde en sus últimos 2.5 km con el relieve de 300 km que hay debajo:
-        // así no se ve un borde recto, ni en el planificador ni en el descenso. No se altera la geometría.
-        const material = m.material as THREE.MeshStandardMaterial
-        material.transparent = true
-        material.onBeforeCompile = (shader) => {
-          shader.vertexShader = 'varying vec2 vPatchXZ;\n' + shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvPatchXZ = (modelMatrix * vec4(transformed, 1.0)).xz;')
-          shader.fragmentShader = 'varying vec2 vPatchXZ;\n' + shader.fragmentShader.replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= 1.0 - smoothstep(7.5, 9.9, max(abs(vPatchXZ.x), abs(vPatchXZ.y)));')
-        }
-        material.customProgramCacheKey = () => 'terrain-patch-fade-v1'
+        // Sin fundido a transparente: el relieve regional tiene un hueco justo debajo y se vería el vacío.
+        // La unión con ese relieve la hace `stitchTerrainSeam` (ver FarTerrain).
       }
     })
     // Altura del suelo en el sitio (0, 0): un rayo vertical sobre el terreno.
@@ -220,12 +214,52 @@ const DUST_GRAINS = Array.from({ length: 150 }, (_, i) => {
 /** Radio de la nave en la escena (km): el polvo nace justo fuera de ella. */
 const SHIP_RADIUS_KM = SHIP_HEIGHT_KM * 0.08
 
+/** Primera malla de un modelo cargado. */
+function firstMesh(root: THREE.Object3D): THREE.Mesh | null {
+  let found: THREE.Mesh | null = null
+  root.traverse((o) => { if (!found && (o as THREE.Mesh).isMesh) found = o as THREE.Mesh })
+  return found
+}
+
+/**
+ * Une el recorte de 20 km con el hueco del relieve de 300 km (solo alturas, ver `stitchTerrainSeam`).
+ * Los modelos quedan en la caché de useGLTF: se cose una sola vez por sitio.
+ */
+function stitchOnce(near: THREE.Mesh | null, far: THREE.Mesh | null) {
+  if (!near || !far || far.geometry.userData.seamStitched) return
+  const read = (g: THREE.BufferGeometry) => {
+    const a = g.getAttribute('position')
+    const out = new Float32Array(a.count * 3)
+    for (let i = 0; i < a.count; i++) { out[i * 3] = a.getX(i); out[i * 3 + 1] = a.getY(i); out[i * 3 + 2] = a.getZ(i) }
+    return out
+  }
+  const write = (g: THREE.BufferGeometry, pos: Float32Array) => {
+    const a = g.getAttribute('position')
+    for (let i = 0; i < a.count; i++) a.setY(i, pos[i * 3 + 1])
+    a.needsUpdate = true
+    g.computeVertexNormals()
+    g.computeBoundingBox()
+    g.computeBoundingSphere()
+  }
+  const nearPos = read(near.geometry), farPos = read(far.geometry)
+  try {
+    stitchTerrainSeam(nearPos, farPos)
+  } catch {
+    return // Un modelo sin el borde esperado se deja como viene.
+  }
+  write(near.geometry, nearPos)
+  write(far.geometry, farPos)
+  far.geometry.userData.seamStitched = true
+}
+
 /** Relieve LOLA de 300 × 300 km alrededor del sitio: el suelo más allá del recorte de 20 km y al bajar desde 600 km. */
 function FarTerrain({ siteId }: { siteId: string }) {
   const { scene } = useGLTF(`/models/terrain/${siteId}_far.glb`)
+  const { scene: patch } = useGLTF(`/models/terrain/${siteId}.glb`)
   useLayoutEffect(() => {
     scene.traverse((o) => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).receiveShadow = true })
-  }, [scene])
+    stitchOnce(firstMesh(patch), firstMesh(scene))
+  }, [scene, patch])
   return <primitive object={scene} />
 }
 
