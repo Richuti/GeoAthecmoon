@@ -1,0 +1,44 @@
+/* El escenario ocupa la escena de misión; las decisiones quedan junto al lugar donde ocurren. */
+.incident-invite { background: rgb(15 20 29 / 0.86); }
+.incident-experience { min-width: 0; }
+.incident-terrain .mission-live { z-index: 2; }
+.incident-terrain:has(.mission-toast, .mission-stamp, .mission-play) .incident-ship-label { visibility: hidden; }
+.incident-experience h2:focus { outline: none; }
+.incident-dates { background: rgb(15 20 29 / 0.86); }
+.incident-moment {
+  min-height: 58px; flex: 1 1 8rem; padding: 10px 14px;
+  border: 1px solid rgb(232 235 241 / 0.19); border-radius: 12px;
+  color: var(--color-ink); background: rgb(5 7 13 / 0.48); text-align: left; cursor: pointer;
+}
+.incident-moment:hover { background: rgb(232 235 241 / 0.09); }
+.incident-moment[aria-pressed='true'] { border-color: rgb(232 235 241 / 0.65); background: rgb(232 235 241 / 0.1); }
+.incident-moment:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 3px; }
+.incident-ship-label {
+  display: block; width: max-content; max-width: 124px; padding: 6px 10px;
+  border: 1px solid rgb(232 235 241 / 0.4); border-radius: 8px;
+  background: rgb(5 7 13 / 0.95); color: var(--color-ink);
+  font-family: B612, sans-serif; font-size: 11px; line-height: 1.3;
+  white-space: normal; transform: translateX(68px);
+}
+.incident-ship-label::before { content: ''; position: absolute; right: 100%; top: 50%; width: 15px; border-top: 1px solid rgb(232 235 241 / 0.5); }
+.incident-ship-label.is-failed { color: var(--color-critical); }
+.incident-ship-label.is-survival { color: var(--color-caution); }
+.incident-options > li { padding-block: 24px; }
+.incident-options p { max-width: 65ch; }
+@media (max-width: 639px) {
+  .incident-invite > div:last-child, .incident-invite > div:last-child > button { width: 100%; }
+  .incident-moment { flex-basis: 7rem; padding: 10px; }
+}
+@media (max-width: 420px) {
+  .incident-dates { gap: 14px; }
+  .incident-dates p { overflow-wrap: anywhere; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .incident-terrain .viewer-heading { padding-top: 8px; }
+  .incident-terrain .viewer-heading > div > p:last-child { margin-top: 4px; line-height: 1.25; }
+  .incident-terrain h2 { font-size: 1.5rem; }
+  .incident-terrain .mission-toast { max-width: 24rem; padding: 10px 14px; }
+  .incident-terrain .mission-toast__title { font-size: 1.5rem; }
+  .incident-terrain .mission-toast > p:last-child { font-size: 0.75rem; }
+  .incident-terrain .mission-hud__card { padding: 8px 10px; }
+}

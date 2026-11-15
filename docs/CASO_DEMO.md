@@ -11,10 +11,12 @@ Sale de `python backend/sim_demo.py`, una réplica en Python del simulador S1/S2
    - Se ve **95 %, "Buena"**, con 100 % de luz y 85 % de contacto. Sobrevive los 14 días. "Tolera hasta 4 días y 6 horas de atraso."
 2. Clic en **"Simular el imprevisto"**: una corrección de trayectoria atrasa la llegada **+4 días y 12 horas** (19 ene, 12:00).
    - "La batería se agota el día 14." El 1 feb a las 05:00 el Sol se pone por el suroeste y siguen 8 días y 6 horas de sombra.
+   - En la vista del escenario, pulsar **El Sol se oculta** y después **Batería al 20 %**: el terreno usa la luz de esa fecha y el estado aparece junto a la nave. Se puede reproducir y pausar el escenario o volver al plan original conservando su fecha y cursor.
 3. La app ofrece **3 salidas, todas simuladas** con los mismos datos:
    - **Esperar en órbita** y alunizar el 11 feb a las 12:00 → sobrevive y envía el 84 % de los datos.
    - **Cambiar a de Gerlache** → sobrevive, pero envía solo el 34 % de los datos.
    - **Ahorrar energía**: el mismo sitio con el 75 % de los instrumentos.
+   - Los botones son **Aplicar nueva fecha**, **Aplicar este sitio** y **Aplicar ahorro**. Actualizan el plan y su resultado sin repetir el viaje Tierra–Luna.
 
 **Alternativa manual** (si falla el botón): en "Modificar mi plan", cambiar la fecha al **20 ene** → 40 %, "Sin energía el día 14". En "La misma fecha, en los otros sitios", Connecting Ridge sobrevive con un 28 % de contacto.
 

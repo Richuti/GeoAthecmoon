@@ -32,13 +32,14 @@ export function eventText(e: SimEvent): string {
 
 const TOAST_MS = 3200
 
-export function MissionLive({ data, result, index, playing, onPlay, onPause }: {
+export function MissionLive({ data, result, index, playing, onPlay, onPause, playLabel = 'Ver la misión' }: {
   data: SiteData
   result: SimResult
   index: number
   playing: boolean
   onPlay: () => void
   onPause: () => void
+  playLabel?: string
 }) {
   const { series, events, summary } = result
   const last = series.soc.length - 1
@@ -73,7 +74,7 @@ export function MissionLive({ data, result, index, playing, onPlay, onPause }: {
     return () => window.clearTimeout(id)
   }, [toast])
 
-  const atStart = k === 0 && !playing && inMission
+  const atStart = k === 0 && !playing && inMission && !failedNow && !finished
 
   return (
     <div className={cx('mission-live pointer-events-none absolute inset-0', inMission && `mission-live--${mode}`, finished && summary.survived && 'mission-live--done')}>
@@ -137,7 +138,7 @@ export function MissionLive({ data, result, index, playing, onPlay, onPause }: {
         <div className="absolute inset-0 grid place-items-center">
           <button type="button" onClick={onPlay} className="mission-play pointer-events-auto">
             <span aria-hidden className="mission-play__icon"><svg viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor" /></svg></span>
-            <span className="text-left"><span className="block text-base font-bold">Ver la misión</span><span className="block text-xs text-ink-muted">Hora por hora, con los datos reales</span></span>
+            <span className="text-left"><span className="block text-base font-bold">{playLabel}</span><span className="block text-xs text-ink-muted">Hora por hora, con los datos reales</span></span>
           </button>
         </div>
       )}

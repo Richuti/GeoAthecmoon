@@ -88,7 +88,9 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       </aside>
       </div>}
       {view === 'journey' && <EarthMoonJourney data={data} arrival={setup.timelineDate} destination={data.site.name} onArrive={() => { setup.onSimulate(); navigate('surface') }} />}
-      {view === 'surface' && (
+      {view === 'surface' && report && <IncidentPanel key={`${data.site.id}:${report.result.from}:${report.result.plan.missionDays}:${JSON.stringify(setup.cfg)}`}
+        data={data} cfg={setup.cfg} startIndex={report.result.from} missionDays={report.result.plan.missionDays} originalResult={report.result}
+        onTryStart={report.onTryStart} onTrySite={report.onTrySite} onCfg={setup.onCfg}>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
         <div className="terrain-stage h-[34rem] min-w-0 sm:h-[32rem]">
           <ViewerPanel data={data} index={state.index} contact={contact[state.index]} immersive
@@ -97,26 +99,14 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
               data={data} result={result} index={state.index} playing={state.playing}
               onPlay={() => actions.setPlaying(true)} onPause={() => actions.setPlaying(false)} />} />
         </div>
-        {report ? <MissionResult {...report} /> : (
-          <section aria-label="Preparar simulación" className="flex flex-col justify-center px-1 py-4 lg:px-6">
-            <h2 className="text-2xl font-bold leading-tight text-ink">¿Dónde y cuándo<br />conviene aterrizar?</h2>
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-muted">Compara la luz solar, el contacto con la Tierra y la pendiente del terreno. Después comprueba si el módulo tiene energía para completar la misión.</p>
-            <Button className="mt-6 min-h-12" onClick={setup.onSimulate}>Evaluar mi misión</Button>
-          </section>
-        )}
+        <MissionResult {...report} />
       </div>
-      )}
-
-      {report && view === 'surface' && <>
         <MissionTransport data={data} report={report} onSeek={onSeek} />
-        <IncidentPanel key={`${data.site.id}:${report.result.from}:${report.result.plan.missionDays}:${JSON.stringify(setup.cfg)}`}
-          data={data} cfg={setup.cfg} startIndex={report.result.from} missionDays={report.result.plan.missionDays}
-          onTryStart={report.onTryStart} onTrySite={report.onTrySite} onCfg={setup.onCfg} />
         <MissionOptions {...report} />
         <Disclosure className="mt-4" title="Batería, datos y eventos de la misión" description="Revisa el resultado hora por hora y localiza los momentos críticos.">
           <MissionTrace data={data} result={report.result} lit={lit} contact={contact} survivalThreshold={survivalThreshold} index={state.index} onSeek={onSeek} />
         </Disclosure>
-      </>}
+      </IncidentPanel>}
       </section>
       <Disclosure className="mt-10" title="Fuentes y supuestos de la simulación" description="De dónde vienen los datos y qué incluye este modelo.">
         <p className="mt-2 max-w-4xl text-sm leading-relaxed text-ink-muted">Los módulos son configuraciones de referencia. El panel sigue al Sol; se supone una estación DSN disponible cuando la Tierra es visible. La batería falla al llegar al 20 %. Luz y contacto se calculan con JPL Horizons y el horizonte LOLA del sitio. El recorrido Tierra–Luna usa una transferencia orbital idealizada.</p>

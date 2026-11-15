@@ -8,7 +8,7 @@
 // el horizonte LOLA de 150 km. Si una montaña fuera del recorte de 20 km tapa el Sol, la escena queda a oscuras
 // aunque el modelo no proyecte esa sombra.
 
-import { OrbitControls, useGLTF } from '@react-three/drei'
+import { Html, OrbitControls, useGLTF } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
@@ -16,6 +16,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { SpaceBackground } from './SpaceBackground'
 import { descentFrame } from '../sim/transferView'
 import { useFlightModel } from './sim/useFlightModel'
+import type { Mode } from '../sim/simulate'
 
 export interface Sky {
   sunAz: number
@@ -296,6 +297,7 @@ export default function Viewer3D({
   resetKey,
   arrivalProgress,
   active = true,
+  shipState,
 }: {
   siteId: string
   sky: Sky
@@ -305,6 +307,7 @@ export default function Viewer3D({
   resetKey: number
   arrivalProgress?: number
   active?: boolean
+  shipState?: Mode
 }) {
   const controls = useRef<OrbitControlsImpl | null>(null)
   const overlay: DescentOverlay = { sheet: useRef(null), inner: useRef(null), outer: useRef(null), glow: useRef(null), marker: useRef(null) }
@@ -327,6 +330,9 @@ export default function Viewer3D({
         <Terrain siteId={siteId} onGroundHeight={onGroundHeight} />
         <FarTerrain siteId={siteId} />
         <Ship groundY={groundY + (arrivalProgress === undefined ? 0 : descentFrame(arrivalProgress, 1).altitudeKm)} />
+        {shipState && <Html position={[0, groundY + SHIP_HEIGHT_KM * 0.55, 0]} center zIndexRange={[1, 0]} style={{ pointerEvents: 'none' }}>
+          <span aria-hidden className={`incident-ship-label is-${shipState}`}>{shipState === 'failed' ? 'Sin energía' : shipState === 'survival' ? 'Instrumentos apagados' : sky.sunFraction <= 0 ? 'Panel sin Sol' : sky.sunFraction < 1 ? 'Panel con luz parcial' : 'Panel iluminado'}</span>
+        </Html>}
         <SkyBody url="/models/sun.glb" az={sky.sunAz} el={sky.sunEl} radius={SUN_RADIUS} />
         <SkyBody url="/models/earth.glb" az={sky.earthAz} el={sky.earthEl} radius={EARTH_RADIUS} unlit mirror />
         <CameraRig key={resetKey} siteId={siteId} sky={sky} groundY={groundY} controls={controls} arrivalProgress={arrivalProgress} />

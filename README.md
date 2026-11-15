@@ -25,7 +25,7 @@ En el polo sur de la Luna el Sol nunca sube más de un par de grados: una cresta
 2. **Viaja.** El recorrido Tierra–Luna usa una transferencia orbital calculada (modelo educativo de dos cuerpos).
 3. **Evalúa.** Ves la viabilidad, las horas de luz y de contacto, la pendiente, si la batería aguanta y cuántos días de atraso tolera la misión.
    Puedes pulsar **Ver la misión** para recorrerla sobre el terreno: batería, potencia del panel, consumo y envío de datos siguen la misma serie calculada. Los avisos explican cuándo se oculta el Sol, se pierde el contacto o cambia el estado de energía; la reproducción se detiene al fallar.
-4. **Simula un imprevisto.** Una corrección de trayectoria atrasa la llegada justo lo suficiente para que la misión falle. La app explica por qué y propone salidas comprobadas: esperar en órbita, cambiar de sitio o encender menos instrumentos.
+4. **Simula un imprevisto.** Una corrección de trayectoria atrasa la llegada. Un escenario independiente muestra las nuevas fechas, la pérdida de luz, el estado junto a la nave y la batería hora por hora. Puedes saltar al momento crítico, reproducirlo, volver al plan original o aplicar una salida comprobada: esperar para alunizar, cambiar de sitio o encender menos instrumentos. Explorar el escenario conserva el plan original y su cursor.
 
 La reproducción dice su escala de tiempo (por ejemplo, «1 segundo en pantalla = 1 hora», 3 600 veces más rápido) y cuánto tarda en verse la misión completa. Se puede cambiar sitio, fecha, duración o módulo y volver a evaluar cuantas veces se quiera, sin repetir el viaje. El calendario, las ventanas de luz/contacto/DSN y los gráficos del cielo quedan como detalles opcionales.
 

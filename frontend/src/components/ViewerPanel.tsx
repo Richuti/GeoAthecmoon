@@ -22,7 +22,7 @@ class ViewerError extends Component<{ children: ReactNode; fallback: ReactNode }
   }
 }
 
-export function ViewerPanel({ data, index, contact, missionState, immersive = false, missionOverlay }: { data: SiteData; index: number; contact: boolean; missionState?: 'nominal' | 'survival' | 'failed'; immersive?: boolean; missionOverlay?: ReactNode }) {
+export function ViewerPanel({ data, index, contact, missionState, immersive = false, missionOverlay, showShipStatus = false }: { data: SiteData; index: number; contact: boolean; missionState?: 'nominal' | 'survival' | 'failed'; immersive?: boolean; missionOverlay?: ReactNode; showShipStatus?: boolean }) {
   const s = data.site
   const [ground, setGround] = useState<{ siteId: string; y: number } | null>(null)
   const [resetKey, setResetKey] = useState(0)
@@ -55,7 +55,7 @@ export function ViewerPanel({ data, index, contact, missionState, immersive = fa
       <div className="absolute inset-0" role="img" aria-label={`Vista 3D del relieve de ${s.name}, 20 por 20 kilómetros, con el Sol ${sunState}.`}>
         <ViewerError key={s.id} fallback={unavailable}>
           <Suspense fallback={null}>
-            <Viewer3D siteId={s.id} sky={sky} groundY={loaded ? ground.y : 0} onGroundHeight={onGroundHeight} resetKey={resetKey} />
+            <Viewer3D siteId={s.id} sky={sky} groundY={loaded ? ground.y : 0} onGroundHeight={onGroundHeight} resetKey={resetKey} shipState={showShipStatus ? missionState : undefined} />
           </Suspense>
         </ViewerError>
       </div>
@@ -69,7 +69,7 @@ export function ViewerPanel({ data, index, contact, missionState, immersive = fa
       {/* Velo arriba para leer el nombre sobre el cielo */}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[linear-gradient(to_bottom,rgb(5_7_13/0.85),transparent)]" />
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 p-5 sm:p-6">
+      <div className="viewer-heading pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 p-5 sm:p-6">
         <div>
           <Badge>{CATEGORY_LABEL[s.category]}</Badge>
           <Heading className="mt-3 max-w-xl font-display text-3xl font-extrabold uppercase leading-[0.95] tracking-[0.01em] sm:text-4xl xl:text-5xl">
