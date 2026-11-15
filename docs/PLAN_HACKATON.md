@@ -1,7 +1,8 @@
 # Plan de la hackatón · GeoAthectum
 
 **Entrega (H):** domingo 15 nov, **13:00** (meta interna: no hay hora oficial todavía; si la anuncian, se ajusta)
-**Checkpoint sáb 18:40:** 🟡. Coordenadas corregidas y PR #1 sin conflictos. Falta integrar en `main` y hacer el primer deploy (20:00). IA1 queda fuera de esta entrega.
+**Checkpoint sáb 23:35:** 🟢. La rama `frontend` ya está en `main` y desplegada en `https://geoathectum.vercel.app` (prueba de humo: 200 y datos con las coordenadas nuevas). El caso de la demo sigue igual con los datos nuevos (réplica en Python: falla el 2 feb a las 10:00 y viabilidad del 40 % el 20 ene). Falta: merge del PR #1 (sin conflictos con `main`), revisión de D2, SU7 y 12, y el congelamiento del pulido visual. IA1 queda fuera de esta entrega.
+**Checkpoint sáb 18:40:** 🟡. Coordenadas corregidas y PR #1 sin conflictos.
 **Fechas clave:** plan B del relieve sáb 23:00 · pitch en borrador dom 05:00 · feature freeze dom 07:00 · deploy final dom 08:00 · ensayos dom 10:00–12:30
 **Frase de valor:** *En 10 segundos sabes si un sitio y una fecha sirven en el polo sur lunar, y qué pasa si tu misión se retrasa.*
 **Momento wow de la demo:** "la misión se retrasa". Se atrasa el alunizaje unos días: el **Sol** queda tras el relieve real, la batería cae a su mínimo del **20 %** (falla) y la app dice cuánto atraso tolera la misión y qué fecha o sitio la salva. (La Tierra tapada solo corta el envío de datos, no la energía.)
@@ -24,7 +25,9 @@
 | Entregar el terreno real a Richard para Blender | Rafael → Richard | ⏳ | sáb 14:00 |
 | C0, 4, 5, S1, S2, SU1–SU3, C3 (portada), 9 (visor 3D con luz desde los datos) | Richard | ✅ en la rama `frontend` (sáb 15:15) | — |
 | S3 (búsqueda de fechas y sitios), 6 (línea de tiempo), 7 (gráfico polar), 8 (métricas y recomendación) | Richard | ⏳ | sáb 23:00 |
-| Integrar en `main` la rama `frontend` y el PR #1 (que ya no toca `frontend/`): **sin conflictos** (probado sáb 18:40) | Richard | ⏳ | sáb 20:00 |
+| Integrar en `main` la rama `frontend` | Richard | ✅ | — |
+| Merge del PR #1 (`backend` → `main`, no toca `frontend/`; sin conflictos, probado sáb 23:35) | Richard | ⏳ | dom 01:00 |
+| Revisar D2, SU7 y 12 (implementadas, sin marcar) y **dejar de pulir la portada** | Richard | ⏳ | dom 03:30 |
 | 3.3 Verificar coordenadas en Quickmap (`docs/VERIFICACION_SITIOS.md`) | Dilan y Joshua | ⏳ | sáb 15:00 |
 | B4 Validación con Quickmap y Moon Trek (`docs/VALIDACION.md`; nuestros valores en `docs/validacion/`) | Rafael, Joshua y Dilan | ⏳ | sáb 18:00 |
 | Fuentes publicadas de iluminación de los 6 sitios (artículos o páginas de NASA con su enlace) para la diapositiva de validación | Joshua | ✅ (`docs/validacion/informe_iluminacion_joshua.pdf`; comparación en `VALIDACION.md`) | sáb 20:00 |
@@ -32,7 +35,9 @@
 | Storyboard del video de respaldo de 60 s con los clics de `docs/CASO_DEMO.md` | Odelmy | ⏳ | sáb 20:00 |
 | Esqueleto de las diapositivas (problema, demo, validación, limitaciones, equipo) | Odelmy | ⏳ | sáb 22:00 |
 | Nombre: app **GEOATHECMOON**, equipo **GeoAthectum** | Equipo | ✅ (falta cambiar "Simulador" en el doc de identidad) | sáb 18:00 |
-| Primer deploy en Vercel (aunque esté incompleto) | Richard y Rafael | ⏳ | **sáb 20:00** (se adelanta) |
+| Primer deploy en Vercel (aunque esté incompleto) | Richard y Rafael | ✅ `geoathectum.vercel.app` | — |
+| QA del guion de la demo en producción (celular y laptop), con los clics de `docs/CASO_DEMO.md` | Dilan | ⏳ | dom 01:00 |
+| Cambiar "Simulador" por GEOATHECMOON en el doc de identidad | Odelmy | ⏳ | dom 01:00 |
 | Guion del pitch en borrador | Odelmy y Joshua | ⏳ | dom 05:00 |
 | Feature freeze | todos | ⏳ | dom 07:00 |
 | Deploy final y video de respaldo | Richard y Odelmy | ⏳ | dom 08:00 |
