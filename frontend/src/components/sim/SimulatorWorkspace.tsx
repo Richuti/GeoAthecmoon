@@ -5,7 +5,7 @@ import { formatDate, formatDateTime, formatMissionClock, sampleTime } from '../.
 import { PRESETS } from '../../sim/lander'
 import { useAppState, type Speed } from '../../state'
 import type { SiteData } from '../../types'
-import { Button, cx } from '../ui'
+import { Button, cx, Disclosure, Segmented, Select } from '../ui'
 import { ViewerPanel } from '../ViewerPanel'
 import { MissionSetup } from './MissionSetup'
 import { MissionOptions, MissionResult, type MissionResultProps } from './MissionResult'
@@ -69,13 +69,8 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       {view === 'plan' && <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-14">
       <div className="min-w-0">
       <MissionSetup {...setup} actionLabel="Continuar al viaje →" onSimulate={() => navigate('journey')} siteControl={
-        <div>
-          <label htmlFor="mission-site" className="mb-2 block text-sm text-ink-muted">Sitio de alunizaje</label>
-          <select id="mission-site" value={data.site.id} onChange={(e) => actions.select(e.target.value)}
-            className="min-h-12 w-full min-w-0 rounded-hw border border-seam-strong bg-hull px-3 text-base text-ink">
-            {state.sites?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </div>
+        <Select id="mission-site" label="Sitio de alunizaje" value={data.site.id} onChange={actions.select}
+          options={state.sites?.map(s => ({ value: s.id, label: s.name, description: s.description })) ?? []} />
       } />
       </div>
       <aside aria-label="Resumen de tu plan" className="min-w-0 lg:border-l lg:border-seam lg:pl-10">
@@ -113,16 +108,14 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
           onTryStart={report.onTryStart} onTrySite={report.onTrySite} onCfg={setup.onCfg} />
         <MissionTransport data={data} report={report} onSeek={onSeek} />
         <MissionOptions {...report} />
-        <details className="mt-4">
-          <summary className="cursor-pointer py-3 text-sm font-bold text-ink">Ver batería, datos y eventos de la misión</summary>
+        <Disclosure className="mt-4" title="Batería, datos y eventos de la misión" description="Revisa el resultado hora por hora y localiza los momentos críticos.">
           <MissionTrace data={data} result={report.result} lit={lit} contact={contact} survivalThreshold={survivalThreshold} index={state.index} onSeek={onSeek} />
-        </details>
+        </Disclosure>
       </>}
       </section>
-      <details className="mt-10 border-t border-seam pt-3">
-        <summary className="min-h-12 cursor-pointer py-3 text-sm font-bold text-ink-muted">Fuentes y supuestos de la simulación</summary>
+      <Disclosure className="mt-10" title="Fuentes y supuestos de la simulación" description="De dónde vienen los datos y qué incluye este modelo.">
         <p className="mt-2 max-w-4xl text-sm leading-relaxed text-ink-muted">Los módulos son configuraciones de referencia. El panel sigue al Sol; se supone una estación DSN disponible cuando la Tierra es visible. La batería falla al llegar al 20 %. Luz y contacto se calculan con JPL Horizons y el horizonte LOLA del sitio. El recorrido Tierra–Luna usa una transferencia orbital idealizada.</p>
-      </details>
+      </Disclosure>
     </main>
   )
 }
@@ -139,11 +132,8 @@ function MissionTransport({ data, report, onSeek }: { data: SiteData; report: Mi
       <p className="min-w-0 text-sm tabular-nums text-ink">{formatMissionClock(data, state.index, from)}</p>
       <input type="range" className="range min-w-28 flex-1" aria-label="Fecha y hora" aria-valuetext={formatDateTime(date)}
         min={from} max={end} value={state.index} onChange={(e) => onSeek(Number(e.target.value))} style={{ '--fill': `${fill}%` } as CSSProperties} />
-      <label className="flex items-center gap-2 text-xs text-ink-muted">Velocidad
-        <select value={state.speed} onChange={(e) => actions.setSpeed(Number(e.target.value) as Speed)} className="min-h-9 rounded-hw bg-hull-raised px-2 text-sm text-ink">
-          <option value={1}>1 h/s</option><option value={6}>6 h/s</option><option value={24}>1 d/s</option>
-        </select>
-      </label>
+      <Segmented label="Velocidad de reproducción" value={String(state.speed)} onChange={v => actions.setSpeed(Number(v) as Speed)}
+        options={[{ value: '1', label: '1 h/s' }, { value: '6', label: '6 h/s' }, { value: '24', label: '1 d/s' }]} />
     </section>
   )
 }

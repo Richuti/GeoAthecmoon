@@ -9,9 +9,9 @@ import { SimulatorWorkspace } from './components/sim/SimulatorWorkspace'
 import { Story } from './components/Story'
 import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
-import { Badge, Button, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
+import { Badge, Button, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
 import { formatLat, formatLon } from './lib/format'
-import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, totalDays } from './lib/time'
+import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, toInputValue, totalDays } from './lib/time'
 import { missionWindow, recommend, type Recommendation } from './lib/recommend'
 import { storyFacts } from './lib/storyFacts'
 import { DEFAULT_WEIGHTS, VERDICT_LABEL, siteViability, type Verdict, type ViabilityResult } from './lib/viability'
@@ -166,12 +166,12 @@ function Planner() {
   const notice = p ? dataNotice(p.data) : null
 
   return (
-    <div className={cx('flex min-h-dvh flex-col', mode === 'explore' && 'lg:h-dvh')}>
-      <header className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-5">
+    <div className="flex min-h-dvh flex-col">
+      <header className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 border-b border-seam px-5 py-4 sm:px-8">
         <Brand />
         <Segmented label="Modo" options={MODES} value={mode} onChange={actions.setMode} />
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
-          {p && !notice && <Badge>Datos reales · JPL Horizons y LOLA (NASA)</Badge>}
+          {p && !notice && <span className="hidden md:inline-flex"><Badge>Datos reales · JPL Horizons y LOLA (NASA)</Badge></span>}
           {notice && <Badge tone="caution">Datos de prueba</Badge>}
           <Help />
           <Sources data={p?.data} />
@@ -226,32 +226,49 @@ function Planner() {
                 onTrySite: actions.select,
               } : null}
             />
-          ) : <>
-            <HorizonStrip
-              title={`${p.data.site.name} · ${formatLat(p.data.site.lat)}, ${formatLon(p.data.site.lon)}`}
-              horizon={p.data.horizon.elevationDeg}
-              sun={{ az: p.data.sun.az[i], el: p.data.sun.el[i], visible: p.lit[i] }}
-              earth={{ az: p.data.earth.az[i], el: p.data.earth.el[i], visible: p.contact[i] }}
-              sunTrack={p.data.sun} earthTrack={p.data.earth}
-            />
-            <main className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-5 p-3 pt-5 sm:p-5 lg:min-h-0 lg:flex-1 lg:grid-cols-[16.5rem_minmax(0,1fr)_22rem] xl:grid-cols-[17.5rem_minmax(0,1fr)_24rem]">
+          ) : <main className="mx-auto w-full max-w-[1600px] px-5 pb-14 pt-8 sm:px-8 lg:pt-10">
+            <header className="mb-8 max-w-3xl">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Planificador · Polo sur lunar</p>
+              <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">Encuentra dónde alunizar.</h1>
+              <p className="mt-3 text-base leading-relaxed text-ink-muted">Elige un sitio y una fecha. Descubre cuánta luz tendrá tu misión, cuándo podrá comunicarse con la Tierra y cómo es el terreno.</p>
+            </header>
+            <div className="grid items-start gap-8 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
               <SiteSelector sites={sites} selectedId={p.data.site.id} summaries={views} errors={state.dataErrors} onSelect={actions.select} />
-              <div className="flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5">
-                <ViewerPanel data={p.data} index={i} contact={p.contact[i]} />
+              <div className="min-w-0 space-y-7">
+                <section aria-label="Fecha y duración del plan" className="grid items-end gap-5 border-y border-seam bg-hull/30 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">
+                  <div>
+                    <label htmlFor="explore-date" className="mb-2 block text-sm text-ink-muted">Fecha de alunizaje · UTC</label>
+                    <input id="explore-date" type="datetime-local" step={3600} value={toInputValue(sampleTime(p.data, i))}
+                      min={toInputValue(sampleTime(p.data, 0))} max={toInputValue(sampleTime(p.data, p.data.sun.el.length - 1))}
+                      onChange={e => { const date = fromInputValue(e.target.value); if (date && e.target.validity.valid) seek(indexAt(p.data, date, p.data.sun.el.length)) }}
+                      className="min-h-12 w-full min-w-0 border border-seam-strong bg-void px-3 text-base text-ink" />
+                  </div>
+                  <div><p className="mb-2 text-sm text-ink-muted">Días en la superficie</p>
+                    <Segmented label="Duración de la misión" options={MISSION_LENGTHS.some(o => o.value === String(missionDays)) ? MISSION_LENGTHS : [...MISSION_LENGTHS, { value: String(missionDays), label: `${missionDays} d` }]} value={String(missionDays)} onChange={v => actions.setMissionDays(Number(v))} className="min-h-12 w-full items-center [&_button]:min-h-10" />
+                  </div>
+                </section>
+                <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+                  <div className="min-w-0">
+                    <div className="h-[27rem] min-w-0 sm:h-[31rem]"><ViewerPanel data={p.data} index={i} contact={p.contact[i]} immersive /></div>
+                    <p className="mt-3 text-xs leading-relaxed text-ink-muted">{p.data.site.description}</p>
+                  </div>
+                  {rec && <Viability p={p} rec={rec} onSimulate={() => { actions.setPlaying(false); setDraftStart(rec.window.from); actions.setMode('simulate') }} />}
+                </div>
                 <Timeline p={p} index={i} playing={state.playing} speed={state.speed} onIndex={seek} onTogglePlay={actions.togglePlay} onSpeed={actions.setSpeed} />
+                {rec && <PlanAlternatives p={p} rec={rec} onSelect={actions.select} onSeek={seek} />}
+                <Disclosure title="Entender el cielo y el relieve" description="Ve por qué una cresta puede cortar la luz o la comunicación con la Tierra.">
+                  <HorizonStrip title={`${p.data.site.name} · ${formatLat(p.data.site.lat)}, ${formatLon(p.data.site.lon)}`}
+                    horizon={p.data.horizon.elevationDeg} sun={{ az: p.data.sun.az[i], el: p.data.sun.el[i], visible: p.lit[i] }}
+                    earth={{ az: p.data.earth.az[i], el: p.data.earth.el[i], visible: p.contact[i] }} sunTrack={p.data.sun} earthTrack={p.data.earth} />
+                  <div className="mt-7 grid items-start gap-6 xl:grid-cols-2">
+                    <SkyPlot horizon={p.data.horizon.elevationDeg} sun={{ az: p.data.sun.az[i], el: p.data.sun.el[i], visible: p.lit[i] }}
+                      earth={{ az: p.data.earth.az[i], el: p.data.earth.el[i], visible: p.contact[i] }} sunTrack={p.data.sun} earthTrack={p.data.earth} />
+                    <Now p={p} index={i} />
+                  </div>
+                </Disclosure>
               </div>
-              <div className="flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5">
-                {rec && <Viability p={p} rec={rec} missionDays={missionDays} onMissionDays={actions.setMissionDays} onSelect={actions.select} onSeek={actions.setIndex} />}
-                <SkyPlot
-                  horizon={p.data.horizon.elevationDeg}
-                  sun={{ az: p.data.sun.az[i], el: p.data.sun.el[i], visible: p.lit[i] }}
-                  earth={{ az: p.data.earth.az[i], el: p.data.earth.el[i], visible: p.contact[i] }}
-                  sunTrack={p.data.sun} earthTrack={p.data.earth}
-                />
-                <Now p={p} index={i} />
-              </div>
-            </main>
-          </>}
+            </div>
+          </main>}
 
         </>
       )}
@@ -435,17 +452,11 @@ const VERDICT_TONE: Record<Verdict, Tone> = { good: 'ok', fair: 'caution', poor:
 function Viability({
   p,
   rec,
-  missionDays,
-  onMissionDays,
-  onSelect,
-  onSeek,
+  onSimulate,
 }: {
   p: SiteView
   rec: Recommendation
-  missionDays: number
-  onMissionDays: (days: number) => void
-  onSelect: (id: string) => void
-  onSeek: (index: number) => void
+  onSimulate: () => void
 }) {
   const r = p.result
   const v = Math.round(r.score)
@@ -453,35 +464,21 @@ function Viability({
   const limit = r.factors[r.limiting].lost >= 5 ? r.limiting : null
   const from = sampleTime(p.data, rec.window.from)
   const to = sampleTime(p.data, rec.window.to)
-  const lengthKey = String(missionDays)
-  const lengths = MISSION_LENGTHS.some((o) => o.value === lengthKey)
-    ? MISSION_LENGTHS
-    : [...MISSION_LENGTHS, { value: lengthKey, label: `${missionDays} d` }]
 
   return (
-    <Panel
-      label="Viabilidad de la misión"
-      actions={
+    <section aria-label="Viabilidad del plan" className="min-w-0 bg-hull/40 p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-base font-bold text-ink">¿Conviene alunizar aquí?</h2>
         <InfoTip label="Viabilidad" align="end">
           Combina el % de tiempo con luz solar, el % con contacto directo con la Tierra y la pendiente del terreno
           (hasta 5° es cómoda; desde 10° la mayoría de los módulos no puede alunizar), durante los días de la misión.
-          El número junto a cada factor es cuánto pesa. Mueve la línea de tiempo para cambiar la fecha de alunizaje.
+          Es un índice de condiciones, no una probabilidad de éxito. Mueve la línea de tiempo para cambiar la fecha de alunizaje.
         </InfoTip>
-      }
-    >
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <p className="text-xs leading-relaxed text-ink-muted">
+      </div>
+        <p className="mt-3 text-xs leading-relaxed text-ink-muted">
           <span className="text-ink">{formatShortDateTime(from)}</span> → <span className="text-ink">{formatShortDateTime(to)}</span>
           {rec.window.shifted && <span className="block text-ink-faint">Se adelantó el inicio para que la misión entre en los datos.</span>}
         </p>
-        <Segmented
-          label="Duración de la misión"
-          size="sm"
-          options={lengths}
-          value={lengthKey}
-          onChange={(d) => onMissionDays(Number(d))}
-        />
-      </div>
 
       <div className="mt-4 flex items-end gap-3">
         <p className="flex items-baseline">
@@ -492,17 +489,7 @@ function Viability({
           {VERDICT_LABEL[r.verdict]}
         </Badge>
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-ink-muted">{r.summary}</p>
-      {r.warnings.length > 0 && (
-        <ul className="mt-3 flex flex-col gap-1.5" aria-label="Avisos">
-          {r.warnings.map((w) => (
-            <li key={w} className="flex items-start gap-2 text-xs leading-relaxed text-ink-muted">
-              <span aria-hidden className="mt-1.5 size-1.5 shrink-0 bg-caution" />
-              {w}
-            </li>
-          ))}
-        </ul>
-      )}
+      <p className="mt-3 text-sm leading-relaxed text-ink-muted">Luz, comunicación y terreno durante tu estancia.</p>
 
       <div className="mt-5 flex flex-col gap-3.5">
         <Factor
@@ -529,24 +516,35 @@ function Viability({
           bar="bg-ink-muted"
           limiting={limit === 'slope'}
         />
+        {r.factors.slope.score === 0 && <p className="text-xs leading-relaxed text-caution">Pendiente peligrosa para el alunizaje.</p>}
       </div>
+      <p className="mt-4 text-xs leading-relaxed text-ink-muted">Índice de condiciones del sitio. Para comprobar si la batería alcanza, simula tu módulo.</p>
+      <Button variant="primary" size="lg" className="mt-5 w-full" onClick={onSimulate}>Simular este plan →</Button>
+    </section>
+  )
+}
 
-      <div className="mt-5 border-t border-seam pt-4">
-        <p className="instrument-label">Recomendación</p>
+function PlanAlternatives({ p, rec, onSelect, onSeek }: { p: SiteView; rec: Recommendation; onSelect: (id: string) => void; onSeek: (index: number) => void }) {
+  return <section aria-label="Recomendaciones para el plan" className="py-2">
+        <h2 className="text-xl font-bold text-ink">Entiende tu resultado.</h2>
+        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-muted">{p.result.summary}</p>
+        {p.result.warnings.length > 0 && <p className="mt-3 text-sm leading-relaxed text-caution">{p.result.warnings.join(' ')}</p>}
         {rec.betterDate || rec.betterSite ? (
-          <ul className="mt-2 flex flex-col gap-4">
+          <ul className="mt-5 grid gap-6 sm:grid-cols-2">
             {rec.betterDate && rec.dateMessage && (
               <li>
+                <h3 className="mb-2 text-sm font-bold text-ink">Prueba otra fecha</h3>
                 <p className="text-sm leading-relaxed text-ink-muted">{rec.dateMessage}</p>
-                <Button size="sm" className="mt-2" onClick={() => onSeek(rec.betterDate!.startIndex)}>
+                <Button className="mt-3 min-h-11" onClick={() => onSeek(rec.betterDate!.startIndex)}>
                   Probar esa fecha
                 </Button>
               </li>
             )}
             {rec.betterSite && rec.siteMessage && (
               <li>
+                <h3 className="mb-2 text-sm font-bold text-ink">Compara otro sitio</h3>
                 <p className="text-sm leading-relaxed text-ink-muted">{rec.siteMessage}</p>
-                <Button size="sm" className="mt-2" onClick={() => onSelect(rec.betterSite!.siteId)}>
+                <Button className="mt-3 min-h-11" onClick={() => onSelect(rec.betterSite!.siteId)}>
                   Ver {rec.betterSite.name}
                 </Button>
               </li>
@@ -555,9 +553,7 @@ function Viability({
         ) : (
           <p className="mt-2 text-sm leading-relaxed text-ink-muted">{rec.message}</p>
         )}
-      </div>
-    </Panel>
-  )
+    </section>
 }
 
 /** "18 ene, 06:00" para rangos cortos dentro del mismo periodo. */
@@ -585,11 +581,12 @@ function Factor({
     <div>
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm text-ink-muted">
-          {label} <span className="font-mono text-[0.625rem] text-ink-faint">×{weight.toFixed(2)}</span>
-          {limiting && <span className="ml-2 text-[0.625rem] font-bold uppercase tracking-[0.06em] text-caution">Más resta</span>}
+          {label}
         </span>
         <span className="font-mono text-sm text-ink">{value}</span>
       </div>
+      {limiting && <p className="mt-1 text-xs text-caution">Es lo que más limita este plan</p>}
+      <span className="sr-only">Peso en el índice: {Math.round(weight * 100)} %.</span>
       <div className="mt-1.5 h-1 overflow-hidden bg-hull-raised">
         <div className={cx('h-full', bar)} style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
       </div>

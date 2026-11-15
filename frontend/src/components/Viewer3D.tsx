@@ -8,11 +8,12 @@
 // el horizonte LOLA de 150 km. Si una montaña fuera del recorte de 20 km tapa el Sol, la escena queda a oscuras
 // aunque el modelo no proyecte esa sombra.
 
-import { OrbitControls, useGLTF, useTexture } from '@react-three/drei'
+import { OrbitControls, useGLTF } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+import { SpaceBackground } from './SpaceBackground'
 
 export interface Sky {
   sunAz: number
@@ -163,22 +164,6 @@ function Lights({ sky }: { sky: Sky }) {
   )
 }
 
-function Stars() {
-  const tex = useTexture('/textures/stars.jpg')
-  const { scene } = useThree()
-  useEffect(() => {
-    tex.mapping = THREE.EquirectangularReflectionMapping
-    tex.colorSpace = THREE.SRGBColorSpace
-    scene.background = tex
-    // Tenue: desde el suelo iluminado una cámara real casi no ve estrellas.
-    scene.backgroundIntensity = 0.08
-    return () => {
-      scene.background = null
-    }
-  }, [tex, scene])
-  return null
-}
-
 /** Coloca la cámara al cambiar de sitio: de lado al Sol, para ver las sombras largas. */
 function CameraRig({ siteId, sky, groundY, controls }: { siteId: string; sky: Sky; groundY: number; controls: RefObject<OrbitControlsImpl | null> }) {
   const { camera } = useThree()
@@ -225,7 +210,7 @@ export default function Viewer3D({
       aria-hidden
     >
       <Suspense fallback={null}>
-        <Stars />
+        <SpaceBackground />
         <Lights sky={sky} />
         <Terrain siteId={siteId} onGroundHeight={onGroundHeight} />
         <Lander groundY={groundY} sky={sky} />

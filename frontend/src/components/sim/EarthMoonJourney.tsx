@@ -1,7 +1,7 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { formatDateTime, formatDuration } from '../../lib/time'
 import { journeyAt, lunarTransfer } from '../../sim/transfer'
-import { Button } from '../ui'
+import { Button, Disclosure } from '../ui'
 
 const TransferViewer = lazy(() => import('./TransferViewer'))
 
@@ -91,8 +91,7 @@ export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: 
           <div className="flex justify-between gap-4"><dt className="text-ink-muted">Velocidad respecto a la Tierra</dt><dd className="tabular-nums text-ink">{launch ? '—' : sample.speedKmS.toFixed(2) + ' km/s'}</dd></div>
         </dl>
         <Button variant="primary" size="lg" className="mt-6 w-full" onClick={onArrive}>Evaluar misión en la Luna →</Button>
-        <details className="mt-4 text-sm">
-          <summary className="cursor-pointer py-2 text-ink-muted hover:text-ink">Cómo se calcula y fuentes</summary>
+        <Disclosure className="mt-4" title="Cómo se calcula el viaje" description="Modelo orbital, límites y fuentes de NASA.">
           <div className="mt-2 space-y-3 text-xs leading-relaxed text-ink-muted">
             <p>Elipse de dos cuerpos, órbita inicial de 200 km y Luna circular a distancia media. La fase lunar se ajusta para un encuentro ideal a 100 km de su superficie. No usa efemérides de lanzamiento ni modela gravedad lunar o solar, captura, descenso o consumo del cohete.</p>
             <p>La batería y los datos del módulo se simulan desde el alunizaje, por separado del viaje.</p>
@@ -101,7 +100,7 @@ export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: 
             <p><a className="underline underline-offset-4" href="https://ssd.jpl.nasa.gov/astro_par.html" target="_blank" rel="noreferrer">Constantes JPL</a> · <a className="underline underline-offset-4" href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html" target="_blank" rel="noreferrer">Datos Tierra–Luna de NASA</a>.</p>
             <p>Modelos de referencia: Tierra Blue Marble, Saturn V y módulo Apolo adaptado (NASA). No representan un vehículo CLPS concreto. Textura lunar: <a className="underline underline-offset-4" href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noreferrer">Solar System Scope</a>, <a className="underline underline-offset-4" href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>.</p>
           </div>
-        </details>
+        </Disclosure>
       </div>
     </div>
     <p className="mt-4 text-sm text-ink-muted">Tiempo acelerado. Puedes pausar, arrastrar la línea de tiempo o usar las flechas del teclado para recorrer el viaje.</p>

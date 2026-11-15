@@ -5,6 +5,7 @@ import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
 import { EARTH_RADIUS_KM, MOON_RADIUS_KM, transferAt, type journeyAt, type TransferOrbit } from '../../sim/transfer'
 import { encounterFrame } from '../../sim/transferView'
+import { SpaceBackground } from '../SpaceBackground'
 
 const KM_PER_UNIT = 50000
 const smooth = (from: number, to: number, x: number) => { const t = Math.max(0, Math.min(1, (x - from) / (to - from))); return t * t * (3 - 2 * t) }
@@ -102,6 +103,7 @@ function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
   })
 
   return <>
+    <SpaceBackground />
     <ambientLight intensity={0.75} />
     <directionalLight position={[8, 5, 10]} intensity={3} />
     <group ref={earthGroup} scale={EARTH_RADIUS_KM * 2 / KM_PER_UNIT}>

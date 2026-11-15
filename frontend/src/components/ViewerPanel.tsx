@@ -72,13 +72,14 @@ export function ViewerPanel({ data, index, contact, missionState, immersive = fa
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 p-5 sm:p-6">
         <div>
           <Badge>{CATEGORY_LABEL[s.category]}</Badge>
-          <Heading className="mt-3 max-w-xl font-display text-4xl font-extrabold uppercase leading-[0.9] tracking-[0.01em] xl:text-5xl">
+          <Heading className="mt-3 max-w-xl font-display text-3xl font-extrabold uppercase leading-[0.95] tracking-[0.01em] sm:text-4xl xl:text-5xl">
             {s.name}
           </Heading>
           <p className="mt-2 font-mono text-xs text-ink-muted">{formatCoords(s)}</p>
         </div>
-        <Button size="sm" className="pointer-events-auto shrink-0 bg-void/70" onClick={() => setResetKey((k) => k + 1)}>
-          Restablecer vista
+        <Button size="sm" aria-label="Restablecer vista" className="pointer-events-auto min-h-11 shrink-0 bg-void/90" onClick={() => setResetKey((k) => k + 1)}>
+          <svg aria-hidden viewBox="0 0 20 20" className="size-4"><path d="M4 6v4h4M4.5 9a6 6 0 1 1 1 5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+          <span className="hidden sm:inline">Restablecer</span>
         </Button>
       </div>
 

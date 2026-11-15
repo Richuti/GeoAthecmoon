@@ -7,7 +7,7 @@ import { windows } from '../../lib/visibility'
 import { MIN_SOC } from '../../sim/lander'
 import type { EventType, SimResult } from '../../sim/simulate'
 import type { SiteData } from '../../types'
-import { cx, Stat, StatGrid } from '../ui'
+import { cx, Disclosure, Stat, StatGrid } from '../ui'
 
 const EVENT_COLOR: Record<EventType, string> = {
   landing: 'bg-ink',
@@ -184,8 +184,7 @@ function EventLog({ events, index, onSeek }: { events: SimResult['events']; inde
   }, [lastPast])
 
   return (
-    <details className="mt-5">
-      <summary className="cursor-pointer py-2 text-sm text-ink-muted hover:text-ink">Registro de la misión · {events.length} eventos</summary>
+    <Disclosure className="mt-5" title={`Registro de la misión · ${events.length} eventos`} description="Selecciona un evento para ver ese momento en la simulación.">
       <ol ref={list} className="relative mt-2 max-h-56 overflow-y-auto pr-1">
         {events.map((e, j) => {
           const past = e.index <= index
@@ -207,6 +206,6 @@ function EventLog({ events, index, onSeek }: { events: SimResult['events']; inde
           )
         })}
       </ol>
-    </details>
+    </Disclosure>
   )
 }

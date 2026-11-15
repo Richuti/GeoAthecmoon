@@ -9,9 +9,12 @@ import {
   type LanderConfig,
   type PresetId,
 } from '../../sim/lander'
-import { Button, cx, Slider } from '../ui'
+import { Button, cx, Disclosure, Select, Slider } from '../ui'
 
-const PRESET_OPTIONS = (Object.keys(PRESETS) as PresetId[]).map((id) => ({ value: id, label: PRESETS[id].label }))
+const PRESET_OPTIONS = (Object.keys(PRESETS) as PresetId[]).map((id) => ({ value: id, label: PRESETS[id].label,
+  description: PRESETS[id].description,
+  meta: `${PRESETS[id].config.batteryKWh} kWh de batería · ${PRESETS[id].config.panelAreaM2} m² de panel`,
+}))
 
 export function MissionSetup({
   preset,
@@ -58,7 +61,7 @@ export function MissionSetup({
 
   return (
     <section aria-label="Configurar misión">
-      <div className="grid items-end gap-6 sm:grid-cols-2">
+      <div className="grid items-start gap-6 sm:grid-cols-2">
           {siteControl}
 
             <div>
@@ -66,11 +69,11 @@ export function MissionSetup({
               <input id="mission-date" type="datetime-local" value={toInputValue(timelineDate)}
                 min={toInputValue(minDate)} max={toInputValue(maxDate)} step={3600}
                 onChange={(e) => { if (e.target.validity.valid && e.target.value) onDate(e.target.value) }}
-                className="min-h-12 w-full min-w-0 rounded-hw border border-seam-strong bg-hull px-3 text-base text-ink" />
+                className="min-h-14 w-full min-w-0 border border-seam-strong bg-hull px-4 text-base text-ink" />
             </div>
             <div>
               <label htmlFor="mission-days" className="mb-2 block text-sm text-ink-muted">Tiempo en la superficie</label>
-              <div className="flex min-h-12 items-center gap-2 rounded-hw border border-seam-strong bg-hull px-3">
+              <div className="flex min-h-14 items-center gap-2 border border-seam-strong bg-hull px-4">
                 <input id="mission-days" aria-label="Duración de la misión en días" type="number" min={1} max={maxDays} value={daysInput}
                   onChange={(e) => {
                     setDaysInput(e.target.value)
@@ -82,14 +85,14 @@ export function MissionSetup({
                 <span className="text-xs text-ink-muted">días</span>
               </div>
             </div>
-            <div>
-              <label htmlFor="mission-module" className="mb-2 block text-sm text-ink-muted">Módulo de la misión</label>
-              <select id="mission-module" value={preset ?? 'custom'} onChange={(e) => onPreset(e.target.value as PresetId)}
-                className="min-h-12 w-full rounded-hw border border-seam-strong bg-hull px-3 text-base text-ink">
-                {!preset && <option value="custom" disabled>Personalizado</option>}
-                {PRESET_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
+            <Select id="mission-module" label="Módulo de la misión" value={preset ?? 'custom'} onChange={v => onPreset(v as PresetId)}
+              options={preset ? PRESET_OPTIONS : [{ value: 'custom', label: 'Personalizado', disabled: true, description: 'Con los parámetros que ajustaste.' }, ...PRESET_OPTIONS]}
+              hint={preset ? `${PRESETS[preset].description} Configuración de referencia.` : 'Estás usando tus propios ajustes.'} />
+            <dl aria-label="Capacidad del módulo elegido" className="grid grid-cols-3 gap-4 border-y border-seam py-4 sm:col-span-2">
+              <Derived label="Panel solar" value={`${Math.round(peak)} W pico`} tone="text-sun" />
+              <Derived label="Batería" value={`${cfg.batteryKWh.toLocaleString('es')} kWh`} />
+              <Derived label="Sin Sol" value={formatDuration(autonomyHours(cfg))} />
+            </dl>
             <Button variant="primary" size="lg" className="min-h-12 w-full sm:col-span-2" onClick={onSimulate}>
               {actionLabel ?? (landingDate === null ? 'Simular misión' : 'Volver a simular')}
             </Button>
@@ -97,11 +100,10 @@ export function MissionSetup({
 
       {landingDate && landingDate.getTime() !== timelineDate.getTime() && <p role="status" className="mt-3 text-sm text-ink-muted">Cambiaste la fecha. Evalúa de nuevo el alunizaje para actualizar el resultado.</p>}
 
-          <details className="mt-6 border-t border-seam">
-            <summary className="min-h-12 cursor-pointer py-4 text-base font-bold text-ink hover:text-white">Ajustes avanzados del módulo</summary>
+          <Disclosure className="mt-6" title="Ajustes avanzados del módulo" description="Batería, paneles solares, instrumentos y envío de datos.">
             <p className="mt-2 text-sm leading-relaxed text-ink-muted">Puedes empezar con el módulo elegido. Abre estos ajustes si quieres cambiar la batería, los paneles o los instrumentos. Los módulos son configuraciones de referencia.</p>
-            <div className="mt-4 grid gap-x-8 gap-y-5 rounded-hw bg-hull p-5 sm:grid-cols-2 xl:grid-cols-4">
-              <p className="instrument-label col-span-full">Energía</p>
+            <div className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+              <p className="col-span-full text-sm font-bold text-sun">Energía y autonomía</p>
               <Slider label="Área del panel" unit="m²" tone="sun" {...range('panelAreaM2')} value={cfg.panelAreaM2} onChange={set('panelAreaM2')}
                 format={(v) => v.toFixed(2)} hint="Superficie de celdas solares. Más área, más energía." />
               <Slider label="Eficiencia del panel" unit="%" tone="sun" {...range('panelEfficiency')} value={cfg.panelEfficiency}
@@ -123,14 +125,14 @@ export function MissionSetup({
                   tone={Number.isFinite(minSun) ? undefined : 'text-critical'} />
               </dl>
 
-              <p className="instrument-label col-span-full mt-1">Datos</p>
+              <p className="col-span-full mt-2 border-t border-seam pt-5 text-sm font-bold text-earth">Comunicación con la Tierra</p>
               <Slider label="Datos generados" unit="Mb/día" tone="earth" {...range('dataPerDayMb')} value={cfg.dataPerDayMb}
                 onChange={set('dataPerDayMb')} format={(v) => v.toLocaleString('es')} hint="Cuántos datos producen los instrumentos por día." />
               <Slider label="Velocidad de envío" unit="Mb/h" tone="earth" {...range('downlinkMbPerHour')} value={cfg.downlinkMbPerHour}
                 onChange={set('downlinkMbPerHour')} format={(v) => v.toLocaleString('es')} hint="Datos que se envían por hora mientras se ve la Tierra." />
 
             </div>
-          </details>
+          </Disclosure>
 
     </section>
   )
@@ -139,8 +141,8 @@ export function MissionSetup({
 function Derived({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
     <div className="min-w-0">
-      <dt className="instrument-label text-[0.625rem]">{label}</dt>
-      <dd className={cx('mt-1 font-mono text-sm text-ink', tone)}>{value}</dd>
+      <dt className="text-xs text-ink-muted">{label}</dt>
+      <dd className={cx('mt-2 text-base font-bold tabular-nums text-ink', tone)}>{value}</dd>
     </div>
   )
 }

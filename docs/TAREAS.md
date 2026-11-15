@@ -25,6 +25,9 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ## Hecho
 
+- **Mejora del planificador y desplegables (14 nov), implementada; pendiente de revisión y subida de Richard:** Explorar sitio reorganizado con lista comparativa etiquetada, fecha UTC y duración visibles, terreno amplio, viabilidad explicada y paso al simulador con el mismo plan. Scroll único; horizonte, gráfico polar y detalles de posición bajo apertura voluntaria. Nuevos `Select` y `Disclosure` compartidos: módulos con descripción/batería/panel, sitios con contexto, controles por teclado y menús que no se recortan. Ajustes de energía y comunicación en dos columnas legibles. No cambian los datos ni el motor de cálculo. Detalle del diseño en `docs/DISENO.md`.
+  - **Verificado:** 277 pruebas y build; capturas a 1440 y 390 px, además de 320 y 768 px. Selección con flechas, Enter, Escape, búsqueda por letras y Tab; selección y scroll táctil. El plan se conserva al abrir el simulador, y Malapert el 15 ene 2027 con Explorador ligero sobrevive los 14 días con tolerancia de 4 días y 6 horas. Sin errores de JavaScript ni desbordamientos horizontales en las vistas revisadas.
+
 - [x] **1. Base del proyecto:** Vite, React, TypeScript y Tailwind, con un layout de bloques placeholder.
 - [x] **2. Contrato de datos:** `src/types.ts` y `docs/CONTRATO_DATOS.md`.
 

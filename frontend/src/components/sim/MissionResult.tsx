@@ -4,7 +4,7 @@ import type { DelayTolerance, StartResult, ViableStart } from '../../sim/search'
 import type { SimResult } from '../../sim/simulate'
 import type { SiteData } from '../../types'
 import { VERDICT_LABEL, type ViabilityResult } from '../../lib/viability'
-import { Button, cx } from '../ui'
+import { Button, cx, Disclosure } from '../ui'
 
 export interface MissionResultProps {
   data: SiteData
@@ -44,8 +44,7 @@ export function MissionResult({ data, result, tolerance, assessment }: MissionRe
         {s.survived ? `Sobrevive los ${result.plan.missionDays} días.` : `Sin energía el día ${failDay}.`}
       </p>
       {assessment.cappedByMission && <p className="mt-2 text-xs leading-relaxed text-ink-muted">Con este módulo, la energía insuficiente limita la viabilidad al 40 %.</p>}
-      <details className="mt-2 text-sm">
-        <summary className="cursor-pointer py-2 text-ink-muted hover:text-ink">Balance del módulo y tolerancia a atrasos</summary>
+      <Disclosure className="mt-5" title="Balance y tolerancia a atrasos" description="Batería, datos enviados y margen si cambia el alunizaje.">
         <dl className="mt-3 space-y-3 text-sm">
         <div className="flex items-baseline justify-between gap-4"><dt className="text-ink-muted">Batería más baja</dt><dd className={cx('font-bold tabular-nums', s.survived ? 'text-sun' : 'text-critical')}>{Math.round(s.minSocPct)} %</dd></div>
         <div className="flex items-baseline justify-between gap-4"><dt className="text-ink-muted">Datos que llegan a la Tierra</dt><dd className="font-bold tabular-nums text-earth">{Math.round(s.dataSentPct)} %</dd></div>
@@ -55,7 +54,7 @@ export function MissionResult({ data, result, tolerance, assessment }: MissionRe
         <h3 className="text-sm font-bold text-ink">¿Y si el alunizaje se atrasa?</h3>
         <p className="mt-2 text-sm leading-relaxed text-ink-muted">{toleranceText(tolerance)}</p>
       </div>
-      </details>
+      </Disclosure>
       <p className="mt-auto pt-5 text-xs leading-relaxed text-ink-faint">Alunizaje: {formatDateTime(sampleTime(data, result.from))}. Resultado calculado con luz, comunicación y el módulo elegido.</p>
     </section>
   )

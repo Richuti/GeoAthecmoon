@@ -58,6 +58,8 @@ La acción principal es **neutra** (fondo `ink`, texto `void`). El ámbar y el a
 |---|---|
 | `Panel` | Marco de instrumento: línea fina, esquinas rectas y el nombre **incrustado en el borde superior**, como en un plano técnico. Admite un control chico en el borde derecho (por ejemplo un `InfoTip`). |
 | `Button` | `primary` (neutro claro), `secondary` (con borde) y `ghost`. Esquinas de 3 px. |
+| `Select` | Selector de sitio o módulo: control de al menos 56 px, menú en portal para evitar recortes, opciones con descripción y datos reales de configuración. Flechas, Inicio/Fin, búsqueda por letras, Enter, Escape y Tab; foco en el control y opción activa anunciada. |
+| `Disclosure` | Detalle técnico plegable con título, explicación y chevrón. Cabecera de al menos 64 px; mismo tratamiento en ajustes, fuentes, balance y eventos. |
 | `Segmented` | Elegir una opción entre pocas: modo, velocidad o preset. |
 | `Slider` | Etiqueta, valor con unidad y pista que se llena con el color del dato (`sun` para energía, `earth` para datos). |
 | `Stat` / `StatGrid` | Una métrica: rótulo, valor y detalle. |
@@ -68,6 +70,8 @@ La acción principal es **neutra** (fondo `ink`, texto `void`). El ámbar y el a
 ---
 
 ## Reglas de calidad
+
+En **Explorar sitio**, la lectura sigue sitio → fecha y duración → terreno y viabilidad → evolución temporal → recomendaciones. La página usa un único scroll; la lista de sitios permanece a mano en escritorio y se pliega en móvil. Los porcentajes de luz y contacto llevan su etiqueta y corresponden al mismo plan, no al año completo. El horizonte y el gráfico polar se abren en «Entender el cielo y el relieve». «Simular este plan» conserva sitio, fecha y duración. La viabilidad es un índice de condiciones; el simulador comprueba la energía del módulo.
 
 - **Accesibilidad:** foco visible (contorno claro de 2 px), contraste AA, controles con nombre accesible y tooltips que se abren con teclado.
 - **Movimiento:** solo transiciones cortas (150–300 ms). Se respeta `prefers-reduced-motion`.

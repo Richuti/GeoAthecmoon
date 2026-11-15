@@ -1,5 +1,7 @@
 export { Badge } from './Badge'
 export { Button } from './Button'
+export { Disclosure } from './Disclosure'
+export { Select, type SelectOption } from './Select'
 export { cx, toneBg, toneText, toneVar, type Tone } from './cx'
 export { EmptyState } from './EmptyState'
 export { InfoTip } from './InfoTip'
