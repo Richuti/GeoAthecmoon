@@ -161,6 +161,17 @@ export function validMessages(value: unknown): Message[] | null {
 /** Con la interfaz en inglés, el texto que lee el usuario (idea y explicación) va en inglés. */
 const ENGLISH = '\n\nIMPORTANT: the user interface is in English. Write every natural-language field (idea, rationale and any explanation) in English, not Spanish, even though these instructions are in Spanish. Keep the same rules (no figures in the rationale).'
 
+/**
+ * Instrucciones y herramientas en el idioma de la interfaz. No basta con avisar en el prompt: el modelo sigue
+ * la descripción de cada campo («rationale … en español»), así que esa frase también se cambia.
+ */
+export function modeFor(mode: CopilotMode, lang: unknown): { prompt: string; tools: unknown } {
+  const m = MODES[mode]
+  if (lang !== 'en') return m
+  const toEnglish = (s: string) => s.replaceAll('en español', 'en inglés (English)')
+  return { prompt: toEnglish(m.prompt) + ENGLISH, tools: JSON.parse(toEnglish(JSON.stringify(m.tools))) }
+}
+
 export async function POST(request: Request): Promise<Response> {
   const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {}
   const key = env.OPENAI_API_KEY?.trim()
@@ -178,7 +189,7 @@ export async function POST(request: Request): Promise<Response> {
   const messages = validMessages((body as { messages?: unknown })?.messages)
   const requested = (body as { mode?: unknown })?.mode ?? 'rescue'
   if (typeof requested !== 'string' || !(requested in MODES)) return json({ error: 'bad-request' }, 400)
-  const mode = MODES[requested as CopilotMode]
+  const mode = modeFor(requested as CopilotMode, (body as { lang?: unknown })?.lang)
   if (!messages) return json({ error: 'bad-request' }, 400)
 
   let res: Response
@@ -188,7 +199,7 @@ export async function POST(request: Request): Promise<Response> {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
       body: JSON.stringify({
         model: env.OPENAI_MODEL?.trim() || DEFAULT_MODEL,
-        messages: [{ role: 'system', content: mode.prompt + ((body as { lang?: unknown })?.lang === 'en' ? ENGLISH : '') }, ...messages],
+        messages: [{ role: 'system', content: mode.prompt }, ...messages],
         tools: mode.tools,
         tool_choice: 'required',
         parallel_tool_calls: true,

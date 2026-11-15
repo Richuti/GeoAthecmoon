@@ -230,33 +230,3 @@
     scroll-behavior: auto !important;
   }
 }
-
-/* Selector de idioma EN / ES (src/i18n): marco fino, como los paneles. */
-.lang-toggle {
-  position: fixed;
-  left: 12px;
-  bottom: 12px;
-  z-index: 60;
-  display: flex;
-  border: 1px solid color-mix(in srgb, var(--color-ink) 22%, transparent);
-  background: color-mix(in srgb, var(--color-hull) 88%, transparent);
-  backdrop-filter: blur(6px);
-  font-family: var(--font-sans);
-}
-.lang-toggle button {
-  min-width: 40px;
-  min-height: 32px;
-  padding: 0 10px;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: var(--color-ink-faint);
-  cursor: pointer;
-}
-.lang-toggle button[aria-pressed="true"] {
-  color: var(--color-ink);
-  background: var(--color-hull-raised);
-}
-.lang-toggle button:focus-visible {
-  outline: 2px solid var(--color-earth);
-  outline-offset: -2px;
-}

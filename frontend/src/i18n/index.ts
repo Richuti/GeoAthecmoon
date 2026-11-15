@@ -96,6 +96,13 @@ const observer = typeof MutationObserver === 'undefined' ? null : new MutationOb
 
 export function getLang(): Lang { return lang }
 
+/** Avisos de cambio de idioma (el selector EN / ES de la cabecera, `LangToggle.tsx`). */
+const listeners = new Set<() => void>()
+export function onLangChange(fn: () => void): () => void {
+  listeners.add(fn)
+  return () => { listeners.delete(fn) }
+}
+
 export function setLang(next: Lang) {
   lang = next
   try { localStorage.setItem(STORE_KEY, next) } catch { /* sin almacenamiento: no pasa nada */ }
@@ -107,33 +114,7 @@ export function setLang(next: Lang) {
   } else {
     restore()
   }
-  renderToggle()
-}
-
-// --- Selector EN / ES ------------------------------------------------------------------------------
-
-let toggle: HTMLDivElement | null = null
-
-function renderToggle() {
-  if (!document.body) return
-  if (!toggle) {
-    toggle = document.createElement('div')
-    toggle.setAttribute('translate', 'no')
-    toggle.setAttribute('role', 'group')
-    toggle.setAttribute('aria-label', 'Language / Idioma')
-    toggle.className = 'lang-toggle'
-    for (const l of ['en', 'es'] as const) {
-      const b = document.createElement('button')
-      b.type = 'button'
-      b.textContent = l.toUpperCase()
-      b.dataset.lang = l
-      b.setAttribute('aria-label', l === 'en' ? 'English' : 'Español')
-      b.addEventListener('click', () => setLang(l))
-      toggle.appendChild(b)
-    }
-    document.body.appendChild(toggle)
-  }
-  toggle.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)))
+  listeners.forEach((fn) => fn())
 }
 
 function initialLang(): Lang {

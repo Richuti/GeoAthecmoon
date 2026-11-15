@@ -97,13 +97,13 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
 
   return <section aria-label="Viaje Tierra–Luna">
     <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-4 border-y border-seam py-4">
-      <Button variant="primary" size="lg" disabled={!ready && !failed} aria-label={playing ? 'Pausar viaje' : progress > 0 && !complete ? 'Continuar viaje' : 'Reproducir viaje'} onClick={() => { if (complete) setProgress(0); setPlaying(p => !p) }}>{!ready && !failed ? 'Cargando viaje…' : playing ? 'Pausar viaje' : complete ? 'Repetir viaje' : progress > 0 ? 'Continuar viaje' : 'Iniciar viaje'}</Button>
+      <Button variant="primary" size="lg" data-tour="sim-start" disabled={!ready && !failed} aria-label={playing ? 'Pausar viaje' : progress > 0 && !complete ? 'Continuar viaje' : 'Reproducir viaje'} onClick={() => { if (complete) setProgress(0); setPlaying(p => !p) }}>{!ready && !failed ? 'Cargando viaje…' : playing ? 'Pausar viaje' : complete ? 'Repetir viaje' : progress > 0 ? 'Continuar viaje' : 'Iniciar viaje'}</Button>
       <label className="min-w-40 flex-1 text-sm text-ink-muted">Avance del viaje
         <input type="range" aria-label="Avance del viaje Tierra–Luna" aria-valuetext={`${phase}. ${launch ? 'Ascenso ilustrativo' : sample.descent ? 'Descenso ilustrativo' : formatDuration(sample.seconds / 3600) + ' de transferencia'}.`}
           min={0} max={1} step={0.001} value={progress} onChange={e => seek(Number(e.target.value))} className="range mt-2 w-full" style={{ '--fill': `${progress * 100}%` } as CSSProperties} />
       </label>
       <Segmented label="Escala de tiempo del viaje" options={SCALE_OPTIONS} value={scale} onChange={setScale} />
-      <Button size="lg" onClick={() => seek(1)}>Ir a la llegada</Button>
+      <Button size="lg" data-tour="sim-skip" onClick={() => seek(1)}>Ir a la llegada</Button>
     </div>
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
       <div className="journey-stage glass-viewport relative h-[25rem] min-w-0 overflow-hidden bg-black sm:h-[28rem]">
@@ -158,7 +158,8 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
           <div className="flex justify-between gap-4"><dt className="text-ink-muted">Distancia al centro terrestre</dt><dd className="tabular-nums text-earth">{launch ? '—' : Math.round(sample.radiusKm).toLocaleString('es') + ' km'}</dd></div>
           <div className="flex justify-between gap-4"><dt className="text-ink-muted">Velocidad respecto a la Tierra</dt><dd className="tabular-nums text-ink">{launch ? '—' : sample.speedKmS.toFixed(2) + ' km/s'}</dd></div>
         </dl>
-        <Button variant="primary" size="lg" className="mt-6 w-full" onClick={onArrive}>Evaluar misión en la Luna →</Button>
+        {/* Un solo botón principal a la vez: mientras no termina el viaje, el principal es «Iniciar viaje». */}
+        <Button variant={complete ? 'primary' : 'secondary'} size="lg" data-tour="sim-evaluate" className="mt-6 w-full" onClick={onArrive}>Evaluar misión en la Luna →</Button>
       </div>
     </div>
     <Disclosure className="mt-6" title="Cómo se calcula el viaje" description="Qué se calcula, qué es ilustración y de dónde salen los datos.">
