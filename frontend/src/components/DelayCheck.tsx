@@ -38,7 +38,7 @@ export function DelayCheck({ data, vis, cfg, moduleName, startIndex, missionDays
       : { tone: 'text-critical', text: `No. Con ${label} de atraso, la batería se agota.`, detail: 'El atraso deja al módulo demasiado tiempo sin Sol.' }
 
   return (
-    <section aria-labelledby="delay-title" className="glass-surface p-5 sm:p-6">
+    <section aria-labelledby="delay-title" data-tour="delay" className="glass-surface p-5 sm:p-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h2 id="delay-title" className="text-xl font-bold text-ink">¿Y si la misión se atrasa?</h2>

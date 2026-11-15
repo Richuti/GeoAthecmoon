@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, test } from 'node:test'
-import { dataNotice, validateSiteData, validateSites } from '../src/api.ts'
+import { dataNotice, validateSiteData, validateSites, withFallback } from '../src/api.ts'
 import type { SiteData } from '../src/types'
 
 const real = { mock: false, sources: { ephemeris: 'jpl-horizons', terrain: 'lola' } } as const
@@ -28,4 +28,22 @@ describe('public/data cumple el contrato y es real', () => {
       assert.equal(dataNotice(d), null)
     })
   }
+})
+
+describe('withFallback: respaldo estático si el backend falla', () => {
+  test('usa el backend cuando responde', async () => {
+    assert.equal(await withFallback(async () => 'backend', async () => 'local'), 'backend')
+  })
+  test('usa los archivos locales si el backend falla', async () => {
+    const warn = console.warn
+    console.warn = () => {}
+    try {
+      assert.equal(await withFallback(async () => { throw new Error('caído') }, async () => 'local'), 'local')
+    } finally {
+      console.warn = warn
+    }
+  })
+  test('sin respaldo, el error llega a la interfaz', async () => {
+    await assert.rejects(withFallback(async () => { throw new Error('caído') }, null), /caído/)
+  })
 })
