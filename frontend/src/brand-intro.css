@@ -6,13 +6,13 @@
   inset: 0;
   overflow: hidden;
   color: #e8ebf1;
-  animation: brand-intro-lifetime 2800ms linear both;
+  animation: brand-intro-lifetime 2240ms linear both;
 }
 .brand-intro__half {
   position: absolute;
   inset: 0;
   background: #05070d;
-  animation-duration: 2800ms;
+  animation-duration: 2240ms;
   animation-timing-function: linear;
   animation-fill-mode: both;
 }
@@ -34,7 +34,7 @@
   height: 100%;
   /* La mezcla elimina el fondo azul del PNG sin modificar el archivo original. */
   filter: grayscale(1) contrast(1.25);
-  animation: brand-emblem 2800ms linear both;
+  animation: brand-emblem 2240ms linear both;
 }
 .brand-intro__strip {
   position: absolute;
@@ -48,7 +48,7 @@
   gap: 8px;
   background: #05070d;
   transform: translateY(-50%);
-  animation: brand-strip 2800ms linear both;
+  animation: brand-strip 2240ms linear both;
 }
 .brand-intro__name { font-family: var(--font-display); font-size: clamp(25px, 3.8vw, 48px); font-weight: 900; line-height: 1; }
 .brand-intro__caption { font-size: 10px; line-height: 1.5; letter-spacing: 0.12em; text-transform: uppercase; color: #b7becb; }
@@ -56,33 +56,31 @@
 .brand-intro__skip:hover { border-color: rgb(255 255 255 / 0.7); }
 .brand-intro__skip:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 @keyframes brand-open-top {
-  0%, 25% { transform: translateY(0); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
-  40% { transform: translateY(calc(-1 * var(--intro-gap))); }
-  58% { transform: translateY(calc(-1 * var(--intro-gap))); animation-timing-function: cubic-bezier(0.64, 0, 0.96, 0.52); }
-  64% { transform: translateY(0); }
-  76% { transform: translateY(0); animation-timing-function: cubic-bezier(0.83, 0, 0.17, 1); }
+  0%, 31.25% { transform: translateY(0); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  50% { transform: translateY(calc(-1 * var(--intro-gap))); }
+  72.5% { transform: translateY(calc(-1 * var(--intro-gap))); animation-timing-function: cubic-bezier(0.64, 0, 0.96, 0.52); }
+  80% { transform: translateY(0); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
   100% { transform: translateY(-51%); }
 }
 @keyframes brand-open-bottom {
-  0%, 25% { transform: translateY(0); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
-  40% { transform: translateY(var(--intro-gap)); }
-  58% { transform: translateY(var(--intro-gap)); animation-timing-function: cubic-bezier(0.64, 0, 0.96, 0.52); }
-  64% { transform: translateY(0); }
-  76% { transform: translateY(0); animation-timing-function: cubic-bezier(0.83, 0, 0.17, 1); }
+  0%, 31.25% { transform: translateY(0); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  50% { transform: translateY(var(--intro-gap)); }
+  72.5% { transform: translateY(var(--intro-gap)); animation-timing-function: cubic-bezier(0.64, 0, 0.96, 0.52); }
+  80% { transform: translateY(0); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
   100% { transform: translateY(51%); }
 }
 @keyframes brand-emblem {
   0% { opacity: 0; transform: scale(0.96); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  10%, 100% { opacity: 1; transform: scale(1); }
+  12.5%, 100% { opacity: 1; transform: scale(1); }
 }
-@keyframes brand-strip { 0%, 64% { opacity: 1; } 64.01%, 100% { opacity: 0; } }
+@keyframes brand-strip { 0%, 80% { opacity: 1; } 80.01%, 100% { opacity: 0; } }
 /* La primera escena acompaña la apertura final; el documento no cambia de escala. */
 .brand-intro-active section[aria-label='Viaje al polo sur lunar'] > .sticky {
-  animation: brand-landing-arrive 2800ms linear both;
+  animation: brand-landing-arrive 2240ms linear both;
   transform-origin: center;
 }
 @keyframes brand-landing-arrive {
-  0%, 76% { transform: scale(0.95); animation-timing-function: cubic-bezier(0.83, 0, 0.17, 1); }
+  0%, 80% { transform: scale(0.95); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
   100% { transform: scale(1); }
 }
 /* Solo este evento desmonta la entrada; las animaciones hijas no la interrumpen. */

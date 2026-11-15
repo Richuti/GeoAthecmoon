@@ -303,20 +303,9 @@ function LoadError({ title, children, onRetry }: { title: string; children: Reac
 
 function Brand() {
   return (
-    <a href="#inicio" title="Volver a la portada" className="flex items-center gap-3">
-      <svg viewBox="0 0 32 32" className="size-8 shrink-0" aria-hidden>
-        <rect width="32" height="32" rx="7" fill="var(--color-hull-raised)" />
-        <circle cx="21" cy="15.5" r="3" fill="var(--color-sun)" />
-        <path d="M3 22.5 L9 17.5 L12.5 20 L17 15.8 L22 19.5 L25.5 17.2 L29 19.8 L29 29 L3 29 Z" fill="var(--color-relief)" />
-        <path
-          d="M3 22.5 L9 17.5 L12.5 20 L17 15.8 L22 19.5 L25.5 17.2 L29 19.8"
-          fill="none"
-          stroke="var(--color-ink-faint)"
-          strokeWidth="1.2"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <div className="leading-tight">
+    <a href="#inicio" title="Volver a la portada" className="flex min-w-0 items-center gap-3">
+      <img src="/brand/logo-transparent.svg" alt="" width={510} height={355} className="h-auto w-14 shrink-0 sm:w-16" />
+      <div className="min-w-0 leading-tight">
         <p className="font-display text-2xl font-extrabold uppercase leading-none tracking-[0.03em]">GEOATHECMOON</p>
         <p className="mt-0.5 text-[0.6875rem] text-ink-faint">Planificador de alunizaje · Polo sur lunar</p>
       </div>

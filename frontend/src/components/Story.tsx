@@ -291,7 +291,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
       ) : (
         <>
           <ChapterNav scenes={scenes} active={active} onGo={goTo} />
-          <section ref={journey} aria-label="Viaje al polo sur lunar" className="relative" style={{ height: `${scenes.length * 220 + 100}svh` }}>
+          <section ref={journey} aria-label="Viaje al polo sur lunar" className="relative" style={{ height: `${scenes.length * 180 + 100}svh` }}>
             <div className="sticky top-0 h-dvh overflow-hidden bg-void">
               <div className="absolute inset-0">
                 {scenes.map((sc, k) => (

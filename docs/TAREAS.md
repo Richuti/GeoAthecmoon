@@ -10,6 +10,10 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 - **Entrada siempre oscura (14 nov), implementada; pendiente de revisión y subida de Richard:** se elimina el cambio a fondo blanco y la inversión del logo. Se conserva la secuencia de apertura corta, nombre central, cierre y apertura final. Fondo fijo #05070d y logo blanco/gris. Verificado: 278 pruebas, build y capturas por fase a 1440/390 px; revisión adicional a 320 px.
 
+- **Salida rápida de la entrada (14 nov), implementada; pendiente de revisión y subida:** se elimina la espera tras el segundo cierre. La apertura final arranca inmediatamente y dura 448 ms; la secuencia completa baja de 2.8 a 2.24 segundos conservando los tiempos de la apertura inicial y del nombre. El acercamiento de la portada acompaña la salida. Verificado: 278 pruebas, build y capturas por fase a 1440/390 px, además de 320 px.
+
+- **Landing con recorrido más ágil (14 nov), implementada; pendiente de revisión y subida:** por petición de Richard, cada imagen pasa de 220 a 180 svh de scroll efectivo (18 % menos). Se conservan la aparición temprana de los textos, su tramo de lectura, los capítulos y el recorte del horizonte. Verificado: 278 pruebas, build y capturas a 1440/390 px; lectura de las cinco escenas, recorrido hacia atrás, capítulos, transición y movimiento reducido.
+
 ## Cómo trabajamos
 
 1. Se hace **un solo paso a la vez** (por ejemplo, 4.2).
