@@ -1,10 +1,12 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { formatDateTime, formatDuration } from '../../lib/time'
-import { EARTH_RADIUS_KM, LAUNCH_END, journeyAt, lunarTransfer } from '../../sim/transfer'
+import { EARTH_RADIUS_KM, LAUNCH_END, DESCENT_START, journeyAt, lunarTransfer } from '../../sim/transfer'
 import { Button, Disclosure } from '../ui'
+import type { SiteData } from '../../types'
 
 const TransferViewer = lazy(() => import('./TransferViewer'))
 const LaunchViewer = lazy(() => import('./LaunchViewer'))
+const DescentViewer = lazy(() => import('./DescentViewer'))
 
 class JourneyError extends Component<{ children: ReactNode; onFail: () => void }, { failed: boolean }> {
   state = { failed: false }
@@ -13,17 +15,19 @@ class JourneyError extends Component<{ children: ReactNode; onFail: () => void }
   render() { return this.state.failed ? <p className="p-6 text-sm text-ink-muted">No se pudo abrir la vista 3D. Puedes seguir recorriendo la trayectoria con los controles y sus datos calculados.</p> : this.props.children }
 }
 
-export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: Date; destination: string; onArrive: () => void }) {
+export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arrival: Date; destination: string; data: SiteData; onArrive: () => void }) {
   const [progress, setProgress] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [launchReady, setLaunchReady] = useState(false)
   const [orbitalReady, setOrbitalReady] = useState(false)
-  const ready = launchReady && orbitalReady
+  const [descentReady, setDescentReady] = useState(false)
+  const ready = launchReady && orbitalReady && descentReady
   const [failed, setFailed] = useState(false)
   const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   const orbit = useMemo(() => lunarTransfer(200), [])
   const onLaunchReady = useCallback(() => setLaunchReady(true), [])
   const onOrbitalReady = useCallback(() => setOrbitalReady(true), [])
+  const onDescentReady = useCallback(() => setDescentReady(true), [])
   const onFail = useCallback(() => setFailed(true), [])
   const arrivalMs = arrival.getTime()
   useEffect(() => { setProgress(0); setPlaying(false) }, [arrivalMs])
@@ -42,7 +46,7 @@ export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: 
       const elapsed = previous === null ? 0 : Math.min(now - previous, 100)
       previous = now
       // El lanzamiento tiene su propio tramo para poder observar la salida de la plataforma.
-      setProgress(p => Math.min(1, p + elapsed * (p < LAUNCH_END ? LAUNCH_END / 10000 : (1 - LAUNCH_END) / 24000)))
+      setProgress(p => Math.min(1, p + elapsed * (p < LAUNCH_END ? LAUNCH_END / 10000 : p < DESCENT_START ? (DESCENT_START - LAUNCH_END) / 24000 : (1 - DESCENT_START) / 10000)))
       frame = window.requestAnimationFrame(advance)
     }
     frame = window.requestAnimationFrame(advance)
@@ -58,6 +62,7 @@ export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: 
   const sample = useMemo(() => journeyAt(orbit, progress), [orbit, progress])
   const launch = sample.launch
   const orbitalBlend = launch ? Math.max(0, Math.min(1, (sample.ascent - 0.8) / 0.2)) : 1
+  const descentBlend = sample.descent ? Math.min(1, sample.descentProgress / 0.18) : 0
   const altitudeM = Math.max(0, sample.shipXKm - EARTH_RADIUS_KM) * 1000
   const complete = progress >= 1
   const phase = launch ? sample.ascent < 0.02 ? 'En la plataforma de lanzamiento' : sample.ascent < 0.65 ? 'Ascenso desde la Tierra' : 'Salida hacia la órbita' : complete ? 'Encuentro con la Luna' : 'Transferencia Tierra–Luna'
@@ -81,12 +86,15 @@ export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: 
             <div className="absolute inset-0" style={{ opacity: 1 - orbitalBlend }} aria-hidden>
               <LaunchViewer altitudeM={altitudeM} ascent={sample.ascent} reduced={reduced} active={orbitalBlend < 1} onReady={onLaunchReady} />
             </div>
-            <div className="absolute inset-0" style={{ opacity: orbitalBlend }} aria-hidden>
-              <TransferViewer orbit={orbit} sample={sample} reduced={reduced} active={orbitalBlend > 0} onReady={onOrbitalReady} />
+            <div className="absolute inset-0" style={{ opacity: orbitalBlend * (1 - descentBlend) }} aria-hidden>
+              <TransferViewer orbit={orbit} sample={sample} reduced={reduced} active={orbitalBlend > 0 && descentBlend < 1} onReady={onOrbitalReady} />
+            </div>
+            <div className="absolute inset-0" style={{ opacity: descentBlend }} aria-hidden>
+              <DescentViewer data={data} arrival={arrival} progress={sample.descentProgress} active={descentBlend > 0} onReady={onDescentReady} />
             </div>
           </Suspense>
         </JourneyError>
-        {!ready && !failed && <p role="status" className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-ink-muted">Cargando Tierra, Luna y nave…</p>}
+        {!ready && !failed && <p role="status" className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-ink-muted">Cargando Tierra, Luna y terreno…</p>}
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[linear-gradient(to_bottom,rgb(5_7_13/0.9),transparent)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 p-5 sm:p-6">
           <p className="text-sm text-ink-muted">Salida · Viaje · Encuentro</p>
@@ -113,7 +121,8 @@ export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: 
             <p>Salida orbital de referencia: {formatDateTime(departure)}. Encuentro de referencia: {formatDateTime(arrival)}. Se ancla a la fecha elegida de alunizaje; no calcula una ventana real de lanzamiento.</p>
             <p>Impulso de salida de órbita: {orbit.injectionDeltaVKmS.toFixed(2)} km/s (sin incluir el ascenso). Fecha durante el recorrido: {formatDateTime(clock)}.</p>
             <p><a className="underline underline-offset-4" href="https://ssd.jpl.nasa.gov/astro_par.html" target="_blank" rel="noreferrer">Constantes JPL</a> · <a className="underline underline-offset-4" href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html" target="_blank" rel="noreferrer">Datos Tierra–Luna de NASA</a>.</p>
-            <p>Modelos de referencia: Tierra Blue Marble, Saturn V y módulo Apolo adaptado (NASA). No representan un vehículo CLPS concreto. Textura lunar: <a className="underline underline-offset-4" href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noreferrer">Solar System Scope</a>, <a className="underline underline-offset-4" href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>.</p>
+            <p>Modelos de referencia: Tierra Blue Marble, Saturn V y módulo Apolo adaptado (NASA). No representan un vehículo CLPS concreto. Textura lunar del globo: <a className="underline underline-offset-4" href="https://svs.gsfc.nasa.gov/4720/" target="_blank" rel="noreferrer">NASA SVS, CGI Moon Kit</a>.</p>
+            <p>Imagen a?rea de Kennedy: <a className="underline underline-offset-4" href="https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer" target="_blank" rel="noreferrer">USGS / USDA, NAIP</a>. Humo y escape son efectos visuales, sin din?mica de fluidos.</p>
             <p>Plataforma y torre: <a className="underline underline-offset-4" href="https://science.nasa.gov/3d-resources/mobile-launcher/" target="_blank" rel="noreferrer">NASA / Samuel H. Neblett, Mobile Launcher</a>. El conjunto es una referencia visual, no una reconstrucción de una instalación o un lanzamiento concretos.</p>
           </div>
         </Disclosure>

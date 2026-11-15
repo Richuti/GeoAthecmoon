@@ -14,6 +14,7 @@ import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, type RefObject }
 import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { SpaceBackground } from './SpaceBackground'
+import { descentFrame } from '../sim/transferView'
 
 export interface Sky {
   sunAz: number
@@ -165,8 +166,8 @@ function Lights({ sky }: { sky: Sky }) {
 }
 
 /** Coloca la cámara al cambiar de sitio: de lado al Sol, para ver las sombras largas. */
-function CameraRig({ siteId, sky, groundY, controls }: { siteId: string; sky: Sky; groundY: number; controls: RefObject<OrbitControlsImpl | null> }) {
-  const { camera } = useThree()
+function CameraRig({ siteId, sky, groundY, controls, arrivalProgress }: { siteId: string; sky: Sky; groundY: number; controls: RefObject<OrbitControlsImpl | null>; arrivalProgress?: number }) {
+  const { camera, size } = useThree()
   const sunAzRef = useRef(sky.sunAz)
   sunAzRef.current = sky.sunAz
 
@@ -177,6 +178,15 @@ function CameraRig({ siteId, sky, groundY, controls }: { siteId: string; sky: Sk
     controls.current?.target.set(0, groundY + 0.1, 0)
     controls.current?.update()
   }, [siteId, groundY, camera, controls])
+  useFrame(() => {
+    if (arrivalProgress === undefined) return
+    const frame = descentFrame(arrivalProgress, size.width / size.height)
+    const view = direction(sunAzRef.current + 135, 0).multiplyScalar(frame.distanceKm)
+    const targetY = groundY + frame.altitudeKm + 0.09
+    camera.position.set(view.x, targetY + frame.distanceKm * 0.55, view.z)
+    camera.lookAt(0, targetY, 0)
+    camera.updateMatrixWorld()
+  })
   return null
 }
 
@@ -190,6 +200,8 @@ export default function Viewer3D({
   onGroundHeight,
   groundY,
   resetKey,
+  arrivalProgress,
+  active = true,
 }: {
   siteId: string
   sky: Sky
@@ -197,6 +209,8 @@ export default function Viewer3D({
   onGroundHeight: (y: number) => void
   /** Cambia para volver a la vista inicial */
   resetKey: number
+  arrivalProgress?: number
+  active?: boolean
 }) {
   const controls = useRef<OrbitControlsImpl | null>(null)
 
@@ -204,6 +218,7 @@ export default function Viewer3D({
     <Canvas
       // PCFShadowMap explícito: three 0.187 quitó PCFSoftShadowMap (el valor de `shadows` a secas) y avisaba en consola.
       shadows="percentage"
+      frameloop={active ? 'always' : 'never'}
       dpr={[1, 1.75]}
       camera={{ fov: 45, near: 0.01, far: 200, position: [6, 2.5, 6] }}
       gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
@@ -213,14 +228,15 @@ export default function Viewer3D({
         <SpaceBackground />
         <Lights sky={sky} />
         <Terrain siteId={siteId} onGroundHeight={onGroundHeight} />
-        <Lander groundY={groundY} sky={sky} />
+        <Lander groundY={groundY + (arrivalProgress === undefined ? 0 : descentFrame(arrivalProgress, 1).altitudeKm)} sky={sky} />
         <SkyBody url="/models/sun.glb" az={sky.sunAz} el={sky.sunEl} radius={SUN_RADIUS} />
         <SkyBody url="/models/earth.glb" az={sky.earthAz} el={sky.earthEl} radius={EARTH_RADIUS} unlit />
-        <CameraRig key={resetKey} siteId={siteId} sky={sky} groundY={groundY} controls={controls} />
+        <CameraRig key={resetKey} siteId={siteId} sky={sky} groundY={groundY} controls={controls} arrivalProgress={arrivalProgress} />
       </Suspense>
       <OrbitControls
         ref={controls}
         makeDefault
+        enabled={arrivalProgress === undefined}
         enableDamping
         minDistance={0.3}
         maxDistance={24}

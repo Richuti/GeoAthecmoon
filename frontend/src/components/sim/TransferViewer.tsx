@@ -1,6 +1,6 @@
 // Solo carga modelos GLB. La órbita se dibuja en SVG, proyectando las posiciones calculadas.
 import { Html } from '@react-three/drei'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
 import { EARTH_RADIUS_KM, MOON_RADIUS_KM, transferAt, type journeyAt, type TransferOrbit } from '../../sim/transfer'
@@ -23,6 +23,27 @@ function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
   const earth = useFlightModel('/models/earth.glb')
   const moon = useFlightModel('/models/moon.glb')
   const lander = useFlightModel('/models/lander.glb')
+  const moonMap = useLoader(THREE.TextureLoader, '/textures/flight/moon-lroc.jpg')
+  const planetMaterials = useMemo(() => {
+    moonMap.colorSpace = THREE.SRGBColorSpace
+    const materials: THREE.Material[] = []
+    for (const [model, map] of [[earth, null], [moon, moonMap]] as const) model.traverse(object => {
+      if (!(object as THREE.Mesh).isMesh) return
+      const mesh = object as THREE.Mesh
+      const source = mesh.material as THREE.MeshStandardMaterial
+      const material = source.clone()
+      material.side = THREE.DoubleSide
+      material.map = map ?? source.map
+      if (map) { material.map!.flipY = false; material.color.set(0xffffff) }
+      // GLB con caras interiores y normales exteriores: corregir el sombreado sin alterar geometría.
+      material.onBeforeCompile = shader => { shader.vertexShader = shader.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nobjectNormal = -objectNormal;') }
+      material.customProgramCacheKey = () => 'planet-inward-faces-v1'
+      mesh.material = material
+      materials.push(material)
+    })
+    return materials
+  }, [earth, moon, moonMap])
+  useEffect(() => () => planetMaterials.forEach(material => material.dispose()), [planetMaterials])
   const moonGroup = useRef<THREE.Group>(null)
   const earthGroup = useRef<THREE.Group>(null)
   const ship = useRef<THREE.Group>(null)

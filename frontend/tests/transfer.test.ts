@@ -111,3 +111,20 @@ test('avance, nave y Luna comparten el instante al avanzar, retroceder y repetir
   assert.deepEqual(journeyAt(orbit, 2), arrival)
   assert.throws(() => journeyAt(orbit, NaN), RangeError)
 })
+
+
+test('el descenso visual mantiene cerrado el c?lculo orbital del encuentro lunar', () => {
+  const before = journeyAt(orbit, 0.86 - 1e-10)
+  const start = journeyAt(orbit, 0.86)
+  const landed = journeyAt(orbit, 1)
+  assert.equal(before.descent, false)
+  assert.equal(start.descent, true)
+  close(start.descentProgress, 0)
+  close(landed.descentProgress, 1)
+  close(before.shipXKm, start.shipXKm)
+  close(start.seconds, orbit.durationSeconds)
+  close(landed.seconds, start.seconds)
+  close(landed.shipXKm, start.shipXKm)
+  close(landed.moonXKm, start.moonXKm)
+  assert.deepEqual(journeyAt(orbit, .93), journeyAt(orbit, .93))
+})

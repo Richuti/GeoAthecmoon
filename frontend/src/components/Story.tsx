@@ -16,7 +16,7 @@ import type { SiteData } from '../types'
 import { cx } from './ui'
 import { BrandIntro } from './BrandIntro'
 
-interface Readout {
+export interface Readout {
   value: number
   decimals: number
   unit: string
@@ -24,7 +24,7 @@ interface Readout {
   source: string
 }
 
-interface Scene {
+export interface Scene {
   id: string
   /** Archivo en public/media (ilustración fija, 16:9) */
   image: string
@@ -70,7 +70,7 @@ const smooth = (from: number, to: number, v: number) => {
   return t * t * (3 - 2 * t)
 }
 
-function buildScenes(f: StoryFacts | null): Scene[] {
+export function buildScenes(f: StoryFacts | null): Scene[] {
   const n = (v: number | undefined, d = 0) => (v === undefined ? '…' : v.toFixed(d))
   const ex = f?.dateExample
   const exStart = f && ex ? formatDate(sampleTime(f.period, 0)) : '…'

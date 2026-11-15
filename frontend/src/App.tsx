@@ -10,11 +10,12 @@ import { Story } from './components/Story'
 import { PlannerGuide } from './components/PlannerGuide'
 import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
+import { TimeScale } from './components/TimeScale'
 import { SiteConditions } from './components/SiteConditions'
 import { VisibilityCalendar } from './components/VisibilityCalendar'
 import { Badge, Button, DateTimeField, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
 import { formatLat, formatLon } from './lib/format'
-import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, totalDays } from './lib/time'
+import { dayNumber, formatDate, formatDateTime, formatDuration, formatDurationLong, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, totalDays } from './lib/time'
 import { missionWindow, recommend, type Recommendation } from './lib/recommend'
 import { storyFacts } from './lib/storyFacts'
 import { DEFAULT_WEIGHTS, VERDICT_LABEL, siteViability, type Verdict, type ViabilityResult } from './lib/viability'
@@ -31,12 +32,6 @@ const MODES = [
   { value: 'simulate', label: 'Simulador' },
 ] as const
 
-type SpeedKey = '1' | '6' | '24'
-const SPEEDS = [
-  { value: '1', label: '1 h/s' },
-  { value: '6', label: '6 h/s' },
-  { value: '24', label: '1 d/s' },
-] as const
 
 const MISSION_LENGTHS = [
   { value: '7', label: '7 d' },
@@ -178,7 +173,6 @@ function Planner() {
         <Brand />
         <Segmented label="Modo" options={MODES} value={mode} onChange={actions.setMode} />
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
-          {p && !notice && <span className="hidden md:inline-flex"><Badge>Datos reales · JPL Horizons y LOLA (NASA)</Badge></span>}
           {notice && <Badge tone="caution">Datos de prueba</Badge>}
           <Help />
           <Sources data={p?.data} />
@@ -303,10 +297,7 @@ function Brand() {
   return (
     <a href="#inicio" title="Volver a la portada" className="flex min-w-0 items-center gap-3">
       <img src="/brand/logo-transparent.svg" alt="" width={510} height={355} className="h-auto w-14 shrink-0 sm:w-16" />
-      <div className="min-w-0 leading-tight">
-        <p className="font-display text-2xl font-extrabold uppercase leading-none tracking-[0.03em]">GEOATHECMOON</p>
-        <p className="mt-0.5 text-[0.6875rem] text-ink-faint">Planificador de alunizaje · Polo sur lunar</p>
-      </div>
+      <p className="font-display text-2xl font-extrabold uppercase leading-none tracking-[0.03em]">GEOATHECMOON</p>
     </a>
   )
 }
@@ -377,14 +368,9 @@ function Timeline({
         <span className="font-mono text-xs text-ink-faint">
           {mission ? `Día ${dayNumber(p.data, index, mission.from)} de la misión` : `Día ${day} de ${days}`}
         </span>
-        <Segmented
-          label="Velocidad"
-          size="sm"
-          className="sm:ml-auto"
-          options={SPEEDS}
-          value={String(speed) as SpeedKey}
-          onChange={(v) => onSpeed(Number(v) as Speed)}
-        />
+        <TimeScale className="sm:ml-auto" speed={speed} onSpeed={onSpeed}
+          spanHours={(max - min + 1) * p.data.stepHours}
+          spanLabel={mission ? `La misión de ${formatDurationLong((max - min + 1) * p.data.stepHours)}` : `El periodo de ${days} días`} />
       </div>
       <input
         type="range"

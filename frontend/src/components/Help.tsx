@@ -74,7 +74,7 @@ export function Help() {
   return (
     <>
       <Button variant="ghost" size="sm" onClick={() => dialog.current?.showModal()}>
-        ¿Cómo leer esto?
+        Ayuda
       </Button>
       <dialog
         ref={dialog}

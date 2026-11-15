@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { journeyAt, lunarTransfer, MOON_RADIUS_KM } from '../src/sim/transfer.ts'
-import { LAUNCH_PAD_DECK_M, LAUNCH_ROCKET_HEIGHT_M, encounterFrame, launchFrame } from '../src/sim/transferView.ts'
+import { LAUNCH_PAD_DECK_M, LAUNCH_ROCKET_HEIGHT_M, descentFrame, encounterFrame, launchFrame } from '../src/sim/transferView.ts'
 
 test('el cohete parte apoyado en la cubierta y el encuadre conserva el conjunto en móvil', () => {
   for (const aspect of [0.6, 350 / 400, 808 / 448, 2.5]) {
@@ -46,4 +46,22 @@ test('el encuadre de aproximación mantiene a la nave y la Luna visibles en escr
       }
     }
   }
+})
+
+
+test('el descenso alcanza el suelo sin atravesarlo y conserva el m?dulo en m?vil', () => {
+  for (const aspect of [0.6, 1, 2.5]) {
+    let previous = 3
+    for (let step = 0; step <= 100; step++) {
+      const frame = descentFrame(step / 100, aspect)
+      assert.ok(frame.altitudeKm <= previous && frame.altitudeKm >= 0)
+      assert.ok(frame.distanceKm * Math.tan(22.5 * Math.PI / 180) * aspect > 0.1)
+      previous = frame.altitudeKm
+    }
+    assert.equal(descentFrame(1, aspect).altitudeKm, 0)
+    assert.deepEqual(descentFrame(2, aspect), descentFrame(1, aspect))
+    assert.deepEqual(descentFrame(-1, aspect), descentFrame(0, aspect))
+  }
+  for (const aspect of [0, -1, NaN]) assert.throws(() => descentFrame(0, aspect), RangeError)
+  assert.throws(() => descentFrame(NaN, 1), RangeError)
 })

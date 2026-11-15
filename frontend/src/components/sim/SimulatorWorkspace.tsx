@@ -1,11 +1,12 @@
 // Un espacio de trabajo lunar: el plan arriba, el terreno en el centro y la evidencia debajo.
 // Conserva la tipografía y los colores de vuelo; evita marcos repetidos y columnas con scroll independiente.
 import { useRef, useState, type ComponentProps, type CSSProperties } from 'react'
-import { formatDate, formatDateTime, formatMissionClock, sampleTime } from '../../lib/time'
+import { formatDate, formatDateTime, formatDurationLong, formatMissionClock, sampleTime } from '../../lib/time'
 import { PRESETS } from '../../sim/lander'
-import { useAppState, type Speed } from '../../state'
+import { useAppState } from '../../state'
 import type { SiteData } from '../../types'
-import { Button, cx, Disclosure, Segmented, Select } from '../ui'
+import { Button, cx, Disclosure, Select } from '../ui'
+import { TimeScale } from '../TimeScale'
 import { ViewerPanel } from '../ViewerPanel'
 import { MissionSetup } from './MissionSetup'
 import { MissionOptions, MissionResult, type MissionResultProps } from './MissionResult'
@@ -85,7 +86,7 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
         <p className="mt-5 text-sm leading-relaxed text-ink-muted">Comprobaremos si tiene energía suficiente, cuándo puede enviar datos a la Tierra y cómo influye el terreno.</p>
       </aside>
       </div>}
-      {view === 'journey' && <EarthMoonJourney arrival={setup.timelineDate} destination={data.site.name} onArrive={() => { setup.onSimulate(); navigate('surface') }} />}
+      {view === 'journey' && <EarthMoonJourney data={data} arrival={setup.timelineDate} destination={data.site.name} onArrive={() => { setup.onSimulate(); navigate('surface') }} />}
       {view === 'surface' && (
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
         <div className="terrain-stage h-[25rem] min-w-0 sm:h-[28rem] lg:h-[26rem] xl:h-[28rem]">
@@ -132,8 +133,8 @@ function MissionTransport({ data, report, onSeek }: { data: SiteData; report: Mi
       <p className="min-w-0 text-sm tabular-nums text-ink">{formatMissionClock(data, state.index, from)}</p>
       <input type="range" className="range min-w-28 flex-1" aria-label="Fecha y hora" aria-valuetext={formatDateTime(date)}
         min={from} max={end} value={state.index} onChange={(e) => onSeek(Number(e.target.value))} style={{ '--fill': `${fill}%` } as CSSProperties} />
-      <Segmented label="Velocidad de reproducción" value={String(state.speed)} onChange={v => actions.setSpeed(Number(v) as Speed)}
-        options={[{ value: '1', label: '1 h/s' }, { value: '6', label: '6 h/s' }, { value: '24', label: '1 d/s' }]} />
+      <TimeScale speed={state.speed} onSpeed={actions.setSpeed} spanHours={report.result.series.soc.length * data.stepHours}
+        spanLabel={`La misión de ${formatDurationLong(report.result.series.soc.length * data.stepHours)}`} />
     </section>
   )
 }
