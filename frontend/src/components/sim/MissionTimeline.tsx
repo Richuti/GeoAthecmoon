@@ -73,7 +73,6 @@ export function MissionTimeline({ data, result, lit, contact, index, playing, sp
   const gen = series.generatedW[k]
   const load = series.loadW[k]
   const mode = series.mode[k]
-  const sunNow = lit[index]
   const earthNow = contact[index]
   const status = mode === 'failed' ? 'La batería llegó al 20 %: la misión falla.'
     : mode === 'survival' ? 'Modo ahorro: los instrumentos se apagan para no gastar batería.'
@@ -102,7 +101,7 @@ export function MissionTimeline({ data, result, lit, contact, index, playing, sp
           <span>Batería</span><b className="tabular-nums">{Math.round(soc * 100)} %</b>
           <i aria-hidden><i style={{ width: `${soc * 100}%` }} /></i>
         </div>
-        <div className={cx('mission-now__tile', sunNow ? 'is-sun' : 'is-off')}>
+        <div className={cx('mission-now__tile', gen > 0 ? 'is-sun' : 'is-off')}>
           <span>Energía del panel</span><b>{gen > 0 ? 'Produce electricidad' : 'Sin producción'}</b>
           <small className="tabular-nums">{Math.round(gen)} W de {Math.round(load)} W que consume</small>
         </div>

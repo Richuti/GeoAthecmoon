@@ -68,6 +68,10 @@
 .flight-console .flight-button[data-variant='ghost'] { background: rgb(255 255 255 / 0.025); border-color: transparent; box-shadow: none; }
 .flight-console .flight-button:hover:not(:disabled) { border-color: rgb(255 255 255 / 0.65); }
 .flight-console .flight-button:active:not(:disabled) { transform: translateY(1px); }
+.flight-console .timeline-toolbar > .flight-button { height: 44px; min-height: 44px; border-radius: 8px; font-size: 14px; }
+@media (max-width: 639px) {
+  .timeline-toolbar__readout { flex-basis: 100%; }
+}
 .flight-console .flight-segmented, .story-header .flight-segmented { border: 1px solid rgb(255 255 255 / 0.12); border-radius: 999px; background: rgb(0 0 0 / 0.2); padding: 4px; }
 .flight-console .flight-segmented button, .story-header .flight-segmented button { min-height: 44px; border-radius: 999px; color: var(--color-ink-muted); }
 /* En la portada el selector EN / ES va sobre las imágenes: cristal con desenfoque, como «Abrir el planificador». */

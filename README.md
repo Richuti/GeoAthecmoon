@@ -12,12 +12,11 @@ At the Moon's south pole the Sun never climbs more than a couple of degrees: a r
 
 ## How to use it
 
-**Planner** (the main entry point), in three steps: site, date and result. On the first visit each element is explained next to where it is used; the guide can be reopened from "Help".
+**Planner** (the main entry point), in two steps: prepare and result. Site, date and duration are chosen on the same screen. The guide can be reopened from "Help".
 
-1. **Choose the site** among 6 real south pole locations, with LROC regional imagery.
-2. **Choose the date** (UTC) and the days on the surface.
-3. **See the result:** a 0–100 score, what limits it, and the 3D terrain lit for that date. From there:
-   - **What if the mission is delayed?** Pick a delay (+1 day to +2 weeks) and compare your plan with the delayed one as hour-by-hour Sun and Earth bands, with a mark where the battery would run out and how many days of delay the plan tolerates.
+1. **Prepare the plan:** choose the date (UTC), days on the surface and one of 6 real south pole sites, with LROC regional imagery. Or let the AI propose a checked plan.
+2. **See the result:** a 0–100 score, what limits it, and the 3D terrain lit for that date. "Edit my plan" returns to all the fields together, preserving your choices. From there:
+   - **What if the mission is delayed?** Pick a delay (+1 day to +2 weeks), compare arrival dates and check whether the battery lasts. A daily agenda shows hours of light and communication opportunities, with plain-language explanations.
    - **Compare your plan** with another site on the same dates, or with a saved plan, side by side.
    - **Simulate this plan** opens the same plan in the simulator.
    - **Plan it for me (AI):** choose a lander and a month; the AI proposes sites and dates and the simulator checks each one.

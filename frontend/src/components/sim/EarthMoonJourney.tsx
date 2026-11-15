@@ -26,7 +26,9 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
   const [launchReady, setLaunchReady] = useState(false)
   const [orbitalReady, setOrbitalReady] = useState(false)
   const [descentReady, setDescentReady] = useState(false)
-  const ready = launchReady && orbitalReady && descentReady
+  // El despegue no espera a las texturas de la Luna. Si falta la siguiente escena, espera en su fase.
+  const ready = progress < LAUNCH_END * .8 ? launchReady : progress < LAUNCH_END ? launchReady && orbitalReady : progress < DESCENT_START ? orbitalReady : descentReady
+  const [cameraReset, setCameraReset] = useState(0)
   const [failed, setFailed] = useState(false)
   /** Horas de viaje por segundo en pantalla durante la transferencia. */
   const [scale, setScale] = useState('5')
@@ -104,21 +106,21 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
       </label>
       <Segmented label="Escala de tiempo del viaje" options={SCALE_OPTIONS} value={scale} onChange={setScale} />
       <Button size="lg" data-tour="sim-skip" onClick={() => seek(1)}>Ir a la llegada</Button>
+      <Button onClick={() => setCameraReset(v => v + 1)}>Restablecer cámara</Button>
     </div>
+    <p className="mb-3 text-xs text-ink-muted">Arrastra para girar alrededor de la nave. Usa la rueda o dos dedos para acercarte.</p>
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
       <div className="journey-stage glass-viewport relative h-[25rem] min-w-0 overflow-hidden bg-black sm:h-[28rem]">
         <JourneyError onFail={onFail}>
-          <Suspense fallback={null}>
-            <div className="absolute inset-0" style={{ opacity: 1 - orbitalBlend }} aria-hidden>
-              <LaunchViewer altitudeM={altitudeM} ascent={sample.ascent} reduced={reduced} active={orbitalBlend < 1} onReady={onLaunchReady} />
+            <div className="absolute inset-0" inert={orbitalBlend >= .5} style={{ opacity: 1 - orbitalBlend, pointerEvents: orbitalBlend < .5 ? 'auto' : 'none' }} aria-hidden>
+              <Suspense fallback={null}><LaunchViewer altitudeM={altitudeM} ascent={sample.ascent} reduced={reduced} active={orbitalBlend < 1} onReady={onLaunchReady} cameraReset={cameraReset} /></Suspense>
             </div>
-            <div className="absolute inset-0" style={{ opacity: terrainOpen ? 0 : orbitalBlend }} aria-hidden>
-              <TransferViewer orbit={orbit} sample={sample} reduced={reduced} active={orbitalBlend > 0 && !terrainOpen} onReady={onOrbitalReady} />
+            <div className="absolute inset-0" inert={terrainOpen || orbitalBlend < .5} style={{ opacity: terrainOpen ? 0 : orbitalBlend, pointerEvents: !terrainOpen && orbitalBlend >= .5 ? 'auto' : 'none' }} aria-hidden>
+              <Suspense fallback={null}><TransferViewer orbit={orbit} sample={sample} reduced={reduced} active={orbitalBlend > 0 && !terrainOpen} onReady={onOrbitalReady} cameraReset={cameraReset} /></Suspense>
             </div>
-            <div className="absolute inset-0" style={{ opacity: leg.terrain, maskImage: terrainMask, WebkitMaskImage: terrainMask }} aria-hidden>
-              <DescentViewer data={data} arrival={arrival} progress={leg.descent} active={sample.descent && sample.descentProgress > APPROACH_FADE[0] - 0.04} onReady={onDescentReady} />
+            <div className="absolute inset-0" inert={!terrainOpen} style={{ opacity: leg.terrain, maskImage: terrainMask, WebkitMaskImage: terrainMask, pointerEvents: terrainOpen ? 'auto' : 'none' }} aria-hidden>
+              <Suspense fallback={null}><DescentViewer data={data} arrival={arrival} progress={leg.descent} active={sample.descent && sample.descentProgress > APPROACH_FADE[0] - 0.04} onReady={onDescentReady} cameraReset={cameraReset} /></Suspense>
             </div>
-          </Suspense>
         </JourneyError>
         {!ready && !failed && <p role="status" className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-ink-muted">Cargando Tierra, Luna y terreno…</p>}
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[linear-gradient(to_bottom,rgb(5_7_13/0.9),transparent)]" />
@@ -142,7 +144,7 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
           {lunarGravity && <p className="mt-3 text-xs font-bold text-ink">Dentro de la influencia lunar</p>}
         </div>}
         <p className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/80 px-5 py-3 text-xs leading-relaxed text-ink-muted">
-          {launch ? 'Ascenso ilustrativo. Cohete y plataforma de referencia NASA; el cálculo orbital comienza a 200 km.'
+          {launch ? 'Relieve real USGS 3DEP. Ascenso ilustrativo; el cálculo orbital comienza a 200 km.'
             : orbiting ? 'Llegada ilustrativa: un cuarto de órbita hasta el polo sur. El modelo no calcula el frenado ni la gravedad lunar.'
             : sample.descent ? 'Descenso ilustrativo sobre el relieve LOLA real, con el Sol de la fecha elegida. Sin aire no hay humo: el polvo sale rasante y cae enseguida.'
             : lunarGravity ? `A menos de ${SOI_LABEL.toLocaleString('es')} km domina la gravedad de la Luna; este modelo de dos cuerpos no la incluye.`
@@ -191,6 +193,7 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
             <li><a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://ssd.jpl.nasa.gov/astro_par.html">Constantes JPL</a> y <a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html">datos Tierra–Luna de NASA</a>: la órbita.</li>
             <li>NASA: la Tierra (Blue Marble) y el cohete Saturn V. La Luna: <a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://svs.gsfc.nasa.gov/4720/">NASA SVS, CGI Moon Kit</a>.</li>
             <li>Kennedy desde el aire: <a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer">USGS / USDA, NAIP</a>. Florida y el Caribe: <a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://nasa-gibs.github.io/gibs-api-docs/">NASA GIBS</a>.</li>
+            <li>Elevaciones de Kennedy: <a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer">USGS 3DEP</a>. Suelo real, sin exagerar las alturas.</li>
             <li>Plataforma y torre: <a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://science.nasa.gov/3d-resources/mobile-launcher/">NASA / Samuel H. Neblett, Mobile Launcher</a>. Referencia visual, no un lanzamiento concreto.</li>
           </ul>
         </section>

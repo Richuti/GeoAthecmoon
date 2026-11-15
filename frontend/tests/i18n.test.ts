@@ -3,6 +3,17 @@ import { describe, test } from 'node:test'
 import { translate } from '../src/i18n/translate.ts'
 
 describe('translate: español → inglés', () => {
+  test('preparación del plan sin un paso separado de fecha', () => {
+    assert.equal(translate('Prepara tu plan de alunizaje.'), 'Prepare your landing plan.')
+    assert.equal(translate('Editar mi plan'), 'Edit my plan')
+  })
+  test('energía y comunicación describen funciones distintas de la nave', () => {
+    assert.equal(translate('Para mantener la nave encendida'), 'To keep the spacecraft running')
+    assert.equal(translate('Oportunidades para enviar mediciones'), 'Opportunities to send measurements')
+    assert.equal(translate('Sin señal, las guarda a bordo.'), 'Without a signal, it stores them on board.')
+    assert.equal(translate('Panel con luz'), 'Panel lit')
+    assert.equal(translate('El panel recibe luz durante 100 % de la misión. La nave puede enviar mediciones durante 25 % de la misión.'), 'The panel receives light for 100% of the mission. The spacecraft can send measurements for 25% of the mission.')
+  })
   test('comparación de atrasos: resultado claro y fechas de falla', () => {
     assert.equal(translate('Con la nueva fecha, la misión completa los 14 días.'), 'With the new date, the mission completes all 14 days.')
     assert.equal(translate('Con la nueva fecha, la misión se queda sin energía el día 14.'), 'With the new date, the mission runs out of power on day 14.')
@@ -27,6 +38,13 @@ describe('translate: español → inglés', () => {
     assert.equal(translate('miércoles 15 de enero de 2027'), 'Wednesday, January 15, 2027')
     assert.equal(translate('384.400 km'), '384,400 km')
     assert.equal(translate('95 %'), '95%')
+  })
+
+  test('agenda diaria: traduce condiciones sin cambiar las horas', () => {
+    assert.equal(translate('Día 14 de la misión'), 'Mission day 14')
+    assert.equal(translate('4.5 h con luz'), '4.5 h of light')
+    assert.equal(translate('0 h con enlace'), '0 h with a link')
+    assert.equal(translate('Días siguientes'), 'Next days')
   })
 
   test('lo que no está en el diccionario queda igual', () => {

@@ -12,12 +12,11 @@ En el polo sur de la Luna el Sol nunca sube más de un par de grados: una cresta
 
 ## Cómo se usa
 
-**Planificador** (la entrada principal), en tres pasos: sitio, fecha y resultado. La primera vez, cada elemento se explica junto a donde se usa; se repite desde «Ayuda».
+**Planificador** (la entrada principal), en dos pasos: preparar y resultado. El sitio, la fecha y la duración se eligen en la misma pantalla. La guía se puede repetir desde «Ayuda».
 
-1. **Elige el sitio** entre 6 lugares reales del polo sur, con fotografías regionales de LROC.
-2. **Elige la fecha** (UTC) y los días en la superficie.
-3. **Mira el resultado:** puntaje de 0 a 100, qué lo limita y el terreno 3D con la luz de esa fecha. Desde ahí:
-   - **¿Y si la misión se atrasa?** Eliges un atraso (+1 día a +2 semanas) y ves tu plan y el atrasado como franjas hora por hora de Sol y Tierra, con la marca donde se agotaría la batería y cuántos días de atraso tolera.
+1. **Prepara el plan:** elige la fecha (UTC), los días en la superficie y uno de los 6 sitios reales del polo sur, con fotografías regionales de LROC. También puedes dejar que la IA proponga un plan comprobado.
+2. **Mira el resultado:** puntaje de 0 a 100, qué lo limita y el terreno 3D con la luz de esa fecha. «Editar mi plan» devuelve todos los campos juntos, conservando tus elecciones. Desde ahí:
+   - **¿Y si la misión se atrasa?** Eliges un atraso (+1 día a +2 semanas), comparas las fechas y compruebas si alcanza la batería. Una agenda diaria muestra las horas de luz y de enlace para enviar mediciones, con explicaciones sencillas.
    - **Compara tu plan** con otro sitio en las mismas fechas o con un plan que guardaste, lado a lado, y cambia a la mejor opción con un clic.
    - **Simular este plan** abre el mismo plan en el simulador.
 

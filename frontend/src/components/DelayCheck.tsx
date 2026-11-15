@@ -9,7 +9,7 @@ import { delayTolerance } from '../sim/search'
 import type { SiteData } from '../types'
 import { PlanStrips } from './PlanStrips'
 import { MissionBasics } from './MissionBasics'
-import { Button, cx, Segmented } from './ui'
+import { Button, Segmented } from './ui'
 import './delay-check.css'
 
 const DELAYS = [
@@ -36,10 +36,10 @@ export function DelayCheck({ data, vis, cfg, moduleName, startIndex, missionDays
   const label = formatDurationLong(c.appliedHours)
   const failedDay = c.delayed.failedAtIndex === null ? null : dayNumber(data, c.delayed.failedAtIndex, c.delayed.from)
   const verdict = c.appliedHours === 0
-    ? { tone: 'text-ink', text: 'No queda espacio para atrasar esta misión.', detail: 'Elige una fecha anterior: la misión completa tiene que caber en los datos de 2027.' }
+    ? { text: 'No queda espacio para atrasar esta misión.', detail: 'Elige una fecha anterior: la misión completa tiene que caber en los datos de 2027.' }
     : c.stillWorks
-      ? { tone: 'text-ok', text: `Con la nueva fecha, la misión completa los ${missionDays} días.`, detail: c.original.survived ? 'La batería alcanza hasta el final. Abajo puedes ver qué cambia con el atraso.' : 'Tu plan actual no llega al final. Con esta fecha, la batería sí alcanza.' }
-      : { tone: 'text-critical', text: `Con la nueva fecha, la misión se queda sin energía el día ${failedDay}.`, detail: `La batería llega a su mínimo operativo (20 %) el ${when(data, c.delayed.failedAtIndex!)}.` }
+      ? { text: `Con la nueva fecha, la misión completa los ${missionDays} días.`, detail: c.original.survived ? 'La batería alcanza hasta el final. Abajo puedes ver qué cambia con el atraso.' : 'Tu plan actual no llega al final. Con esta fecha, la batería sí alcanza.' }
+      : { text: `Con la nueva fecha, la misión se queda sin energía el día ${failedDay}.`, detail: `La batería llega a su mínimo operativo (20 %) el ${when(data, c.delayed.failedAtIndex!)}.` }
   const hours = (o: PlanOutcome, pct: number) => formatDurationLong((o.to - o.from) * data.stepHours * pct / 100)
 
   return (
@@ -56,10 +56,10 @@ export function DelayCheck({ data, vis, cfg, moduleName, startIndex, missionDays
         <p className="text-sm font-bold text-ink">{label} después <span aria-hidden className="hidden sm:inline">→</span></p>
         <div><p className="text-xs text-ink-muted">La fecha que estás probando</p><p className="mt-2 text-base font-bold text-ink">{when(data, c.delayed.from)}</p></div>
       </div>
-      {c.cutByPeriod && <p role="status" className="mt-3 text-sm leading-relaxed text-caution">El atraso se limitó para conservar toda la misión dentro de los datos de 2027.</p>}
+      {c.cutByPeriod && <p role="status" className="mt-3 text-sm leading-relaxed text-ink-muted">El atraso se limitó para conservar toda la misión dentro de los datos de 2027.</p>}
 
       <div className="mt-6" role="status" aria-live="polite" aria-atomic="true">
-        <p className={cx('text-xl font-bold leading-snug sm:text-2xl', verdict.tone)}>{verdict.text}</p>
+        <p className="text-xl font-bold leading-snug text-ink sm:text-2xl">{verdict.text}</p>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">{verdict.detail}</p>
       </div>
 
@@ -68,7 +68,7 @@ export function DelayCheck({ data, vis, cfg, moduleName, startIndex, missionDays
         <caption className="mb-3 text-left text-base font-bold text-ink">Qué cambia durante tu misión</caption>
         <thead><tr><th scope="col"><span className="sr-only">Condición</span></th><th scope="col">Plan actual</th><th scope="col">Nueva fecha</th></tr></thead>
         <tbody>
-          <tr><th scope="row">¿Completa la misión?</th><td className={c.original.survived ? 'text-ok' : 'text-critical'}>{c.original.survived ? 'Sí' : 'No'}</td><td className={c.delayed.survived ? 'text-ok' : 'text-critical'}>{c.delayed.survived ? 'Sí' : 'No'}</td></tr>
+          <tr><th scope="row">¿Completa la misión?</th><td className="text-ink">{c.original.survived ? 'Sí' : 'No'}</td><td className="text-ink">{c.delayed.survived ? 'Sí' : 'No'}</td></tr>
           <tr><th scope="row">Luz disponible para producir energía<span className="block text-xs font-normal text-ink-muted">La batería cubre la falta de producción.</span></th><td>{hours(c.original, c.original.lightPct)}</td><td>{hours(c.delayed, c.delayed.lightPct)}</td></tr>
           <tr><th scope="row">Oportunidades para enviar mediciones<span className="block text-xs font-normal text-ink-muted">Sin señal, las guarda a bordo.</span></th><td>{hours(c.original, c.original.contactPct)}</td><td>{hours(c.delayed, c.delayed.contactPct)}</td></tr>
         </tbody>
@@ -85,8 +85,8 @@ export function DelayCheck({ data, vis, cfg, moduleName, startIndex, missionDays
       <p className="mt-3 text-xs leading-relaxed text-ink-muted">Estás probando una alternativa. Tu plan cambia cuando pulses el botón.</p>
 
       <details className="delay-detail mt-6 border-t border-seam pt-2">
-        <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 text-sm font-bold text-ink-muted">Ver el detalle hora por hora<span aria-hidden>＋</span></summary>
-        <p className="mb-5 text-xs leading-relaxed text-ink-muted">Ámbar: el panel recibe luz. Azul: la nave puede enviar mediciones. Los tramos oscuros indican que esa condición no está disponible. El triángulo marca la falla de la batería.</p>
+        <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 text-sm font-bold text-ink-muted">Explorar los días de cada plan<span aria-hidden>＋</span></summary>
+        <p className="mb-5 text-xs leading-relaxed text-ink-muted">Cada día cuenta 24 horas desde el alunizaje. Elige uno para comparar sus condiciones en cada plan.</p>
         <div className="grid gap-5">
           <PlanLine title="Tu plan" when={when(data, c.original.from)} o={c.original} vis={vis} data={data} moduleName={moduleName} />
           <PlanLine title={`Con ${label} de atraso`} when={when(data, c.delayed.from)} o={c.delayed} vis={vis} data={data} moduleName={moduleName} change={Math.round(c.delayed.viability) - Math.round(c.original.viability)} />
@@ -106,11 +106,11 @@ function PlanLine({ title, when, o, vis, data, moduleName, change }: {
         <p className="text-sm font-bold text-ink">{title} <span className="font-normal text-ink-faint">· desde {when}</span></p>
         <p className="text-sm tabular-nums text-ink">
           {Math.round(o.viability)}/100
-          {change !== undefined && change !== 0 && <span className={cx('ml-2 text-xs font-bold', change > 0 ? 'text-ok' : 'text-critical')}>{change > 0 ? `+${change}` : `−${-change}`}</span>}
+          {change !== undefined && change !== 0 && <span className="ml-2 text-xs font-bold text-ink-muted">{change > 0 ? `+${change}` : `−${-change}`}</span>}
           <span className="ml-3"><Battery o={o} /></span>
         </p>
       </div>
-      <PlanStrips lit={vis.lit} contact={vis.contact} from={o.from} to={o.to} stepHours={data.stepHours} failedAt={o.failedAtIndex} />
+      <PlanStrips lit={vis.lit} contact={vis.contact} from={o.from} to={o.to} stepHours={data.stepHours} failedAt={o.failedAtIndex} startTime={sampleTime(data, o.from).getTime()} />
       <span className="sr-only">Batería: {moduleName}.</span>
     </div>
   )
@@ -118,6 +118,6 @@ function PlanLine({ title, when, o, vis, data, moduleName, change }: {
 
 function Battery({ o }: { o: PlanOutcome }) {
   return o.survived
-    ? <span className="text-xs font-bold text-ok">Batería: aguanta</span>
-    : <span className="text-xs font-bold text-critical">Batería: se agota ▲</span>
+    ? <span className="text-xs font-bold text-ink">Batería: aguanta</span>
+    : <span className="text-xs font-bold text-ink">Batería: se agota</span>
 }

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { SITE_IMAGERY, SITE_IMAGE_CREDIT } from '../content/siteImagery'
-import { formatDate } from '../lib/time'
+import { formatDateTime } from '../lib/time'
 import type { Site } from '../types'
 import { Button, cx, transition } from './ui'
 import { Tour, type TourStep } from './Tour'
@@ -20,11 +20,10 @@ interface PlannerGuideProps {
   assistant?: ReactNode
 }
 
-const STEPS = ['Sitio', 'Fecha', 'Resultado'] as const
-const TITLES = ['¿Dónde quieres alunizar?', '¿Cuándo llegará tu misión?', 'Este es tu plan de alunizaje.']
+const STEPS = ['Preparar', 'Resultado'] as const
+const TITLES = ['Prepara tu plan de alunizaje.', 'Este es tu plan de alunizaje.']
 const HINTS = [
-  'Elige un lugar del polo sur. Después veremos qué fecha funciona para tu misión.',
-  'Elige la fecha de llegada y cuántos días estará tu módulo en la superficie.',
+  'Elige el sitio, la fecha de llegada y los días en la superficie. Después comprueba si la misión funciona.',
   'Tu puntaje, qué lo limita y cómo mejorarlo.',
 ]
 
@@ -32,12 +31,9 @@ const HINTS = [
 const TOURS: TourStep[][] = [
   [
     { target: '[data-tour="ai-planner"]', title: 'O deja que la IA lo planee', text: 'Elige tu módulo y el mes: la IA prueba sitios y fechas con el simulador y te deja el mejor plan listo.' },
-    { target: '[data-tour="sites"]', title: 'Elige dónde alunizar', text: 'Cada foto es un lugar real del polo sur de la Luna. Toca el que quieras explorar.' },
-    { target: '[data-tour="to-date"]', title: 'Después, la fecha', text: 'Con el destino elegido, sigue aquí para decidir cuándo llega tu misión.' },
-  ],
-  [
-    { target: '[data-tour="date"]', title: '¿Cuándo llegas?', text: 'Las montañas tapan el Sol y la Tierra según el día. Cambiar la fecha puede salvar tu misión. Las horas van en UTC.' },
+    { target: '[data-tour="date"]', title: '¿Cuándo llegas?', text: 'La fecha cambia la energía disponible y las oportunidades para enviar mediciones. Las horas van en UTC.' },
     { target: '[data-tour="duration"]', title: '¿Cuánto tiempo te quedas?', text: 'Días que el módulo trabaja en la superficie. Más días significa más noches que aguantar.' },
+    { target: '[data-tour="sites"]', title: 'Elige dónde alunizar', text: 'Cada foto es un lugar real del polo sur de la Luna. Toca el que quieras explorar.' },
     { target: '[data-tour="check"]', title: 'Comprueba el plan', text: 'Calculamos con datos reales de NASA si te conviene llegar ese día.' },
   ],
   [
@@ -47,18 +43,25 @@ const TOURS: TourStep[][] = [
     { target: 'aside[aria-label="Elegir sitio de alunizaje"]', title: 'Compara sitios', text: 'El puntaje de cada lugar con tus mismas fechas. Toca uno para cambiar de destino.' },
     { target: '[data-tour="delay"]', title: '¿Y si te atrasas?', text: 'Elige un atraso y compáralo con tu plan: así sabes cuánto margen tienes.' },
     { target: '[data-tour="improve"]', title: 'Cómo mejorarlo', text: 'Si existe una fecha o un sitio mejor, aparece aquí con un botón para probarlo.' },
-    { target: '[data-tour="compare-plans"]', title: 'Compara lado a lado', text: 'Pon tu plan junto a otro sitio o junto a un plan que guardaste. Las franjas muestran cuándo hay Sol y cuándo se ve la Tierra.' },
+    { target: '[data-tour="compare-plans"]', title: 'Compara lado a lado', text: 'Pon tu plan junto a otro sitio o junto a un plan que guardaste. Elige un día de la agenda para ver sus horas de luz y de enlace con la Tierra.' },
     { target: '[data-tour="simulate"]', title: 'Simula tu módulo', text: 'Comprueba hora por hora si la batería aguanta toda la misión.' },
   ],
 ]
 
-/** Una decisión por pantalla. Los resultados conservan el explorador y sus datos reales. */
+/** Sitio, fecha y duración juntos; después, el resultado con el mismo plan. */
 export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missionDays, step, onStep, schedule, children, assistant }: PlannerGuideProps) {
   const [reached, setReached] = useState(step)
   const heading = useRef<HTMLHeadingElement>(null)
   const mounted = useRef(false)
   const selected = sites.find(site => site.id === selectedId)
   const image = SITE_IMAGERY[selectedId]
+  useEffect(() => {
+    let cancelled = false
+    const timer = window.setTimeout(() => {
+      void import('./Viewer3D').then(({ preloadSite }) => { if (!cancelled) preloadSite(selectedId) }).catch(() => { /* El visor permite reintentar al abrirlo. */ })
+    }, 350)
+    return () => { cancelled = true; window.clearTimeout(timer) }
+  }, [selectedId])
   // Si se llega a un paso desde fuera (por ejemplo, con el plan de la IA), queda disponible en la navegación.
   useEffect(() => { setReached((r) => Math.max(r, step)) }, [step])
 
@@ -77,10 +80,10 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
   }
 
   return <main className="mx-auto w-full max-w-[1600px] px-5 pb-14 pt-8 sm:px-8 lg:pt-10">
-    <Tour key={step} id={`planificador-${step}`} steps={TOURS[step]} />
-    <div className={cx('mx-auto', step < 2 && 'max-w-5xl')}>
+    <Tour key={step} id={`planificador-unificado-${step}`} steps={TOURS[step]} />
+    <div className={cx('mx-auto', step === 0 && 'max-w-5xl')}>
       <nav aria-label="Pasos del planificador" className="mb-8 max-w-xl">
-        <ol className="grid grid-cols-3 gap-2">
+        <ol className="grid grid-cols-2 gap-2">
           {STEPS.map((label, index) => <li key={label}>
             <button type="button" onClick={() => go(index)} disabled={index > reached}
               aria-current={step === index ? 'step' : undefined}
@@ -98,6 +101,9 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
 
       {step === 0 && <>
         {assistant}
+        <h2 className="mb-4 mt-8 text-xl font-bold text-ink">Elige los detalles de tu plan</h2>
+        <div className="mb-6">{schedule}</div>
+        <h2 className="mb-4 text-xl font-bold text-ink">Sitio de alunizaje</h2>
         <div role="group" aria-label="Elige tu destino" data-tour="sites" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
           {sites.map(site => {
             const photo = SITE_IMAGERY[site.id]
@@ -122,42 +128,16 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
         <p className="mt-4 text-xs leading-relaxed text-ink-muted">Imágenes regionales · {SITE_IMAGE_CREDIT}
           {image && <a href={image.source} target="_blank" rel="noreferrer" className="ml-2 underline underline-offset-4">Fuente del sitio elegido ↗</a>}
         </p>
-        <div className="guide-actions glass-surface mt-6 flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
-          <p className="min-w-0 flex-1 text-xs text-ink-muted sm:text-sm">Tu destino<span className="mt-1 line-clamp-2 font-bold text-ink">{selected?.name}</span></p>
-          <Button variant="primary" size="lg" data-tour="to-date" onClick={() => go(1)}>Elegir fecha →</Button>
+        <div className="guide-actions glass-surface mt-6 flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-5">
+          <div className="min-w-0 flex-1 text-xs text-ink-muted sm:text-sm"><p className="line-clamp-2 font-bold text-ink">{selected?.name}</p><p className="mt-1">{formatDateTime(date)} · {missionDays} días en superficie</p></div>
+          <Button variant="primary" size="lg" className="w-full sm:w-auto" data-tour="check" onClick={() => go(1)}>Comprobar mi plan →</Button>
         </div>
       </>}
 
       {step === 1 && <>
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-          <section aria-label="Destino de tu plan" className="glass-surface hidden overflow-hidden lg:block">
-            {image && <img src={image.src} alt="" width={640} height={360} className="aspect-16/7 w-full object-cover" style={{ objectPosition: image.position }} />}
-            <div className="p-5">
-              <p className="text-xs text-ink-muted">Tu destino · Polo sur lunar</p>
-              <h2 className="mt-2 font-display text-3xl font-bold uppercase leading-tight text-ink">{selected?.name}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-ink-muted">{selected?.description}</p>
-              <button type="button" onClick={() => go(0)} className="mt-4 min-h-11 text-sm font-bold text-ink underline underline-offset-4">Cambiar sitio</button>
-            </div>
-          </section>
-          <div className="min-w-0">
-            <div className="mb-4 flex items-center justify-between gap-4 lg:hidden">
-              <p className="min-w-0 text-sm font-bold text-ink">{selected?.name}</p>
-              <button type="button" onClick={() => go(0)} className="min-h-11 shrink-0 text-sm text-ink-muted underline underline-offset-4">Cambiar sitio</button>
-            </div>
-            {schedule}
-            <p className="mt-4 px-1 text-sm leading-relaxed text-ink-muted">La fecha cambia qué montañas tapan el Sol y la Tierra. Al comprobar el plan verás cómo afecta a tu misión.</p>
-          </div>
-        </div>
-        <div className="glass-surface mt-6 flex flex-wrap items-center justify-between gap-4 px-5 py-4">
-          <p className="text-sm text-ink-muted">Tu plan<span className="mt-1 block font-bold text-ink">{formatDate(date)} · {missionDays} días en la Luna</span></p>
-          <Button variant="primary" size="lg" data-tour="check" onClick={() => go(2)}>Comprobar mi plan →</Button>
-        </div>
-      </>}
-
-      {step === 2 && <>
         <div className="glass-surface mb-7 flex flex-wrap items-center justify-between gap-3 px-5 py-4">
-          <p className="text-sm leading-relaxed text-ink"><span className="font-bold">{selected?.name}</span><span className="block text-ink-muted sm:ml-3 sm:inline">{formatDate(date)} · {missionDays} días en superficie</span></p>
-          <Button onClick={() => go(1)}>Cambiar fecha o duración</Button>
+          <p className="text-sm leading-relaxed text-ink"><span className="font-bold">{selected?.name}</span><span className="block text-ink-muted sm:ml-3 sm:inline">{formatDateTime(date)} · {missionDays} días en superficie</span></p>
+          <Button onClick={() => go(0)}>Editar mi plan</Button>
         </div>
         {children}
       </>}

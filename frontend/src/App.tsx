@@ -249,7 +249,7 @@ function Planner() {
           ) : <PlannerGuide sites={sites} selectedId={p.data.site.id} errors={state.dataErrors} onSelect={actions.select}
             assistant={<AiPlanner reference={p.data} preset={preset} cfg={cfg} missionDays={missionDays}
               onPreset={(id) => { setPreset(id); setCfg(PRESETS[id].config) }}
-              onApply={(siteId, start, days) => { actions.select(siteId); actions.setMissionDays(days); tryStart(start); transition(() => setPlannerStep(2), 'forward') }} />}
+              onApply={(siteId, start, days) => { actions.select(siteId); actions.setMissionDays(days); tryStart(start); transition(() => setPlannerStep(1), 'forward') }} />}
             step={plannerStep} onStep={setPlannerStep}
             date={sampleTime(p.data, i)} missionDays={missionDays} schedule={
                 <section aria-label="Fecha y duración del plan" className="glass-surface grid grid-cols-1 items-end gap-5 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">
@@ -378,23 +378,24 @@ function Timeline({
 
   return (
     <Panel label={mission ? 'Reproducir misión' : 'Elige cuándo alunizar'}>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+      <div className="timeline-toolbar flex flex-wrap items-center gap-x-5 gap-y-4">
         <Button
-          variant="primary"
+          variant="secondary"
           size="md"
-          className="w-10 px-0"
+          className="min-w-30 px-4"
           aria-label={playing ? 'Pausar' : 'Reproducir'}
+          aria-pressed={playing}
           onClick={onTogglePlay}
         >
-          {playing ? <PauseIcon /> : <PlayIcon />}
+          {playing ? 'Pausar' : 'Reproducir'}
         </Button>
-        <div className="flex items-baseline gap-3">
-          <span className="font-mono text-lg tracking-tight text-ink">{formatDate(date)}</span>
-          <span className="font-mono text-lg tracking-tight text-ink-muted">{formatTime(date)} UTC</span>
+        <div className="timeline-toolbar__readout flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-sm leading-6 tabular-nums">
+          <span className="whitespace-nowrap text-ink">{formatDate(date)}</span>
+          <span className="whitespace-nowrap text-ink">{formatTime(date)} UTC</span>
+          <span className="whitespace-nowrap text-ink-muted">
+            {mission ? `Día ${dayNumber(p.data, index, mission.from)} de la misión` : `Día ${day} de ${days}`}
+          </span>
         </div>
-        <span className="font-mono text-xs text-ink-faint">
-          {mission ? `Día ${dayNumber(p.data, index, mission.from)} de la misión` : `Día ${day} de ${days}`}
-        </span>
         <TimeScale className="sm:ml-auto" speed={speed} onSpeed={onSpeed}
           spanHours={(max - min + 1) * p.data.stepHours}
           spanLabel={mission ? `la misión de ${formatDurationLong((max - min + 1) * p.data.stepHours)}` : `el periodo de ${days} días`} />
@@ -433,22 +434,6 @@ function Timeline({
       )}
       </Disclosure>
     </Panel>
-  )
-}
-
-function PlayIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="size-5" aria-hidden>
-      <path d="M4.5 2.8v10.4L13 8z" fill="currentColor" />
-    </svg>
-  )
-}
-
-function PauseIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="size-5" aria-hidden>
-      <path d="M4 3h3v10H4zM9 3h3v10H9z" fill="currentColor" />
-    </svg>
   )
 }
 
@@ -501,14 +486,14 @@ function Viability({
 
       <div className="mt-5 flex flex-col gap-3.5" data-tour="factors">
         <Factor
-          label="Luz solar"
+          label="Panel con luz"
           weight={r.factors.light.weight}
           value={`${Math.round(r.factors.light.score)} %`}
           valueTone="text-sun"
           limiting={limit === 'light'}
         />
         <Factor
-          label="Contacto con la Tierra"
+          label="Puede enviar mediciones"
           weight={r.factors.contact.weight}
           value={`${Math.round(r.factors.contact.score)} %`}
           valueTone="text-earth"

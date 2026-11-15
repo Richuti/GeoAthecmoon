@@ -38,6 +38,8 @@ export function ViewerPanel({ data, index, contact, missionState, immersive = fa
     earthAz: data.earth.az[index],
     earthEl: data.earth.el[index],
     earthVisible: contact,
+    sunDistanceKm: data.sun.distKm?.[index],
+    earthDistanceKm: data.earth.distKm?.[index],
   }
   const sunState = frac >= 1 ? 'iluminado' : frac <= 0 ? 'en sombra' : `${Math.round(frac * 100)} % del disco`
 
@@ -97,7 +99,7 @@ export function ViewerPanel({ data, index, contact, missionState, immersive = fa
           </Badge>}
         </div>
         <p className={cx('max-w-xs text-right text-[0.6875rem] leading-relaxed text-ink-faint')}>
-          Relieve LOLA (NASA/LRO): 20 km de detalle y 300 km alrededor. Nave agrandada ×4; Sol y Tierra agrandados. Arrastra para girar.
+          Relieve LOLA (NASA/LRO): 20 km de detalle y 300 km alrededor. Nave agrandada ×4. Sol y Tierra: radios reales y distancias de Horizons; medias si faltan. Arrastra para girar.
         </p>
       </div>}
       {missionOverlay}

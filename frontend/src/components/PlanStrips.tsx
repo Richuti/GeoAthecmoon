@@ -1,54 +1,50 @@
-// Franjas de la misión, hora por hora: cuándo hay Sol (ámbar) y cuándo se ve la Tierra (azul).
-// Se lee de un vistazo dónde caen las noches y los cortes de comunicación; una marca roja señala si la batería se agota.
-import { runs } from '../lib/strips'
+import { useId, useMemo, useState } from 'react'
+import { missionDays } from '../lib/missionDays'
+import { formatShortDate } from '../lib/time'
+import './plan-agenda.css'
 
-export function PlanStrips({ lit, contact, from, to, stepHours, failedAt, compact = false }: {
-  lit: boolean[]
-  contact: boolean[]
-  from: number
-  to: number
-  stepHours: number
-  /** Muestra (absoluta) en la que la batería llega al 20 % */
-  failedAt?: number | null
-  compact?: boolean
+/** El enlace disponible no equivale a datos transmitidos. */
+export function PlanStrips({ lit, contact, from, to, stepHours, failedAt, startTime }: {
+  lit: boolean[]; contact: boolean[]; from: number; to: number; stepHours: number
+  failedAt?: number | null; startTime: number; compact?: boolean
 }) {
-  const n = Math.max(1, to - from)
-  const days = Math.round((n * stepHours) / 24)
-  const perDay = 24 / stepHours
-  const row = (flags: boolean[], cls: string, y: number, h: number) =>
-    runs(flags, from, to).map(([a, b]) => <rect key={`${y}-${a}`} className={cls} x={a} y={y} width={b - a} height={h} />)
-  const h = compact ? 7 : 10
-  const fail = failedAt != null && failedAt >= from && failedAt < to ? failedAt - from : null
+  const days = useMemo(() => missionDays(lit, contact, from, to, stepHours), [lit, contact, from, to, stepHours])
+  const [pick, setPick] = useState(0)
+  const selected = Math.min(pick, Math.max(0, days.length - 1))
+  const day = days[selected]
+  const id = useId()
+  if (!day) return null
+  const page = Math.floor(selected / 14) * 14
+  const when = (hour: number) => {
+    const date = new Date(startTime + hour * 3_600_000)
+    return `${formatShortDate(date)}, ${date.toISOString().slice(11, 16)}`
+  }
+  const failHour = failedAt != null && failedAt >= from && failedAt < to ? (failedAt - from) * stepHours : null
+  const stopped = failHour !== null && failHour < day.offset + day.hours
   return (
-    <div className="plan-strips">
-      <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-x-2 gap-y-1.5">
-        <span className="text-[0.6875rem] font-bold text-sun">Panel con luz</span>
-        <svg viewBox={`0 0 ${n} ${h}`} preserveAspectRatio="none" className="plan-strips__bar" style={{ height: h }} aria-hidden>
-          <rect className="plan-strips__night" width={n} height={h} />
-          {row(lit, 'plan-strips__sun', 0, h)}
-          {fail !== null && <rect className="plan-strips__dead" x={fail} width={n - fail} height={h} />}
-        </svg>
-        <span className="text-[0.6875rem] font-bold text-earth">Puede enviar</span>
-        <svg viewBox={`0 0 ${n} ${h}`} preserveAspectRatio="none" className="plan-strips__bar" style={{ height: h }} aria-hidden>
-          <rect className="plan-strips__night" width={n} height={h} />
-          {row(contact, 'plan-strips__earth', 0, h)}
-          {fail !== null && <rect className="plan-strips__dead" x={fail} width={n - fail} height={h} />}
-        </svg>
-        <span />
-        <div className="relative h-3" aria-hidden>
-          {Array.from({ length: days + 1 }, (_, d) => d).filter((d) => d === 0 || d === days || (days <= 16 ? d % 2 === 0 : d % 7 === 0)).map((d) => (
-            <span key={d} className="absolute top-0 -translate-x-1/2 text-[0.625rem] tabular-nums text-ink-faint" style={{ left: `${Math.min(100, (d * perDay * 100) / n)}%` }}>
-              {d === 0 ? 'día 1' : d}
-            </span>
-          ))}
-          {fail !== null && <span className="absolute top-0 -translate-x-1/2 text-[0.625rem] font-bold text-critical" style={{ left: `${(fail * 100) / n}%` }}>▲</span>}
-        </div>
+    <div className="plan-agenda">
+      <p className="plan-agenda__intro">Tu misión, día a día</p>
+      <p className="plan-agenda__hint">Elige un día para ver sus condiciones.</p>
+      <div className="plan-agenda__days" role="group" aria-label="Días de la misión">
+        {days.slice(page, page + 14).map((_, index) => {
+          const d = page + index
+          return <button type="button" key={d} aria-pressed={selected === d} aria-controls={id} onClick={() => setPick(d)}><span>Día</span><strong>{d + 1}</strong></button>
+        })}
       </div>
-      <p className="sr-only">
-        Durante la misión hay Sol {Math.round((runs(lit, from, to).reduce((s, [a, b]) => s + b - a, 0) * 100) / n)} % del tiempo
-        y la Tierra se ve {Math.round((runs(contact, from, to).reduce((s, [a, b]) => s + b - a, 0) * 100) / n)} % del tiempo.
-        {fail !== null && ' La batería se agota antes del final.'}
-      </p>
+      {days.length > 14 && <div className="plan-agenda__pages">
+        <button type="button" disabled={page === 0} onClick={() => setPick(Math.max(0, page - 14))}>Días anteriores</button>
+        <button type="button" disabled={page + 14 >= days.length} onClick={() => setPick(page + 14)}>Días siguientes</button>
+      </div>}
+      <div id={id} className="plan-agenda__detail" aria-live="polite" aria-atomic="true">
+        <h4>{`Día ${selected + 1} de la misión`}</h4>
+        <p className="plan-agenda__date">{`${when(day.offset)} → ${when(day.offset + day.hours)} UTC`}</p>
+        {stopped && <p className="plan-agenda__stop">{failHour! < day.offset ? 'La nave ya se ha detenido. Estas son las condiciones del sitio, sin actividad de la misión.' : `La batería llega al mínimo el ${when(failHour!)} UTC. La misión se detiene en ese momento.`}</p>}
+        <dl className="plan-agenda__facts">
+          <div><dt>Energía del panel</dt><dd><strong>{`${Number(day.lightHours.toFixed(2))} h con luz`}</strong><span>{day.lightHours === day.hours ? 'Recibe luz durante todo este día.' : day.lightHours === 0 ? 'Sin luz durante este día. La nave depende de la batería.' : 'Durante las horas sin luz, la nave depende de la batería.'}</span></dd></div>
+          <div><dt>Datos enviados</dt><dd><strong>{`${Number(day.contactHours.toFixed(2))} h con enlace`}</strong><span>{day.contactHours === day.hours ? 'Hay enlace con la Tierra durante todo este día.' : day.contactHours === 0 ? 'Sin enlace durante este día. Las mediciones se guardan a bordo.' : 'Sin enlace, las mediciones se guardan para enviarlas después.'}</span></dd></div>
+        </dl>
+        <p className="plan-agenda__hint">El enlace indica cuándo puede enviar; la cantidad enviada se calcula en el simulador.</p>
+      </div>
     </div>
   )
 }

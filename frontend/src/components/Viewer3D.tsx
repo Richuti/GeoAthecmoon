@@ -17,6 +17,7 @@ import { SpaceBackground } from './SpaceBackground'
 import { descentFrame } from '../sim/transferView'
 import { useFlightModel } from './sim/useFlightModel'
 import type { Mode } from '../sim/simulate'
+import { EARTH_RADIUS_KM, SUN_RADIUS_KM, MEAN_EARTH_DIST_KM, MEAN_SUN_DIST_KM } from '../lib/sky'
 
 export interface Sky {
   sunAz: number
@@ -26,17 +27,14 @@ export interface Sky {
   earthAz: number
   earthEl: number
   earthVisible: boolean
+  sunDistanceKm?: number
+  earthDistanceKm?: number
 }
 
 /** Altura de la nave en la escena (km): unas 4 veces los 110 m del cohete; a escala real casi no se vería. */
 export const SHIP_HEIGHT_KM = 0.44
 /** Altura del centro de la nave sobre el suelo: la cámara apunta ahí. */
 const SHIP_CENTER_KM = SHIP_HEIGHT_KM / 2
-/** Distancia a la que se dibujan el Sol y la Tierra (km de escena) y su radio aparente agrandado. */
-const SKY_DISTANCE = 40
-const SUN_RADIUS = 0.6
-const EARTH_RADIUS = 1.6
-
 const DEG = Math.PI / 180
 
 /** Dirección hacia un cuerpo: norte = -Z, este = +X, arriba = +Y. */
@@ -91,7 +89,7 @@ function Ship({ groundY }: { groundY: number }) {
   return <group position={[0, groundY + SHIP_CENTER_KM, 0]} scale={SHIP_HEIGHT_KM}><primitive object={ship} dispose={null} /></group>
 }
 
-function SkyBody({ url, az, el, radius, unlit = false, mirror = false }: { url: string; az: number; el: number; radius: number; unlit?: boolean; mirror?: boolean }) {
+function SkyBody({ url, az, el, radius, distance, groundY, unlit = false, mirror = false }: { url: string; az: number; el: number; radius: number; distance: number; groundY: number; unlit?: boolean; mirror?: boolean }) {
   const { scene } = useGLTF(url)
   const body = useMemo(() => {
     const clone = scene.clone(true)
@@ -101,15 +99,28 @@ function SkyBody({ url, az, el, radius, unlit = false, mirror = false }: { url: 
         const m = o as THREE.Mesh
         if (m.isMesh) {
           const src = m.material as THREE.MeshStandardMaterial
-          m.material = new THREE.MeshBasicMaterial({ map: src.map ?? null, color: src.map ? 0xffffff : src.color })
+          m.material = new THREE.MeshBasicMaterial({ map: src.map ?? null, color: src.map ? 0xffffff : src.color, side: THREE.DoubleSide })
         }
       })
     }
-    return clone
+    // Normaliza el GLB existente, sin crear geometría: su radio de exportación no determina el tamaño del cielo.
+    const bounds = new THREE.Box3().setFromObject(clone)
+    const center = bounds.getCenter(new THREE.Vector3())
+    const size = bounds.getSize(new THREE.Vector3())
+    const normalizer = new THREE.Group()
+    normalizer.add(clone)
+    clone.position.sub(center)
+    normalizer.scale.setScalar(2 / Math.max(size.x, size.y, size.z, 0.0001))
+    return normalizer
   }, [scene, unlit])
-  const pos = direction(az, el).multiplyScalar(SKY_DISTANCE)
+  useEffect(() => () => {
+    if (unlit) body.traverse((o) => { if ((o as THREE.Mesh).isMesh) ((o as THREE.Mesh).material as THREE.Material).dispose() })
+  }, [body, unlit])
+  // La unidad del terreno es un kilómetro: radios y distancias conservan esa misma escala.
+  // Azimut/elevación y distancia son topocéntricos; el origen es el suelo del sitio.
+  const offset = direction(az, el).multiplyScalar(distance).add(new THREE.Vector3(0, groundY, 0))
   // earth.glb trae la textura en espejo; se refleja en X (ver useGlobeModel).
-  return <primitive object={body} position={pos} scale={[mirror ? -radius : radius, radius, radius]} />
+  return <group position={offset} scale={[mirror ? -radius : radius, radius, radius]}><primitive object={body} dispose={null} /></group>
 }
 
 /** Penumbra: casi nada de día (las sombras lunares son negras) y más de noche para que el relieve se lea. */
@@ -154,8 +165,9 @@ function Lights({ sky }: { sky: Sky }) {
 }
 
 /** Coloca la cámara al cambiar de sitio: de lado al Sol, para ver las sombras largas. */
-function CameraRig({ siteId, sky, groundY, controls, arrivalProgress }: { siteId: string; sky: Sky; groundY: number; controls: RefObject<OrbitControlsImpl | null>; arrivalProgress?: number }) {
+function CameraRig({ siteId, sky, groundY, controls, arrivalProgress, manual }: { siteId: string; sky: Sky; groundY: number; controls: RefObject<OrbitControlsImpl | null>; arrivalProgress?: number; manual: RefObject<boolean> }) {
   const { camera, size } = useThree()
+  const previousTarget = useRef(new THREE.Vector3())
   const sunAzRef = useRef(sky.sunAz)
   sunAzRef.current = sky.sunAz
 
@@ -181,6 +193,14 @@ function CameraRig({ siteId, sky, groundY, controls, arrivalProgress }: { siteId
     const nearGround = 1 - Math.min(1, frame.altitudeKm / 0.6)
     const targetY = groundY + frame.altitudeKm + SHIP_CENTER_KM * (1 - 0.4 * nearGround)
     const d = frame.cameraDistanceKm
+    if (manual.current && controls.current) {
+      camera.position.y += targetY - previousTarget.current.y
+      controls.current.target.set(0, targetY, 0)
+      controls.current.update()
+      previousTarget.current.set(0, targetY, 0)
+      return
+    }
+    previousTarget.current.set(0, targetY, 0)
     camera.position.set(horizontal.x * Math.cos(elev) * d, targetY + Math.sin(elev) * d, horizontal.z * Math.cos(elev) * d)
     if (camera instanceof THREE.PerspectiveCamera && camera.far < 2000) { camera.far = 2000; camera.updateProjectionMatrix() }
     camera.lookAt(0, targetY, 0)
@@ -310,8 +330,12 @@ export default function Viewer3D({
   shipState?: Mode
 }) {
   const controls = useRef<OrbitControlsImpl | null>(null)
+  const manual = useRef(false)
+  useEffect(() => { manual.current = false }, [resetKey])
   const overlay: DescentOverlay = { sheet: useRef(null), inner: useRef(null), outer: useRef(null), glow: useRef(null), marker: useRef(null) }
   const descending = arrivalProgress !== undefined
+  const sunDistance = sky.sunDistanceKm && Number.isFinite(sky.sunDistanceKm) && sky.sunDistanceKm > SUN_RADIUS_KM ? sky.sunDistanceKm : MEAN_SUN_DIST_KM
+  const earthDistance = sky.earthDistanceKm && Number.isFinite(sky.earthDistanceKm) && sky.earthDistanceKm > EARTH_RADIUS_KM ? sky.earthDistanceKm : MEAN_EARTH_DIST_KM
 
   return (<>
     <Canvas
@@ -319,32 +343,35 @@ export default function Viewer3D({
       shadows="percentage"
       frameloop={active ? 'always' : 'never'}
       dpr={[1, 1.75]}
-      camera={{ fov: 45, near: 0.01, far: 400, position: [6, 2.5, 6] }}
+      camera={{ fov: 45, near: 0.01, far: Math.max(sunDistance + SUN_RADIUS_KM, earthDistance + EARTH_RADIUS_KM) * 1.1, position: [6, 2.5, 6] }}
       // En el descenso conviven el relieve de 300 km y la nave de 0.4 km: profundidad logarítmica.
-      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, logarithmicDepthBuffer: descending }}
+      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, logarithmicDepthBuffer: true }}
       aria-hidden
     >
       <Suspense fallback={null}>
-        <SpaceBackground />
+        <Suspense fallback={null}><SpaceBackground /></Suspense>
         <Lights sky={sky} />
+        <Suspense fallback={null}>
         <Terrain siteId={siteId} onGroundHeight={onGroundHeight} />
-        <FarTerrain siteId={siteId} />
         <Ship groundY={groundY + (arrivalProgress === undefined ? 0 : descentFrame(arrivalProgress, 1).altitudeKm)} />
+        </Suspense>
+        <Suspense fallback={null}><FarTerrain siteId={siteId} /></Suspense>
         {shipState && <Html position={[0, groundY + SHIP_HEIGHT_KM * 0.55, 0]} center zIndexRange={[1, 0]} style={{ pointerEvents: 'none' }}>
           <span aria-hidden className={`incident-ship-label is-${shipState}`}>{shipState === 'failed' ? 'Sin energía' : shipState === 'survival' ? 'Instrumentos apagados' : sky.sunFraction <= 0 ? 'Panel sin Sol' : sky.sunFraction < 1 ? 'Panel con luz parcial' : 'Panel iluminado'}</span>
         </Html>}
-        <SkyBody url="/models/sun.glb" az={sky.sunAz} el={sky.sunEl} radius={SUN_RADIUS} />
-        <SkyBody url="/models/earth.glb" az={sky.earthAz} el={sky.earthEl} radius={EARTH_RADIUS} unlit mirror />
-        <CameraRig key={resetKey} siteId={siteId} sky={sky} groundY={groundY} controls={controls} arrivalProgress={arrivalProgress} />
+        <CameraRig key={resetKey} siteId={siteId} sky={sky} groundY={groundY} controls={controls} arrivalProgress={arrivalProgress} manual={manual} />
+        <Suspense fallback={null}><SkyBody url="/models/sun.glb" az={sky.sunAz} el={sky.sunEl} radius={SUN_RADIUS_KM} distance={sunDistance} groundY={groundY} unlit /></Suspense>
+        <Suspense fallback={null}><SkyBody url="/models/earth.glb" az={sky.earthAz} el={sky.earthEl} radius={EARTH_RADIUS_KM} distance={earthDistance} groundY={groundY} unlit mirror /></Suspense>
         {descending && <DescentEffects groundY={groundY} progress={arrivalProgress} overlay={overlay} />}
       </Suspense>
       <OrbitControls
         ref={controls}
         makeDefault
-        enabled={arrivalProgress === undefined}
+        onStart={() => { manual.current = true }}
+        enablePan={arrivalProgress === undefined}
         enableDamping
         minDistance={0.3}
-        maxDistance={24}
+        maxDistance={descending ? 2000 : 24}
         maxPolarAngle={Math.PI * 0.49}
       />
     </Canvas>
@@ -373,3 +400,8 @@ export default function Viewer3D({
 useGLTF.preload('/models/launch_vehicle.glb')
 useGLTF.preload('/models/sun.glb')
 useGLTF.preload('/models/earth.glb')
+
+/** Se prepara solo el sitio elegido mientras se completa el formulario. */
+export function preloadSite(siteId: string) {
+  useGLTF.preload(`/models/terrain/${siteId}.glb`)
+}

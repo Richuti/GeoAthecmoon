@@ -33,8 +33,8 @@ export function MissionResult({ data, result, tolerance, assessment, onRescue }:
         <p className="text-sm text-ink-muted">{VERDICT_LABEL[assessment.verdict]}</p>
       </div>
       <dl className="mt-5 space-y-3 text-sm">
-        <div className="flex items-baseline justify-between gap-4"><dt className="text-ink-muted">Tiempo con luz solar</dt><dd className="font-bold tabular-nums text-sun">{percentLabel(assessment.factors.light.score)} % <span className="text-xs font-normal">· {Math.round(assessment.factors.light.score * hours / 100)} h</span></dd></div>
-        <div className="flex items-baseline justify-between gap-4"><dt className="text-ink-muted">Contacto con la Tierra</dt><dd className="font-bold tabular-nums text-earth">{percentLabel(assessment.factors.contact.score)} % <span className="text-xs font-normal">· {Math.round(assessment.factors.contact.score * hours / 100)} h</span></dd></div>
+        <div className="flex items-baseline justify-between gap-4"><dt className="text-ink-muted">Panel con luz</dt><dd className="font-bold tabular-nums text-sun">{percentLabel(assessment.factors.light.score)} % <span className="text-xs font-normal">· {Math.round(assessment.factors.light.score * hours / 100)} h</span></dd></div>
+        <div className="flex items-baseline justify-between gap-4"><dt className="text-ink-muted">Puede enviar mediciones</dt><dd className="font-bold tabular-nums text-earth">{percentLabel(assessment.factors.contact.score)} % <span className="text-xs font-normal">· {Math.round(assessment.factors.contact.score * hours / 100)} h</span></dd></div>
         <div className="flex items-baseline justify-between gap-4"><dt className="text-ink-muted">Pendiente máx. en 100 m</dt><dd className="tabular-nums text-ink">{data.slope.max100mDeg.toFixed(1)}°</dd></div>
       </dl>
       {slopeWarning && <p className="mt-3 text-xs leading-relaxed text-caution">{slopeWarning}</p>}
