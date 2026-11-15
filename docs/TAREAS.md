@@ -6,6 +6,8 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 - **Entrada completa y color lunar (14 nov), implementada; pendiente de revisión y subida:** se volvió a observar MXL Parts y se adaptó su secuencia completa: apertura corta con el nombre, cierre, cambio de contraste neutro y apertura final con acercamiento de la portada. Se elimina el azul de la presentación sin modificar el PNG original. Verificado: 278 pruebas, build, capturas por fase a 1440/390 px y ajuste a 320 px; finalización, salto, Escape, movimiento reducido y regreso al inicio sin repetición.
 
+- **Navegación y recarga (14 nov), implementadas; pendiente de revisión y subida de Richard:** al recargar se vuelve a `#inicio`, conservando `?sitio=` para el planificador. Los enlaces compartidos siguen abriendo directamente el sitio al visitarlos por primera vez. El scroll se reinicia después del montaje de cada pantalla y la restauración automática del navegador queda en modo manual. Verificado: 278 pruebas, build y capturas a 1440/390 px; abrir desde el pie de la landing, recargar desde abajo del planificador, Atrás/Adelante, volver por la marca y enlaces directos al sitio elegido.
+
 ## Cómo trabajamos
 
 1. Se hace **un solo paso a la vez** (por ejemplo, 4.2).

@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
 import { Help } from './components/Help'
@@ -69,13 +69,16 @@ function viewFromUrl(): View {
 export default function App() {
   const [view, setView] = useState<View>(viewFromUrl)
   useEffect(() => {
-    const onHash = () => {
-      setView(viewFromUrl())
-      window.scrollTo(0, 0)
-    }
+    const onHash = () => setView(viewFromUrl())
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
+  useLayoutEffect(() => {
+    // La pantalla nueva ya está montada: no hereda el scroll de la anterior.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    const frame = window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }))
+    return () => window.cancelAnimationFrame(frame)
+  }, [view])
 
   const { state } = useAppState()
   const facts = useMemo(() => storyFacts(Object.values(state.data)), [state.data])
