@@ -1,7 +1,7 @@
 # Plan de la hackatón · GeoAthectum
 
 **Entrega (H):** domingo 15 nov, **13:00** (meta interna: no hay hora oficial todavía; si la anuncian, se ajusta)
-**Checkpoint sáb 15:40:** 🟡 por la integración de datos; el resto va a tiempo.
+**Checkpoint sáb 18:00:** 🟡→🔴 en integración: siguen las coordenadas viejas en la rama `frontend` (aviso de las 15:40), no hay nada en `main` y no hay deploy. El simulador avanza. IA1 (planificador con IA) queda **fuera de esta entrega**: necesita servidor y clave de API.
 **Fechas clave:** plan B del relieve sáb 23:00 · pitch en borrador dom 05:00 · feature freeze dom 07:00 · deploy final dom 08:00 · ensayos dom 10:00–12:30
 **Frase de valor:** *En 10 segundos sabes si un sitio y una fecha sirven en el polo sur lunar, y qué pasa si tu misión se retrasa.*
 **Momento wow de la demo:** "la misión se retrasa". Se atrasa el alunizaje unos días: el **Sol** queda tras el relieve real, la batería cae a su mínimo del **20 %** (falla) y la app dice cuánto atraso tolera la misión y qué fecha o sitio la salva. (La Tierra tapada solo corta el envío de datos, no la energía.)
@@ -14,7 +14,7 @@
 | B1 DEM LOLA 80 m: lector y prueba de cordura | Rafael | ✅ (coincide con QuickMap ±80 m) | sáb 12:00 |
 | Datos LOLA en la app (`python backend/export.py`) y terreno real para Blender (`npm run export-terrain`) | Rafael | ✅ (85/85 pruebas; % de luz TS = Python) | sáb 14:00 |
 | ⚠ Richard: modelar en Blender sobre el relieve **real** (no el sintético) | Richard | ⏳ | sáb 16:00 |
-| 🔴 **URGENTE** Richard: poner en `frontend/scripts/sites.mjs` las coordenadas de `backend/sites_verified.json` y volver a correr `build_terrains.py`, `npm run horizons` y `npm run mock`. Con las coordenadas viejas, su rama `frontend` deja a Malapert con 21 % de luz (con las nuevas tiene 78 %) y **el caso de la demo falla desde el 15 ene** | Richard | ⏳ | sáb 17:00 |
+| 🔴 **URGENTE (sigue pendiente a las 18:00)** Richard: poner en `frontend/scripts/sites.mjs` las coordenadas de `backend/sites_verified.json` y volver a correr `build_terrains.py`, `npm run horizons` y `npm run mock`. Con las coordenadas viejas, su rama `frontend` deja a Malapert con 21 % de luz (con las nuevas tiene 78 %) y **el caso de la demo falla desde el 15 ene** | Richard | ⏳ | sáb 17:00 |
 | Borrador del pitch (`docs/PITCH.md`) | Rafael | ✅ v1 | sáb 14:00 |
 | B2 Horizonte, pendiente y terreno reales | Rafael | ✅ | sáb 13:00 |
 | B3 JSON finales (LOLA + Horizons) en `backend/out/`, con 4 sitios movidos a la cresta | Rafael | ✅ | sáb 14:00 |
@@ -32,16 +32,21 @@
 | Storyboard del video de respaldo de 60 s con los clics de `docs/CASO_DEMO.md` | Odelmy | ⏳ | sáb 20:00 |
 | Esqueleto de las diapositivas (problema, demo, validación, limitaciones, equipo) | Odelmy | ⏳ | sáb 22:00 |
 | Decidir el nombre público: "GeoAthectum" o "Simulador" (hoy no coinciden el doc de identidad y la app) | Odelmy y equipo | ⏳ | sáb 18:00 |
-| Primer deploy en Vercel (aunque esté incompleto) | Richard y Rafael | ⏳ | sáb 22:00 |
+| Primer deploy en Vercel (aunque esté incompleto) | Richard y Rafael | ⏳ | **sáb 20:00** (se adelanta) |
 | Guion del pitch en borrador | Odelmy y Joshua | ⏳ | dom 05:00 |
 | Feature freeze | todos | ⏳ | dom 07:00 |
 | Deploy final y video de respaldo | Richard y Odelmy | ⏳ | dom 08:00 |
 | Ensayos del pitch (3 completos) | Joshua y todos | ⏳ | dom 10:00–12:30 |
 
 ## Turnos de sueño
-Nadie debe pasar más de 20 h despierto. Rafael y Richard no duermen al mismo tiempo. (Por definir.)
+Nadie debe pasar más de 20 h despierto. Rafael y Richard no duermen al mismo tiempo.
+- Rafael: **sáb 23:30 → dom 03:30** (el backend está cerrado; vuelve para el QA de madrugada y los ensayos).
+- Richard: **dom 03:30 → 07:00**, después del deploy, con todo el MVP en `main`.
+- Joshua, Odelmy y Dilan: turnos de 4 h antes de las 05:00 (borrador del pitch).
 
 ## Si sobra tiempo (en orden inverso de recorte)
+**Fuera de esta entrega:** IA1 (planificador con IA, `docs/TAREAS.md`), porque requiere servidor, clave de OpenAI y backend en vivo. Puede ir en el pitch como "siguiente paso".
+
 Comparador (10), textura LRO (9.5), globo de portada (M2), sliders de pesos, animación 3D, servidor en vivo con coordenadas libres.
 
 ## Deploy en Vercel (revisado sáb 13:30, listo para hacerlo)
