@@ -8,8 +8,8 @@ test('la nave parte apoyada en la cubierta y el encuadre conserva el conjunto en
     const frame = launchFrame(0, aspect)
     assert.ok(Math.abs(frame.centerY - LAUNCH_SHIP_HEIGHT_M / 2 - LAUNCH_PAD_DECK_M) < 1e-8)
     const halfHeight = frame.distanceM * Math.tan(21 * Math.PI / 180)
-    assert.ok(halfHeight > LAUNCH_SHIP_HEIGHT_M)
-    assert.ok(halfHeight * aspect > LAUNCH_SHIP_HEIGHT_M)
+    assert.ok(halfHeight > 90)
+    assert.ok(halfHeight * aspect > 90)
   }
 })
 

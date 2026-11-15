@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
 import { Help } from './components/Help'
@@ -15,7 +15,7 @@ import { DelayCheck } from './components/DelayCheck'
 import { PlanCompare, type SavedPlan } from './components/PlanCompare'
 import { SiteConditions } from './components/SiteConditions'
 import { VisibilityCalendar } from './components/VisibilityCalendar'
-import { Badge, Button, DateTimeField, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
+import { Badge, Button, DateTimeField, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, transition, type Tone } from './components/ui'
 import { formatLat, formatLon } from './lib/format'
 import { dayNumber, formatDate, formatDateTime, formatDuration, formatDurationLong, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, totalDays } from './lib/time'
 import { missionWindow, recommend, type Recommendation } from './lib/recommend'
@@ -66,8 +66,14 @@ function viewFromUrl(): View {
 
 export default function App() {
   const [view, setView] = useState<View>(viewFromUrl)
+  const viewRef = useRef(view)
+  viewRef.current = view
   useEffect(() => {
-    const onHash = () => setView(viewFromUrl())
+    // La portada y el planificador se cruzan con una transición: hacia el planificador avanza, hacia la portada vuelve.
+    const onHash = () => {
+      const next = viewFromUrl()
+      if (next !== viewRef.current) transition(() => setView(next), next === 'planner' ? 'forward' : 'back')
+    }
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
@@ -93,6 +99,8 @@ function Planner() {
   const { sites, selectedId, index: i, mode } = state
 
   const { missionDays } = state
+  /** Cambiar entre Planificador y Simulador con transición (el simulador va «adelante»). */
+  const changeMode = (next: typeof mode) => { if (next !== mode) transition(() => actions.setMode(next), next === 'simulate' ? 'forward' : 'back') }
 
   const [preset, setPreset] = useState<PresetId | null>(DEFAULT_PRESET)
   const [plannerStep, setPlannerStep] = useState(0)
@@ -175,7 +183,7 @@ function Planner() {
     <div className="flight-console flex min-h-dvh flex-col">
       <header className="flight-header flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4 sm:px-8">
         <Brand />
-        <Segmented label="Modo" options={MODES} value={mode} onChange={actions.setMode} />
+        <Segmented label="Modo" options={MODES} value={mode} onChange={changeMode} />
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
           {notice && <Badge tone="caution">Datos de prueba</Badge>}
           <Help />
@@ -199,7 +207,7 @@ function Planner() {
       ) : !p || !sites ? (
         <Loading />
       ) : (
-        <>
+        <div className="app-screen">
           {mode === 'simulate' ? (
             <SimulatorWorkspace
               data={p.data} lit={p.lit} contact={p.contact} onSeek={seek} survivalThreshold={simCfg.survivalThreshold}
@@ -251,7 +259,7 @@ function Planner() {
                     <div className="terrain-stage h-[27rem] min-w-0 sm:h-[31rem]" data-tour="terrain"><ViewerPanel data={p.data} index={i} contact={p.contact[i]} immersive /></div>
                     <p className="mt-3 text-xs leading-relaxed text-ink-muted">{p.data.site.description}</p>
                   </div>
-                  {rec && <Viability p={p} rec={rec} onSimulate={() => { actions.setPlaying(false); setDraftStart(rec.window.from); actions.setMode('simulate') }} />}
+                  {rec && <Viability p={p} rec={rec} onSimulate={() => { actions.setPlaying(false); setDraftStart(rec.window.from); changeMode('simulate') }} />}
                 </div>
                 {current && <DelayCheck data={p.data} vis={current.vis} cfg={cfg} moduleName={preset ? PRESETS[preset].label : 'módulo personalizado'}
                   startIndex={i} missionDays={missionDays} onApply={seek} />}
@@ -277,7 +285,7 @@ function Planner() {
             </div>
           </PlannerGuide>}
 
-        </>
+        </div>
       )}
     </div>
   )

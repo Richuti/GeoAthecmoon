@@ -101,7 +101,7 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
           <h2 aria-live="polite" className="mt-2 text-xl font-bold text-ink">{phase}</h2>
         </div>
         <p className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/80 px-5 py-3 text-xs leading-relaxed text-ink-muted">
-          {launch ? 'Ascenso ilustrativo. Módulo y plataforma de referencia NASA; el cálculo orbital comienza a 200 km.' : 'Trayectoria orbital idealizada. Tamaños de planetas y nave ampliados en la vista general.'}
+          {launch ? 'Ascenso ilustrativo. Cohete y plataforma de referencia NASA; el cálculo orbital comienza a 200 km.' : 'Trayectoria orbital idealizada. Tamaños de planetas y nave ampliados en la vista general.'}
         </p>
       </div>
       <div className="flex flex-col justify-center px-1 py-2 lg:px-6">
@@ -121,7 +121,7 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
             <p>Salida orbital de referencia: {formatDateTime(departure)}. Encuentro de referencia: {formatDateTime(arrival)}. Se ancla a la fecha elegida de alunizaje; no calcula una ventana real de lanzamiento.</p>
             <p>Impulso de salida de órbita: {orbit.injectionDeltaVKmS.toFixed(2)} km/s (sin incluir el ascenso). Fecha durante el recorrido: {formatDateTime(clock)}.</p>
             <p><a className="underline underline-offset-4" href="https://ssd.jpl.nasa.gov/astro_par.html" target="_blank" rel="noreferrer">Constantes JPL</a> · <a className="underline underline-offset-4" href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html" target="_blank" rel="noreferrer">Datos Tierra–Luna de NASA</a>.</p>
-            <p>Modelos de referencia: Tierra Blue Marble y módulo Apolo adaptado (NASA), el mismo en el despegue, el viaje y la Luna. Se muestra sin cohete para seguir siempre a la misma nave; no representa un vehículo CLPS concreto. Textura lunar del globo: <a className="underline underline-offset-4" href="https://svs.gsfc.nasa.gov/4720/" target="_blank" rel="noreferrer">NASA SVS, CGI Moon Kit</a>.</p>
+            <p>Modelos de referencia: Tierra Blue Marble y cohete Saturn V (NASA). Se usa la misma nave en el despegue, el viaje y el alunizaje como ilustración; no representa un vehículo CLPS concreto. Textura lunar del globo: <a className="underline underline-offset-4" href="https://svs.gsfc.nasa.gov/4720/" target="_blank" rel="noreferrer">NASA SVS, CGI Moon Kit</a>.</p>
             <p>Imagen a?rea de Kennedy: <a className="underline underline-offset-4" href="https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer" target="_blank" rel="noreferrer">USGS / USDA, NAIP</a>. Humo y escape son efectos visuales, sin din?mica de fluidos.</p>
             <p>Plataforma y torre: <a className="underline underline-offset-4" href="https://science.nasa.gov/3d-resources/mobile-launcher/" target="_blank" rel="noreferrer">NASA / Samuel H. Neblett, Mobile Launcher</a>. El conjunto es una referencia visual, no una reconstrucción de una instalación o un lanzamiento concretos.</p>
           </div>

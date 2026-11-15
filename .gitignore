@@ -28,6 +28,9 @@ Thumbs.db
 frontend/assets-src/terrain/*
 !frontend/assets-src/terrain/README.md
 
+# Backend: DEM LOLA (231 MB) y caches
+backend/data/
+
 # Godot (vista de modelos)
 .godot/
 *.import

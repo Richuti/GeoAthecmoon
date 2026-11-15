@@ -22,7 +22,8 @@ interface SceneProps {
 function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
   const earth = useFlightModel('/models/earth.glb')
   const moon = useFlightModel('/models/moon.glb')
-  const lander = useFlightModel('/models/lander.glb')
+  // La misma nave del despegue y del alunizaje.
+  const rocket = useFlightModel('/models/launch_vehicle.glb')
   const moonMap = useLoader(THREE.TextureLoader, '/textures/flight/moon-lroc.jpg')
   const planetMaterials = useMemo(() => {
     moonMap.colorSpace = THREE.SRGBColorSpace
@@ -119,7 +120,7 @@ function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
       <Html position={[0, -0.8, 0]} center style={{ pointerEvents: 'none' }}><span aria-hidden className="whitespace-nowrap text-xs text-ink-muted">Luna</span></Html>
     </group>
     <group ref={ship}>
-      <group ref={landerGroup}><primitive object={lander} dispose={null} /></group>
+      <group ref={landerGroup}><primitive object={rocket} dispose={null} /></group>
       {!sample.launch && <Html position={[0.7, 0.3, 0]} style={{ pointerEvents: 'none' }}><span aria-hidden className="whitespace-nowrap text-xs text-ink">Nave</span></Html>}
     </group>
     {sample.flight > 0.05 && sample.flight < 0.88 && <Html position={[-orbit.apoapsisKm / KM_PER_UNIT, -0.3, 0]} center style={{ pointerEvents: 'none' }}>

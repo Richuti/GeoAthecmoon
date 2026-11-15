@@ -1,8 +1,8 @@
-// Visor 3D: terreno LOLA del sitio, luz del Sol según los datos, Sol y Tierra en el cielo y el módulo con su
-// panel apuntando al Sol y su antena a la Tierra.
+// Visor 3D: terreno LOLA del sitio, luz del Sol según los datos, Sol y Tierra en el cielo y la nave: el mismo
+// cohete que despega de la Tierra (launch_vehicle.glb), de pie sobre el sitio.
 //
-// Regla: el código NO genera geometría. Todo lo que se ve son los .glb de Richard; aquí solo se cargan, se
-// ilumina la escena y se orientan las piezas con nombre (SolarPanel, Antenna).
+// Regla: el código NO genera geometría. Todo lo que se ve son los .glb de Richard; aquí solo se cargan y se
+// ilumina la escena.
 //
 // Los datos mandan sobre el modelo: la intensidad del Sol es la fracción visible del disco solar calculada con
 // el horizonte LOLA de 150 km. Si una montaña fuera del recorte de 20 km tapa el Sol, la escena queda a oscuras
@@ -15,6 +15,7 @@ import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { SpaceBackground } from './SpaceBackground'
 import { descentFrame } from '../sim/transferView'
+import { useFlightModel } from './sim/useFlightModel'
 
 export interface Sky {
   sunAz: number
@@ -26,8 +27,10 @@ export interface Sky {
   earthVisible: boolean
 }
 
-/** Agrandamiento del módulo: a escala real (unos 7 m en un terreno de 20 km) no se vería. */
-export const LANDER_SCALE = 30
+/** Altura de la nave en la escena (km): unas 4 veces los 110 m del cohete; a escala real casi no se vería. */
+export const SHIP_HEIGHT_KM = 0.44
+/** Altura del centro de la nave sobre el suelo: la cámara apunta ahí. */
+const SHIP_CENTER_KM = SHIP_HEIGHT_KM / 2
 /** Distancia a la que se dibujan el Sol y la Tierra (km de escena) y su radio aparente agrandado. */
 const SKY_DISTANCE = 40
 const SUN_RADIUS = 0.6
@@ -40,14 +43,6 @@ function direction(azDeg: number, elDeg: number): THREE.Vector3 {
   const az = azDeg * DEG
   const el = elDeg * DEG
   return new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el))
-}
-
-/** Ángulo más corto entre dos ángulos (radianes), para que los giros no den la vuelta larga. */
-function approachAngle(current: number, target: number, k: number): number {
-  let d = target - current
-  while (d > Math.PI) d -= 2 * Math.PI
-  while (d < -Math.PI) d += 2 * Math.PI
-  return current + d * k
 }
 
 // ---------------------------------------------------------------------------
@@ -74,34 +69,16 @@ function Terrain({ siteId, onGroundHeight }: { siteId: string; onGroundHeight: (
   return <primitive object={scene} />
 }
 
-function Lander({ groundY, sky }: { groundY: number; sky: Sky }) {
-  const { scene } = useGLTF('/models/lander.glb')
-  const panel = useMemo(() => scene.getObjectByName('SolarPanel') ?? null, [scene])
-  const antenna = useMemo(() => scene.getObjectByName('Antenna') ?? null, [scene])
-
+/** El mismo cohete del despegue, de pie: la base toca el suelo en (0, groundY, 0). */
+function Ship({ groundY }: { groundY: number }) {
+  const ship = useFlightModel('/models/launch_vehicle.glb')
   useLayoutEffect(() => {
-    scene.traverse((o) => {
+    ship.traverse((o) => {
       if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = true
     })
-    // Euler YXZ: primero se inclina (X) y después se gira hacia el azimut (Y).
-    panel?.rotation.set(0, 0, 0, 'YXZ')
-    antenna?.rotation.set(0, 0, 0, 'YXZ')
-  }, [scene, panel, antenna])
-
-  // El panel y la antena miran a -Z (norte). Para apuntar a (az, el): giro Y = -az, inclinación X = el.
-  useFrame((_, dt) => {
-    const k = 1 - Math.exp(-dt * 6)
-    if (panel) {
-      panel.rotation.y = approachAngle(panel.rotation.y, -sky.sunAz * DEG, k)
-      panel.rotation.x += (Math.max(0, sky.sunEl) * DEG - panel.rotation.x) * k
-    }
-    if (antenna) {
-      antenna.rotation.y = approachAngle(antenna.rotation.y, -sky.earthAz * DEG, k)
-      antenna.rotation.x += (Math.max(0, sky.earthEl) * DEG - antenna.rotation.x) * k
-    }
-  })
-
-  return <primitive object={scene} position={[0, groundY, 0]} scale={LANDER_SCALE / 1000} />
+  }, [ship])
+  // El grupo escala; el modelo conserva su propia normalización (altura 1).
+  return <group position={[0, groundY + SHIP_CENTER_KM, 0]} scale={SHIP_HEIGHT_KM}><primitive object={ship} dispose={null} /></group>
 }
 
 function SkyBody({ url, az, el, radius, unlit = false }: { url: string; az: number; el: number; radius: number; unlit?: boolean }) {
@@ -175,14 +152,14 @@ function CameraRig({ siteId, sky, groundY, controls, arrivalProgress }: { siteId
     // A unos 3 km del sitio, de costado al Sol: se ven el módulo y las sombras largas.
     const view = direction(sunAzRef.current + 135, 0).multiplyScalar(3.2)
     camera.position.set(view.x, groundY + 0.9, view.z)
-    controls.current?.target.set(0, groundY + 0.1, 0)
+    controls.current?.target.set(0, groundY + SHIP_CENTER_KM, 0)
     controls.current?.update()
   }, [siteId, groundY, camera, controls])
   useFrame(() => {
     if (arrivalProgress === undefined) return
     const frame = descentFrame(arrivalProgress, size.width / size.height)
     const view = direction(sunAzRef.current + 135, 0).multiplyScalar(frame.distanceKm)
-    const targetY = groundY + frame.altitudeKm + 0.09
+    const targetY = groundY + frame.altitudeKm + SHIP_CENTER_KM
     camera.position.set(view.x, targetY + frame.distanceKm * 0.55, view.z)
     camera.lookAt(0, targetY, 0)
     camera.updateMatrixWorld()
@@ -228,7 +205,7 @@ export default function Viewer3D({
         <SpaceBackground />
         <Lights sky={sky} />
         <Terrain siteId={siteId} onGroundHeight={onGroundHeight} />
-        <Lander groundY={groundY + (arrivalProgress === undefined ? 0 : descentFrame(arrivalProgress, 1).altitudeKm)} sky={sky} />
+        <Ship groundY={groundY + (arrivalProgress === undefined ? 0 : descentFrame(arrivalProgress, 1).altitudeKm)} />
         <SkyBody url="/models/sun.glb" az={sky.sunAz} el={sky.sunEl} radius={SUN_RADIUS} />
         <SkyBody url="/models/earth.glb" az={sky.earthAz} el={sky.earthEl} radius={EARTH_RADIUS} unlit />
         <CameraRig key={resetKey} siteId={siteId} sky={sky} groundY={groundY} controls={controls} arrivalProgress={arrivalProgress} />
@@ -246,6 +223,6 @@ export default function Viewer3D({
   )
 }
 
-useGLTF.preload('/models/lander.glb')
+useGLTF.preload('/models/launch_vehicle.glb')
 useGLTF.preload('/models/sun.glb')
 useGLTF.preload('/models/earth.glb')

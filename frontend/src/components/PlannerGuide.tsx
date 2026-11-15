@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { SITE_IMAGERY, SITE_IMAGE_CREDIT } from '../content/siteImagery'
 import { formatDate } from '../lib/time'
 import type { Site } from '../types'
-import { Button, cx } from './ui'
+import { Button, cx, transition } from './ui'
 import { Tour, type TourStep } from './Tour'
 
 interface PlannerGuideProps {
@@ -64,8 +64,11 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
   }, [step])
 
   const go = (next: number) => {
-    setReached(previous => Math.max(previous, next))
-    onStep(next)
+    if (next === step) return
+    transition(() => {
+      setReached(previous => Math.max(previous, next))
+      onStep(next)
+    }, next > step ? 'forward' : 'back')
   }
 
   return <main className="mx-auto w-full max-w-[1600px] px-5 pb-14 pt-8 sm:px-8 lg:pt-10">

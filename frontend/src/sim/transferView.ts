@@ -1,9 +1,8 @@
 import { MOON_RADIUS_KM, type journeyAt } from './transfer.ts'
 
-/** Altura real de lander.glb (m): en el despegue se muestra la misma nave que aluniza. */
-export const LAUNCH_SHIP_HEIGHT_M = 9.75
-/** Cubierta superior de launch_platform.glb, medida con rayos: las patas del módulo se apoyan aquí. */
-export const LAUNCH_PAD_DECK_M = 14.27
+/** Altura visual del cohete (launch_vehicle.glb), la misma nave en el despegue, el viaje y el alunizaje. */
+export const LAUNCH_SHIP_HEIGHT_M = 110
+export const LAUNCH_PAD_DECK_M = 4.85
 
 /** Presentación local en km; no calcula una maniobra propulsiva lunar. */
 export function descentFrame(progress: number, aspect: number) {
@@ -20,8 +19,7 @@ export function launchFrame(altitudeM: number, aspect: number) {
   if (!Number.isFinite(altitudeM) || altitudeM < 0 || !Number.isFinite(aspect) || aspect <= 0) {
     throw new RangeError('Altura y proporción de cámara no válidas.')
   }
-  // Medio alto visible de 1.6 naves: entra el módulo completo con algo de plataforma alrededor.
-  const distanceM = Math.max(4 * LAUNCH_SHIP_HEIGHT_M, 1.6 * LAUNCH_SHIP_HEIGHT_M / (Math.tan(21 * Math.PI / 180) * Math.min(1, aspect)), altitudeM * 0.08)
+  const distanceM = Math.max(220, 95 / (Math.tan(21 * Math.PI / 180) * Math.min(1, aspect)), altitudeM * 0.08)
   return { altitudeM, centerY: LAUNCH_PAD_DECK_M + altitudeM + LAUNCH_SHIP_HEIGHT_M / 2, distanceM }
 }
 

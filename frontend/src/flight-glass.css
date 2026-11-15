@@ -273,3 +273,32 @@
 .plan-strips__dead { fill: rgb(5 7 13 / 0.72); }
 .plan-column { min-width: 0; border: 1px solid rgb(255 255 255 / 0.12); border-radius: 16px; background: rgb(255 255 255 / 0.03); }
 .plan-column--best { border-color: rgb(255 255 255 / 0.6); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16); }
+
+/* Transiciones entre pantallas (components/ui/transition.ts). La cabecera no se mueve; el contenido se desliza poco. */
+.flight-header { view-transition-name: app-header; }
+.app-screen { view-transition-name: app-screen; }
+::view-transition-group(*) { animation-duration: 420ms; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+::view-transition-old(root) { animation: 260ms ease-out both vt-fade-out; }
+::view-transition-new(root) { animation: 420ms cubic-bezier(.2,.7,.2,1) both vt-fade-in; }
+::view-transition-old(app-screen) { animation: 220ms ease-in both vt-out-left; }
+::view-transition-new(app-screen) { animation: 420ms cubic-bezier(.2,.7,.2,1) 60ms both vt-in-right; }
+html[data-transition='back']::view-transition-old(app-screen) { animation-name: vt-out-right; }
+html[data-transition='back']::view-transition-new(app-screen) { animation-name: vt-in-left; }
+html[data-transition='fade']::view-transition-old(app-screen) { animation-name: vt-fade-out; }
+html[data-transition='fade']::view-transition-new(app-screen) { animation-name: vt-fade-in; }
+/* Los tamaños cambian entre pantallas: sin estirar las capturas. */
+::view-transition-old(app-screen), ::view-transition-new(app-screen) { height: auto; width: 100%; object-fit: none; object-position: top; }
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-fade-in { from { opacity: 0; } }
+@keyframes vt-out-left { to { opacity: 0; transform: translateX(-28px); } }
+@keyframes vt-out-right { to { opacity: 0; transform: translateX(28px); } }
+@keyframes vt-in-right { from { opacity: 0; transform: translateX(36px); } }
+@keyframes vt-in-left { from { opacity: 0; transform: translateX(-36px); } }
+/* Navegadores sin View Transitions: entrada suave de la pantalla nueva. */
+@supports not (view-transition-name: none) {
+  .app-screen > * { animation: vt-fade-in 360ms ease-out both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  .app-screen > * { animation: none !important; }
+}
