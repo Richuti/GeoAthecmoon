@@ -28,8 +28,9 @@ export interface PlanOutcome {
 
 export function planOutcome(data: SiteData, vis: Visibility, cfg: LanderConfig, startIndex: number, missionDays: number): PlanOutcome {
   const w = missionWindow(data, startIndex, missionDays)
-  const v = siteViability(data, vis, DEFAULT_WEIGHTS, w)
   const s = simulate(data, cfg, { startIndex: w.from, missionDays }, vis).summary
+  // Mismo tope que el resultado de la misión: si el módulo no sobrevive, la viabilidad no pasa del 40 %.
+  const v = siteViability(data, vis, DEFAULT_WEIGHTS, w, { missionSurvives: s.survived })
   return {
     from: w.from,
     viability: v.score,

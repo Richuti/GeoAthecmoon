@@ -78,7 +78,7 @@ export function MissionOptions({ data, result, scan, best, onTryStart, onTrySite
         {betterStart ? <>
           <p className="mt-2 text-sm leading-relaxed text-ink-muted">Aterrizando el <span className="text-ink">{formatDateTime(sampleTime(data, betterStart.startIndex))}</span>, la viabilidad es {Math.round(betterStart.viability)} % y el módulo sobrevive con {betterStart.marginKWh.toFixed(1)} kWh de margen.</p>
           <Button size="sm" className="mt-3" onClick={() => onTryStart(betterStart.startIndex)}>Probar esta fecha</Button>
-        </> : <p className="mt-2 text-sm leading-relaxed text-ink-muted">{s.survived ? 'Esta fecha ya está entre las mejores para el módulo elegido.' : 'No encontramos una fecha viable para este módulo. Prueba más batería, más panel u otro sitio.'}</p>}
+        </> : <p className="mt-2 text-sm leading-relaxed text-ink-muted">{s.survived ? 'Esta fecha ya está entre las mejores para el módulo elegido.' : 'No encontramos una fecha posterior viable para este módulo. Prueba más batería, más panel u otro sitio.'}</p>}
         {betterSite && <p className="mt-4 text-sm leading-relaxed text-ink-muted">En <button type="button" className="text-ink underline underline-offset-4 hover:text-earth" onClick={() => onTrySite(betterSite.siteId)}>{betterSite.name}</button>, la viabilidad sube a {Math.round(betterSite.score)} % y el módulo sobrevive en la misma fecha.</p>}
       </section>
     </div>

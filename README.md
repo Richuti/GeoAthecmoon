@@ -95,7 +95,7 @@ npm run mock       # arma public/data/sites/{id}.json
 
 La URL de las etiquetas Open Graph, la canónica y el sitemap se resuelve en `frontend/scripts/site-url.mjs`: primero `SITE_URL`, después `VERCEL_PROJECT_PRODUCTION_URL` y, si no hay variables, `https://geoathectum.vercel.app`. Si cambia el dominio, configurar `SITE_URL` con la URL pública completa. No se necesita una variable para compilar en local.
 
-**Datos:** sin `VITE_API_URL`, la app lee los archivos estáticos de `public/data`. Con `VITE_API_URL` usa el backend (`GET /sites` y `GET /sites/{id}`), y si no responde en 6 s o falla, vuelve sola a los archivos estáticos.
+**Datos:** sin `VITE_API_URL`, la app lee los archivos estáticos de `public/data`. Con `VITE_API_URL` usa el backend (`GET /sites` y `GET /sites/{id}`), y si no responde en 6 s o falla, vuelve sola a los archivos estáticos. En producción, `VITE_API_URL=https://geoathecmoon-api.onrender.com` (API de `backend/api/main.py`); la app la despierta al abrir la portada.
 
 ## Estructura
 

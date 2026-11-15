@@ -154,9 +154,10 @@ function Planner() {
     [current, landing !== null, missionDays, simCfg], // eslint-disable-line react-hooks/exhaustive-deps
   )
   const bestMissionDate = useMemo(() => {
-    if (!current || !scan) return null
-    return bestViableStart(current.data, scan, missionDays, current.vis)
-  }, [current, scan, missionDays])
+    if (!current || !scan || !result) return null
+    // «La siguiente opción»: desde el alunizaje actual hacia adelante, nunca una fecha anterior.
+    return bestViableStart(current.data, scan, missionDays, current.vis, result.from)
+  }, [current, scan, missionDays, result])
   const tolerance = useMemo(
     () => (current && result ? delayTolerance(current.data, simCfg, result.from, missionDays, current.vis) : null),
     [current, result, missionDays, simCfg],

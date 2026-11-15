@@ -1,9 +1,10 @@
 // Cliente de datos: lista de sitios y datos completos de cada sitio.
 //
 // - Si VITE_API_URL tiene valor, pide al backend: GET {VITE_API_URL}/sites y GET {VITE_API_URL}/sites/{id}.
-// - Si está vacío (lo normal, también en Vercel), lee los archivos estáticos /data/sites.json y
-//   /data/sites/{id}.json. Hoy son datos reales (LOLA + JPL Horizons) que generan `npm run mock` o
-//   `python backend/export.py`; si algún sitio trae datos de prueba, `dataNotice` lo dice.
+//   En producción es la API de Render (backend/api/main.py): https://geoathecmoon-api.onrender.com
+//   Si no responde en 6 s o falla, se usan los archivos estáticos, que tienen los mismos datos byte a byte.
+// - Si está vacío, lee los archivos estáticos /data/sites.json y /data/sites/{id}.json. Son datos reales
+//   (LOLA + JPL Horizons) que genera `npm run mock`; si algún sitio trae datos de prueba, `dataNotice` lo dice.
 //
 // Valida cada respuesta contra el contrato (docs/CONTRATO_DATOS.md) y explica qué está mal si algo no cuadra.
 
@@ -58,7 +59,16 @@ export async function withFallback<T>(primary: () => Promise<T>, fallback: (() =
   }
 }
 
-const MOCK_HINT = ' Para generar los archivos de public/data, corre `npm run mock` en frontend/.'
+/**
+ * Despierta el backend en cuanto abre la app (Render gratis duerme y tarda unos 50 s en arrancar). Mientras se
+ * lee la portada, la API ya arranca; así el planificador la encuentra despierta. No espera ni muestra errores.
+ */
+export function warmBackend(): void {
+  if (usingLocalData) return
+  fetch(`${API_URL}/health`, { cache: 'no-store' }).catch(() => {})
+}
+
+const MOCK_HINT =' Para generar los archivos de public/data, corre `npm run mock` en frontend/.'
 
 /**
  * Aviso para la interfaz cuando los datos de un sitio no son reales, o null si lo son.
