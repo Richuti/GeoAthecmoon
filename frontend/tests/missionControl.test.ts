@@ -3,7 +3,7 @@ import { describe, test } from 'node:test'
 import { contactSeries, litSeries } from '../src/lib/visibility.ts'
 import { rescueOptions } from '../src/sim/incident.ts'
 import { PRESETS } from '../src/sim/lander.ts'
-import { answer, controlFeed, controlMessage, fixText, intentOf, type ControlContext } from '../src/sim/missionControl.ts'
+import { controlFeed, controlMessage, fixText, type ControlContext } from '../src/sim/missionControl.ts'
 import { seriesOf } from '../src/sim/search.ts'
 import { simulate } from '../src/sim/simulate.ts'
 import type { SiteData } from '../src/types.ts'
@@ -71,20 +71,6 @@ describe('control de misión', () => {
     assert.ok(feed.every((m) => m.index <= 12))
     assert.ok(feed[0].index >= feed[feed.length - 1].index)
     assert.equal(feed.at(-1)!.problem, 'Alunizaje en A.')
-  })
-
-  test('entiende preguntas simples y responde con los datos del momento', () => {
-    assert.equal(intentOf('¿Cómo lo resolvemos?'), 'fix')
-    assert.equal(intentOf('¿Qué hacemos?'), 'fix')
-    assert.equal(intentOf('¿Cómo está la batería?'), 'battery')
-    assert.equal(intentOf('¿Hay Sol?'), 'sun')
-    assert.equal(intentOf('¿Tenemos contacto con la Tierra?'), 'earth')
-    assert.equal(intentOf('reproduce la misión'), 'play')
-    assert.equal(intentOf('¿Qué pasa?'), 'status')
-    const ctx = context()
-    assert.match(answer(ctx, 'battery', 0), /La batería está al 100 %/)
-    assert.match(answer(ctx, 'sun', 12), /El Sol está oculto tras el relieve durante 22 horas más/)
-    assert.match(answer(ctx, 'fix', 0), /La misión falla el .* Alunizar en B/)
   })
 })
 

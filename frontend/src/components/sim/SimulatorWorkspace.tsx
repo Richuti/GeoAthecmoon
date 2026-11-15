@@ -121,7 +121,7 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       </div>
         <MissionTimeline data={data} result={report.result} lit={lit} contact={contact} index={state.index} playing={state.playing}
           speed={state.speed} survivalThreshold={survivalThreshold} onToggle={actions.togglePlay} onSeek={onSeek} onSpeed={actions.setSpeed}
-          fix={rescueFix} onPlay={() => actions.setPlaying(true)} onPause={() => actions.setPlaying(false)} onRescue={report.result.summary.survived ? undefined : askRescue} />
+          fix={rescueFix} onRescue={report.result.summary.survived ? undefined : askRescue} />
         {!report.result.summary.survived && <PlanRescue key={`${data.site.id}:${report.result.from}:${report.result.plan.missionDays}:${JSON.stringify(setup.cfg)}`}
           data={data} cfg={setup.cfg} startIndex={report.result.from} missionDays={report.result.plan.missionDays} startSignal={rescueSignal}
           onApply={(siteId, cfg, start) => { if (siteId !== data.site.id) report.onTrySite(siteId); if (JSON.stringify(cfg) !== JSON.stringify(setup.cfg)) setup.onCfg(cfg); report.onTryStart(start) }} />}

@@ -28,7 +28,7 @@ function runs(n: number, on: (k: number) => boolean): Array<[number, number]> {
   return out
 }
 
-export function MissionTimeline({ data, result, lit, contact, index, playing, speed, survivalThreshold, fix, onToggle, onSeek, onSpeed, onPlay, onPause, onRescue }: {
+export function MissionTimeline({ data, result, lit, contact, index, playing, speed, survivalThreshold, fix, onToggle, onSeek, onSpeed, onRescue }: {
   data: SiteData
   result: SimResult
   lit: boolean[]
@@ -42,8 +42,6 @@ export function MissionTimeline({ data, result, lit, contact, index, playing, sp
   onSpeed: (speed: Speed) => void
   /** La mejor salida simulada si la misión falla («así lo resolvemos») */
   fix: IncidentOption | null
-  onPlay: () => void
-  onPause: () => void
   onRescue?: () => void
 }) {
   const { series, events, summary, from, plan } = result
@@ -118,7 +116,7 @@ export function MissionTimeline({ data, result, lit, contact, index, playing, sp
         </div>
       </div>
       <p className={cx('mt-4 text-base font-bold leading-snug', mode === 'failed' ? 'text-critical' : mode === 'survival' ? 'text-caution' : 'text-ink')}>{status}</p>
-      <MissionControl ctx={control} index={index} playing={playing} onPlay={onPlay} onPause={onPause} onRescue={onRescue} />
+      <MissionControl ctx={control} index={index} playing={playing} onRescue={onRescue} />
 
       {/* La misión entera: Sol, Tierra y batería, con el cursor del momento */}
       <div className="mission-track mt-5">
