@@ -1,7 +1,7 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { formatDateTime, formatDuration } from '../../lib/time'
 import { EARTH_RADIUS_KM, LAUNCH_END, DESCENT_START, MOON_SOI_KM, TIME_SCALES_H_PER_S, journeyAt, lunarTransfer, transferPlaybackSeconds } from '../../sim/transfer'
-import { descentFrame } from '../../sim/transferView'
+import { APPROACH_FADE, descentFrame, finalLeg, terrainScreenFraction } from '../../sim/transferView'
 import { Button, Disclosure, Segmented } from '../ui'
 import type { SiteData } from '../../types'
 
@@ -9,7 +9,6 @@ const TransferViewer = lazy(() => import('./TransferViewer'))
 const LaunchViewer = lazy(() => import('./LaunchViewer'))
 const DescentViewer = lazy(() => import('./DescentViewer'))
 
-const smooth = (a: number, b: number, x: number) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t) }
 const SOI_LABEL = Math.round(MOON_SOI_KM / 100) * 100
 
 const SCALE_OPTIONS = TIME_SCALES_H_PER_S.map(h => ({ value: String(h), label: `1 s = ${h} h` }))
@@ -73,15 +72,23 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
   const launch = sample.launch
   const orbitalBlend = launch ? Math.max(0, Math.min(1, (sample.ascent - 0.8) / 0.2)) : 1
   // Paso del encuentro al terreno: el globo se apaga y después aparece el relieve (sin superponer escalas).
-  const transferOut = sample.descent ? smooth(0, 0.05, sample.descentProgress) : 0
-  const descentIn = sample.descent ? smooth(0.04, 0.1, sample.descentProgress) : 0
-  const landing = descentFrame(sample.descentProgress, 1)
+  // Tramo final: llegada sobre el globo y descenso sobre el relieve. El relieve aparece encima del globo
+  // cuando las dos cámaras coinciden (a 200 km sobre el sitio), así que no hay corte.
+  const leg = finalLeg(sample.descentProgress)
+  const orbiting = sample.descent && sample.descentProgress < APPROACH_FADE[0]
+  const landing = descentFrame(leg.descent, 1)
+  // El relieve LOLA cubre 300 km: aparece desde el centro y se abre hacia los bordes mientras la cámara baja,
+  // con el globo lunar alrededor. Así nunca se ve el borde cuadrado del recorte.
+  // La máscara se calcula con el tamaño del relieve en pantalla: siempre queda dentro de él.
+  const terrainFraction = terrainScreenFraction(landing.cameraDistanceKm)
+  const terrainOpen = terrainFraction * 0.8 >= 1.9
+  const terrainMask = terrainOpen ? 'none' : `radial-gradient(circle closest-side at center, #000 ${Math.round(terrainFraction * 50)}%, transparent ${Math.round(terrainFraction * 80)}%)`
   const altitudeM = Math.max(0, sample.shipXKm - EARTH_RADIUS_KM) * 1000
   const complete = progress >= 1
   const moonDistanceKm = Math.hypot(sample.shipXKm - sample.moonXKm, sample.shipYKm - sample.moonYKm)
   const lunarGravity = !launch && moonDistanceKm < MOON_SOI_KM
   const phase = launch ? sample.ascent < 0.02 ? 'En la plataforma de lanzamiento' : sample.ascent < 0.65 ? 'Ascenso desde la Tierra' : 'Salida hacia la órbita'
-    : sample.descent ? landing.touched ? `Alunizaje en ${destination}` : 'Descenso al polo sur'
+    : orbiting ? 'Órbita hacia el polo sur' : sample.descent ? landing.touched ? `Alunizaje en ${destination}` : 'Descenso al polo sur'
     : lunarGravity ? 'Llegada a la Luna' : 'Transferencia Tierra–Luna'
   const departure = new Date(arrivalMs - orbit.durationSeconds * 1000)
   const clock = new Date(departure.getTime() + sample.seconds * 1000)
@@ -105,11 +112,11 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
             <div className="absolute inset-0" style={{ opacity: 1 - orbitalBlend }} aria-hidden>
               <LaunchViewer altitudeM={altitudeM} ascent={sample.ascent} reduced={reduced} active={orbitalBlend < 1} onReady={onLaunchReady} />
             </div>
-            <div className="absolute inset-0" style={{ opacity: orbitalBlend * (1 - transferOut) }} aria-hidden>
-              <TransferViewer orbit={orbit} sample={sample} reduced={reduced} active={orbitalBlend > 0 && transferOut < 1} onReady={onOrbitalReady} />
+            <div className="absolute inset-0" style={{ opacity: terrainOpen ? 0 : orbitalBlend }} aria-hidden>
+              <TransferViewer orbit={orbit} sample={sample} reduced={reduced} active={orbitalBlend > 0 && !terrainOpen} onReady={onOrbitalReady} />
             </div>
-            <div className="absolute inset-0" style={{ opacity: descentIn }} aria-hidden>
-              <DescentViewer data={data} arrival={arrival} progress={sample.descentProgress} active={sample.descent} onReady={onDescentReady} />
+            <div className="absolute inset-0" style={{ opacity: leg.terrain, maskImage: terrainMask, WebkitMaskImage: terrainMask }} aria-hidden>
+              <DescentViewer data={data} arrival={arrival} progress={leg.descent} active={sample.descent && sample.descentProgress > APPROACH_FADE[0] - 0.04} onReady={onDescentReady} />
             </div>
           </Suspense>
         </JourneyError>
@@ -135,9 +142,10 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
         </div>}
         <p className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/80 px-5 py-3 text-xs leading-relaxed text-ink-muted">
           {launch ? 'Ascenso ilustrativo. Cohete y plataforma de referencia NASA; el cálculo orbital comienza a 200 km.'
+            : orbiting ? 'Llegada ilustrativa: un cuarto de órbita hasta el polo sur. El modelo no calcula el frenado ni la gravedad lunar.'
             : sample.descent ? 'Descenso ilustrativo sobre el relieve LOLA real, con el Sol de la fecha elegida. Sin aire no hay humo: el polvo sale rasante y cae enseguida.'
             : lunarGravity ? `A menos de ${SOI_LABEL.toLocaleString('es')} km domina la gravedad de la Luna; este modelo de dos cuerpos no la incluye.`
-            : 'Modelo de dos cuerpos; distancias a los centros. Tierra ×4 y Luna ×5 en la vista general; el anillo marca la nave.'}
+            : 'Tierra y Luna a escala real; la nave se dibuja más grande (40 km) para verla. El mapa muestra la trayectoria de dos cuerpos.'}
         </p>
       </div>
       <div className="flex flex-col justify-center px-1 py-2 lg:px-6">

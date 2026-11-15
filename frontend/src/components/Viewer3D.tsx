@@ -58,6 +58,15 @@ function Terrain({ siteId, onGroundHeight }: { siteId: string; onGroundHeight: (
         const m = o as THREE.Mesh
         m.receiveShadow = true
         m.castShadow = true
+        // El recorte de 20 km se funde en sus últimos 2.5 km con el relieve de 300 km que hay debajo:
+        // así no se ve un borde recto, ni en el planificador ni en el descenso. No se altera la geometría.
+        const material = m.material as THREE.MeshStandardMaterial
+        material.transparent = true
+        material.onBeforeCompile = (shader) => {
+          shader.vertexShader = 'varying vec2 vPatchXZ;\n' + shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvPatchXZ = (modelMatrix * vec4(transformed, 1.0)).xz;')
+          shader.fragmentShader = 'varying vec2 vPatchXZ;\n' + shader.fragmentShader.replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= 1.0 - smoothstep(7.5, 9.9, max(abs(vPatchXZ.x), abs(vPatchXZ.y)));')
+        }
+        material.customProgramCacheKey = () => 'terrain-patch-fade-v1'
       }
     })
     // Altura del suelo en el sitio (0, 0): un rayo vertical sobre el terreno.
@@ -159,14 +168,15 @@ function CameraRig({ siteId, sky, groundY, controls, arrivalProgress }: { siteId
   useFrame(() => {
     if (arrivalProgress === undefined) return
     const frame = descentFrame(arrivalProgress, size.width / size.height)
-    // En el descenso, la cámara mira el lado iluminado de la nave (50° del Sol), con el relieve detrás.
-    const view = direction(sunAzRef.current + 50, 0).multiplyScalar(frame.distanceKm * 1.4)
-    // Cerca del suelo se apunta más abajo del centro: el contacto y el polvo quedan sobre la leyenda.
+    // Empieza casi cenital a 200 km (como termina la llegada sobre el globo) y baja hasta una toma oblicua
+    // del lado iluminado de la nave (50° del Sol), alta lo justo para ver la base apoyada en el suelo.
+    const elev = frame.cameraElevationDeg * DEG
+    const horizontal = direction(sunAzRef.current + 50, 0)
     const nearGround = 1 - Math.min(1, frame.altitudeKm / 0.6)
     const targetY = groundY + frame.altitudeKm + SHIP_CENTER_KM * (1 - 0.4 * nearGround)
-    // Cerca del suelo la cámara baja: el polvo se ve como una capa rasante, no como rayos hacia el cielo.
-    const low = Math.min(1, frame.altitudeKm / 0.6)
-    camera.position.set(view.x, targetY + frame.distanceKm * THREE.MathUtils.lerp(0.18, 0.55, low), view.z)
+    const d = frame.cameraDistanceKm
+    camera.position.set(horizontal.x * Math.cos(elev) * d, targetY + Math.sin(elev) * d, horizontal.z * Math.cos(elev) * d)
+    if (camera instanceof THREE.PerspectiveCamera && camera.far < 2000) { camera.far = 2000; camera.updateProjectionMatrix() }
     camera.lookAt(0, targetY, 0)
     camera.updateMatrixWorld()
   })
@@ -178,61 +188,93 @@ function CameraRig({ siteId, sky, groundY, controls, arrivalProgress }: { siteId
 // ---------------------------------------------------------------------------
 
 interface DescentOverlay {
-  near: RefObject<SVGPathElement | null>
-  far: RefObject<SVGPathElement | null>
+  sheet: RefObject<SVGPathElement | null>
+  inner: RefObject<SVGPathElement | null>
+  outer: RefObject<SVGPathElement | null>
   glow: RefObject<SVGCircleElement | null>
+  marker: RefObject<SVGGElement | null>
 }
 
-/** Rayos fijos (ángulo y largo relativos), repetibles en cada visita: no hay azar en cada cuadro. */
-const DUST_RAYS = Array.from({ length: 84 }, (_, i) => {
-  const jitter = Math.sin(i * 12.9898) * 43758.5453
-  const r = jitter - Math.floor(jitter)
-  return { angle: (i / 84) * Math.PI * 2 + (r - 0.5) * 0.06, length: 0.45 + 0.55 * ((r * 7.3) % 1) }
+/** Granos fijos (ángulo, fase y rapidez), repetibles en cada visita: no hay azar en cada cuadro. */
+const DUST_GRAINS = Array.from({ length: 150 }, (_, i) => {
+  const hash = (k: number) => { const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x) }
+  return { angle: hash(1) * Math.PI * 2, phase: hash(2), speed: 0.7 + 0.6 * hash(3) }
 })
 /** Radio de la nave en la escena (km): el polvo nace justo fuera de ella. */
 const SHIP_RADIUS_KM = SHIP_HEIGHT_KM * 0.08
 
+/** Relieve LOLA de 300 × 300 km alrededor del sitio: el suelo más allá del recorte de 20 km y al bajar desde 600 km. */
+function FarTerrain({ siteId }: { siteId: string }) {
+  const { scene } = useGLTF(`/models/terrain/${siteId}_far.glb`)
+  useLayoutEffect(() => {
+    scene.traverse((o) => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).receiveShadow = true })
+  }, [scene])
+  return <primitive object={scene} />
+}
+
 /**
- * En el vacío no hay humo: el escape casi no se ve y el chorro arranca polvo que sale en líneas rectas,
- * rasantes y hacia fuera, y cae en balística al apagar el motor (sin nubes que floten).
+ * En el vacío no hay humo: el escape casi no se ve y el chorro arranca polvo que fluye hacia fuera en una capa
+ * baja y rasante. Al apagar el motor deja de salir; lo ya lanzado sigue hacia fuera y cae (no hay aire).
  */
 function DescentEffects({ groundY, progress, overlay }: { groundY: number; progress: number; overlay: DescentOverlay }) {
   const { camera, size } = useThree()
   const p = useMemo(() => new THREE.Vector3(), [])
-  useFrame(() => {
+  useFrame(({ clock }) => {
     const frame = descentFrame(progress, size.width / size.height)
     const project = (x: number, y: number, z: number) => {
       p.set(x, y, z).project(camera)
       return [(p.x + 1) * size.width / 2, (1 - p.y) * size.height / 2] as const
     }
     const baseY = groundY + frame.altitudeKm
+    const [bx, by] = project(0, baseY, 0)
+    const [, ty] = project(0, baseY + SHIP_HEIGHT_KM, 0)
+    const shipPx = Math.abs(by - ty)
     if (overlay.glow.current) {
-      const [bx, by] = project(0, baseY, 0)
-      const [, ty] = project(0, baseY + SHIP_HEIGHT_KM, 0)
       overlay.glow.current.setAttribute('cx', bx.toFixed(1))
       overlay.glow.current.setAttribute('cy', by.toFixed(1))
-      overlay.glow.current.setAttribute('r', Math.max(3, Math.abs(by - ty) * 0.09).toFixed(1))
+      overlay.glow.current.setAttribute('r', Math.max(3, shipPx * 0.09).toFixed(1))
       overlay.glow.current.style.opacity = String(0.55 * frame.engine)
     }
-    // Tras el apagado el polvo ya lanzado sigue hacia fuera y se asienta: la franja se aleja y se apaga.
-    const outward = frame.touched ? 1 - frame.dust : 0
-    const y = groundY + 0.004
-    const near: string[] = [], far: string[] = []
-    if (frame.dust > 0.001) for (const ray of DUST_RAYS) {
-      const c = Math.cos(ray.angle), s = Math.sin(ray.angle)
-      const r0 = SHIP_RADIUS_KM + 0.9 * outward
-      const r1 = r0 + (0.1 + 0.42 * frame.dust) * ray.length
-      const rm = (r0 + r1) / 2
-      const [x0, y0] = project(r0 * c, y, r0 * s)
-      const [xm, ym] = project(rm * c, y, rm * s)
-      const [x1, y1] = project(r1 * c, y, r1 * s)
-      near.push(`M${x0.toFixed(1)},${y0.toFixed(1)}L${xm.toFixed(1)},${ym.toFixed(1)}`)
-      far.push(`M${xm.toFixed(1)},${ym.toFixed(1)}L${x1.toFixed(1)},${y1.toFixed(1)}`)
+    // Mientras la nave mide pocos píxeles (desde 200 km), un anillo marca dónde está.
+    if (overlay.marker.current) {
+      const [cx, cy] = project(0, baseY + SHIP_CENTER_KM, 0)
+      overlay.marker.current.setAttribute('transform', `translate(${cx.toFixed(1)},${cy.toFixed(1)})`)
+      overlay.marker.current.style.opacity = String(Math.max(0, Math.min(1, (24 - shipPx) / 12)))
     }
-    overlay.near.current?.setAttribute('d', near.join(''))
-    overlay.far.current?.setAttribute('d', far.join(''))
-    if (overlay.near.current) overlay.near.current.style.opacity = String(0.32 * frame.dust)
-    if (overlay.far.current) overlay.far.current.style.opacity = String(0.12 * frame.dust)
+
+    const y = groundY + 0.006
+    const reach = 0.25 + 0.75 * Math.min(1, frame.dust * 1.4)
+    // Tras el contacto ya no sale polvo nuevo: la capa se aleja y se apaga.
+    const drift = frame.touched ? (1 - frame.dust) * 0.8 : 0
+    const ring = (r: number) => {
+      const pts: string[] = []
+      for (let k = 0; k <= 48; k++) {
+        const a = (k / 48) * Math.PI * 2
+        const [x, yy] = project(r * Math.cos(a), y, r * Math.sin(a))
+        pts.push(`${k ? 'L' : 'M'}${x.toFixed(1)},${yy.toFixed(1)}`)
+      }
+      return pts.join('') + 'Z'
+    }
+    const inner: string[] = [], outer: string[] = []
+    if (frame.dust > 0.001) {
+      overlay.sheet.current?.setAttribute('d', ring(SHIP_RADIUS_KM + drift + reach * 0.85))
+      const time = clock.getElapsedTime()
+      for (const g of DUST_GRAINS) {
+        // Cada grano sale del borde de la nave, viaja hacia fuera en línea recta y vuelve a salir (flujo continuo).
+        const f = (g.phase + time * 0.55 * g.speed) % 1
+        const r = SHIP_RADIUS_KM + drift + f * reach
+        const len = 0.025 + 0.06 * g.speed * (1 - f)
+        const c = Math.cos(g.angle), sn = Math.sin(g.angle)
+        const [x0, y0] = project(r * c, y, r * sn)
+        const [x1, y1] = project((r + len) * c, y, (r + len) * sn)
+        ;(f < 0.5 ? inner : outer).push(`M${x0.toFixed(1)},${y0.toFixed(1)}L${x1.toFixed(1)},${y1.toFixed(1)}`)
+      }
+    }
+    overlay.inner.current?.setAttribute('d', inner.join(''))
+    overlay.outer.current?.setAttribute('d', outer.join(''))
+    if (overlay.sheet.current) overlay.sheet.current.style.opacity = String(0.55 * frame.dust)
+    if (overlay.inner.current) overlay.inner.current.style.opacity = String(0.55 * frame.dust)
+    if (overlay.outer.current) overlay.outer.current.style.opacity = String(0.28 * frame.dust)
   })
   return null
 }
@@ -260,7 +302,7 @@ export default function Viewer3D({
   active?: boolean
 }) {
   const controls = useRef<OrbitControlsImpl | null>(null)
-  const overlay: DescentOverlay = { near: useRef(null), far: useRef(null), glow: useRef(null) }
+  const overlay: DescentOverlay = { sheet: useRef(null), inner: useRef(null), outer: useRef(null), glow: useRef(null), marker: useRef(null) }
   const descending = arrivalProgress !== undefined
 
   return (<>
@@ -269,14 +311,16 @@ export default function Viewer3D({
       shadows="percentage"
       frameloop={active ? 'always' : 'never'}
       dpr={[1, 1.75]}
-      camera={{ fov: 45, near: 0.01, far: 200, position: [6, 2.5, 6] }}
-      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
+      camera={{ fov: 45, near: 0.01, far: 400, position: [6, 2.5, 6] }}
+      // En el descenso conviven el relieve de 300 km y la nave de 0.4 km: profundidad logarítmica.
+      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, logarithmicDepthBuffer: descending }}
       aria-hidden
     >
       <Suspense fallback={null}>
         <SpaceBackground />
         <Lights sky={sky} />
         <Terrain siteId={siteId} onGroundHeight={onGroundHeight} />
+        <FarTerrain siteId={siteId} />
         <Ship groundY={groundY + (arrivalProgress === undefined ? 0 : descentFrame(arrivalProgress, 1).altitudeKm)} />
         <SkyBody url="/models/sun.glb" az={sky.sunAz} el={sky.sunEl} radius={SUN_RADIUS} />
         <SkyBody url="/models/earth.glb" az={sky.earthAz} el={sky.earthEl} radius={EARTH_RADIUS} unlit mirror />
@@ -296,11 +340,21 @@ export default function Viewer3D({
     {descending && <svg aria-hidden className="pointer-events-none absolute inset-0 size-full overflow-hidden">
       <defs>
         <radialGradient id="engine-glow"><stop offset="0" stopColor="#f4f7ff" /><stop offset="0.35" stopColor="#dfe8ff" stopOpacity="0.6" /><stop offset="1" stopColor="#dfe8ff" stopOpacity="0" /></radialGradient>
+        {/* Capa de polvo: tenue junto a la base (deja ver la nave), más densa en el anillo que sale y nula al borde. */}
+        <radialGradient id="dust-sheet"><stop offset="0" stopColor="#cfc9bd" stopOpacity="0.15" /><stop offset="0.45" stopColor="#cfc9bd" stopOpacity="0.55" /><stop offset="1" stopColor="#cfc9bd" stopOpacity="0" /></radialGradient>
+        <filter id="dust-soft" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="5" /></filter>
+        <filter id="dust-grain"><feGaussianBlur stdDeviation="0.7" /></filter>
       </defs>
-      {/* Polvo de regolito: gris, en trazos rectos y rasantes, más denso cerca de la nave. */}
-      <path ref={overlay.far} fill="none" stroke="#bdb6a8" strokeWidth={1} strokeLinecap="round" style={{ opacity: 0 }} />
-      <path ref={overlay.near} fill="none" stroke="#d6d0c4" strokeWidth={1.1} strokeLinecap="round" style={{ opacity: 0 }} />
+      {/* Polvo de regolito: una capa baja y suave con granos que fluyen hacia fuera en línea recta. */}
+      <path ref={overlay.sheet} fill="url(#dust-sheet)" filter="url(#dust-soft)" style={{ opacity: 0 }} />
+      <path ref={overlay.outer} fill="none" stroke="#bdb6a8" strokeWidth={1} strokeLinecap="round" filter="url(#dust-grain)" style={{ opacity: 0 }} />
+      <path ref={overlay.inner} fill="none" stroke="#e2ddd2" strokeWidth={1.3} strokeLinecap="round" filter="url(#dust-grain)" style={{ opacity: 0 }} />
       <circle ref={overlay.glow} fill="url(#engine-glow)" style={{ opacity: 0 }} />
+      <g ref={overlay.marker} style={{ opacity: 0 }}>
+        <circle r={9} fill="none" stroke="#e8ebf1" strokeOpacity={0.6} strokeWidth={1} />
+        <circle r={3} fill="#ffffff" />
+        <text x={14} y={-10} fill="#e8ebf1" fontSize={12}>Nave</text>
+      </g>
     </svg>}
   </>)
 }

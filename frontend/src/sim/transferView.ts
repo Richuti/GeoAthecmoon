@@ -6,6 +6,32 @@ export const LAUNCH_PAD_DECK_M = 4.85
 /** Distancia máxima de la cámara al cohete durante el ascenso (m). */
 export const LAUNCH_CHASE_MAX_M = 600
 
+/**
+ * El tramo final del viaje (desde DESCENT_START) se divide en dos escenas que se funden sin corte:
+ * llegada sobre el globo lunar hasta APPROACH_FADE[0] y descenso sobre el relieve LOLA desde ahí.
+ * Las dos coinciden en el instante del fundido: nave a DESCENT_START_ALT_KM sobre el sitio y cámara a
+ * DESCENT_CAMERA_START_KM, mirando hacia abajo con DESCENT_CAMERA_START_ELEV_DEG de elevación. A 900 km el globo
+ * todavía se ve nítido y el relieve de 300 km ocupa el centro del cuadro.
+ */
+export const APPROACH_FADE = [0.24, 0.3] as const
+export const DESCENT_START_ALT_KM = 25
+export const DESCENT_CAMERA_START_KM = 900
+export const DESCENT_CAMERA_START_ELEV_DEG = 80
+/** Mitad del lado del relieve LOLA lejano (km): el recorte `{id}_far.glb` mide 300 × 300 km. */
+export const FAR_TERRAIN_HALF_KM = 150
+
+/**
+ * Parte del alto del cuadro (desde el centro) que ocupa el relieve lejano visto desde `cameraDistanceKm`.
+ * Con eso el relieve se abre sin mostrar nunca su borde: la máscara queda siempre dentro de él.
+ */
+export function terrainScreenFraction(cameraDistanceKm: number, halfFovDeg = 21) {
+  if (!(cameraDistanceKm > 0)) throw new RangeError('Distancia no válida.')
+  return Math.atan(FAR_TERRAIN_HALF_KM / cameraDistanceKm) / (halfFovDeg * Math.PI / 180)
+}
+
+/** Altura de la nave al terminar la transferencia (encuentro a 100 km de la superficie, transfer.ts). */
+const ENCOUNTER_ALT_KM = 100
+
 /** Fracción del descenso en la que la nave toca el suelo; el resto muestra el apagado y el polvo cayendo. */
 export const TOUCHDOWN = 0.85
 /**
@@ -17,18 +43,60 @@ export const DUST_ONSET_KM = 0.12
 export const DUST_SETTLE = 0.06
 
 const smoothstep = (a: number, b: number, x: number) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t) }
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+const logLerp = (a: number, b: number, t: number) => Math.exp(lerp(Math.log(a), Math.log(b), t))
+
+/** Reparte el avance del tramo final (0–1) entre la llegada sobre el globo y el descenso sobre el relieve. */
+export function finalLeg(descentProgress: number) {
+  const d = Math.max(0, Math.min(1, descentProgress))
+  return {
+    /** Avance de la llegada sobre el globo (0–1); termina al empezar el fundido. */
+    approach: Math.min(1, d / APPROACH_FADE[0]),
+    /** Opacidad del relieve LOLA sobre el globo (0–1). */
+    terrain: smoothstep(APPROACH_FADE[0], APPROACH_FADE[1], d),
+    /** Avance del descenso sobre el relieve (0–1). */
+    descent: Math.max(0, (d - APPROACH_FADE[0]) / (1 - APPROACH_FADE[0])),
+  }
+}
+
+/**
+ * Llegada (presentación): un cuarto de órbita desde el punto de encuentro (+X desde el centro lunar) hasta el
+ * polo sur (−Y), bajando de 100 a 25 km. Al final la nave se endereza para alunizar. No calcula la maniobra.
+ */
+export function approachState(t: number) {
+  if (!Number.isFinite(t)) throw new RangeError('Llegada no válida.')
+  const s = smoothstep(0, 1, t)
+  const phi = s * Math.PI / 2
+  return {
+    /** Dirección desde el centro de la Luna hacia la nave. */
+    dir: [Math.cos(phi), -Math.sin(phi), 0] as [number, number, number],
+    /** Dirección de avance sobre el arco. */
+    tangent: [-Math.sin(phi), -Math.cos(phi), 0] as [number, number, number],
+    altitudeKm: lerp(ENCOUNTER_ALT_KM, DESCENT_START_ALT_KM, s),
+    /** 0 = nariz hacia delante; 1 = nave vertical sobre el sitio, lista para descender. */
+    upright: smoothstep(0.55, 1, t),
+    /** 0 = cámara detrás de la nave; 1 = cámara sobre el sitio como al empezar el descenso. */
+    overhead: smoothstep(0.5, 1, t),
+  }
+}
 
 /** Presentación local en km; no calcula una maniobra propulsiva lunar (frenado, combustible ni gravedad). */
 export function descentFrame(progress: number, aspect: number) {
   if (!Number.isFinite(progress) || !Number.isFinite(aspect) || aspect <= 0) throw new RangeError('Descenso no válido.')
   const p = Math.max(0, Math.min(1, progress))
   const t = Math.min(1, p / TOUCHDOWN)
-  const altitudeKm = 3 * (1 - t) ** 2
+  const altitudeKm = DESCENT_START_ALT_KM * (1 - t) ** 2
   const touched = p >= TOUCHDOWN
   const settle = touched ? Math.max(0, 1 - (p - TOUCHDOWN) / DUST_SETTLE) : 1
+  // Cerca del suelo: distancia que deja ver la nave entera y el polvo, también en pantallas angostas.
+  const near = Math.max(0.9, 0.6 / Math.min(1, aspect), 2.5 * (1 - t)) * 1.4
+  const close = smoothstep(0, 0.6, p)
   return {
     altitudeKm,
-    distanceKm: Math.max(0.65, 0.42 / Math.min(1, aspect), 2.5 * (1 - t)),
+    /** Distancia de la cámara a la nave: de la vista desde 900 km a la toma cercana. */
+    cameraDistanceKm: logLerp(DESCENT_CAMERA_START_KM, near, close),
+    /** Elevación de la cámara sobre el horizonte (grados): de casi cenital a una vista oblicua. */
+    cameraElevationDeg: lerp(DESCENT_CAMERA_START_ELEV_DEG, 22, close),
     touched,
     /** 1 con el motor encendido; 0 desde el contacto. */
     engine: touched ? 0 : 1,

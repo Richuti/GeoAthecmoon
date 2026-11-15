@@ -96,7 +96,7 @@ export function ViewerPanel({ data, index, contact, missionState, immersive = fa
           </Badge>}
         </div>
         <p className={cx('max-w-xs text-right text-[0.6875rem] leading-relaxed text-ink-faint')}>
-          Relieve LOLA (NASA/LRO). Módulo agrandado ×30; Sol y Tierra agrandados. Arrastra para girar.
+          Relieve LOLA (NASA/LRO): 20 km de detalle y 300 km alrededor. Nave agrandada ×4; Sol y Tierra agrandados. Arrastra para girar.
         </p>
       </div>
     </>
