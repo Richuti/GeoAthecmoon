@@ -2,6 +2,7 @@ import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
 import { Help } from './components/Help'
+import { LangToggle } from './i18n/LangToggle'
 import { SkyPlot } from './components/SkyPlot'
 import { dataNotice } from './api'
 import { Sources } from './components/Sources'
@@ -100,8 +101,11 @@ function Planner() {
   const { sites, selectedId, index: i, mode } = state
 
   const { missionDays } = state
+  const [simEntry, setSimEntry] = useState<'plan' | 'journey'>('plan')
   /** Cambiar entre Planificador y Simulador con transición (el simulador va «adelante»). */
-  const changeMode = (next: typeof mode) => { if (next !== mode) transition(() => actions.setMode(next), next === 'simulate' ? 'forward' : 'back') }
+  const changeMode = (next: typeof mode, entry: typeof simEntry = 'plan') => {
+    if (next !== mode) transition(() => { setSimEntry(entry); actions.setMode(next) }, next === 'simulate' ? 'forward' : 'back')
+  }
 
   const [preset, setPreset] = useState<PresetId | null>(DEFAULT_PRESET)
   const [plannerStep, setPlannerStep] = useState(0)
@@ -188,6 +192,7 @@ function Planner() {
         <Segmented label="Modo" options={MODES} value={mode} onChange={changeMode} />
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
           {notice && <Badge tone="caution">Datos de prueba</Badge>}
+          <LangToggle />
           <Help />
           <Sources data={p?.data} />
         </div>
@@ -211,7 +216,7 @@ function Planner() {
       ) : (
         <div className="app-screen">
           {mode === 'simulate' ? (
-            <SimulatorWorkspace
+            <SimulatorWorkspace initialView={simEntry}
               data={p.data} lit={p.lit} contact={p.contact} onSeek={seek} survivalThreshold={simCfg.survivalThreshold}
               setup={{
                 preset, cfg,
@@ -244,7 +249,7 @@ function Planner() {
           ) : <PlannerGuide sites={sites} selectedId={p.data.site.id} errors={state.dataErrors} onSelect={actions.select}
             assistant={<AiPlanner reference={p.data} preset={preset} cfg={cfg} missionDays={missionDays}
               onPreset={(id) => { setPreset(id); setCfg(PRESETS[id].config) }}
-              onApply={(siteId, start, days) => { actions.select(siteId); actions.setMissionDays(days); seek(start); transition(() => setPlannerStep(2), 'forward') }} />}
+              onApply={(siteId, start, days) => { actions.select(siteId); actions.setMissionDays(days); tryStart(start); transition(() => setPlannerStep(2), 'forward') }} />}
             step={plannerStep} onStep={setPlannerStep}
             date={sampleTime(p.data, i)} missionDays={missionDays} schedule={
                 <section aria-label="Fecha y duración del plan" className="glass-surface grid grid-cols-1 items-end gap-5 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">
@@ -264,7 +269,7 @@ function Planner() {
                     <div className="terrain-stage h-[27rem] min-w-0 sm:h-[31rem]" data-tour="terrain"><ViewerPanel data={p.data} index={i} contact={p.contact[i]} immersive /></div>
                     <p className="mt-3 text-xs leading-relaxed text-ink-muted">{p.data.site.description}</p>
                   </div>
-                  {rec && <Viability p={p} rec={rec} onSimulate={() => { actions.setPlaying(false); setDraftStart(rec.window.from); changeMode('simulate') }} />}
+                  {rec && <Viability p={p} rec={rec} onSimulate={() => { tryStart(rec.window.from); changeMode('simulate', 'journey') }} />}
                 </div>
                 {current && <DelayCheck data={p.data} vis={current.vis} cfg={cfg} moduleName={preset ? PRESETS[preset].label : 'módulo personalizado'}
                   startIndex={i} missionDays={missionDays} onApply={seek} />}

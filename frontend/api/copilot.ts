@@ -131,7 +131,8 @@ const json = (body: unknown, status = 200) =>
 /** Solo se aceptan pedidos desde la misma app (o desde localhost en desarrollo). */
 function sameOrigin(request: Request): boolean {
   const origin = request.headers.get('origin')
-  if (!origin) return true
+  // Los navegadores siempre mandan Origin en un POST con fetch: sin él, es un script ajeno gastando la clave.
+  if (!origin) return false
   try {
     const o = new URL(origin)
     const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? new URL(request.url).host
@@ -158,6 +159,20 @@ export function validMessages(value: unknown): Message[] | null {
   return out
 }
 
+/** Con la interfaz en inglés, el texto que lee el usuario (idea y explicación) va en inglés. */
+const ENGLISH = '\n\nIMPORTANT: the user interface is in English. Write every natural-language field (idea, rationale and any explanation) in English, not Spanish, even though these instructions are in Spanish. Keep the same rules (no figures in the rationale).'
+
+/**
+ * Instrucciones y herramientas en el idioma de la interfaz. No basta con avisar en el prompt: el modelo sigue
+ * la descripción de cada campo («rationale … en español»), así que esa frase también se cambia.
+ */
+export function modeFor(mode: CopilotMode, lang: unknown): { prompt: string; tools: unknown } {
+  const m = MODES[mode]
+  if (lang !== 'en') return m
+  const toEnglish = (s: string) => s.replaceAll('en español', 'en inglés (English)')
+  return { prompt: toEnglish(m.prompt) + ENGLISH, tools: JSON.parse(toEnglish(JSON.stringify(m.tools))) }
+}
+
 export async function POST(request: Request): Promise<Response> {
   const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {}
   const key = env.OPENAI_API_KEY?.trim()
@@ -175,7 +190,7 @@ export async function POST(request: Request): Promise<Response> {
   const messages = validMessages((body as { messages?: unknown })?.messages)
   const requested = (body as { mode?: unknown })?.mode ?? 'rescue'
   if (typeof requested !== 'string' || !(requested in MODES)) return json({ error: 'bad-request' }, 400)
-  const mode = MODES[requested as CopilotMode]
+  const mode = modeFor(requested as CopilotMode, (body as { lang?: unknown })?.lang)
   if (!messages) return json({ error: 'bad-request' }, 400)
 
   let res: Response

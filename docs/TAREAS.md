@@ -4,10 +4,11 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 ## Estado contrastado con el repositorio · 15 nov
 
-- **Subido hasta `8f260c2`:** portada, responsive, calendario, guías, comparación de atrasos, comparador de planes (tarea 10), datos D1–D2, fuentes y validación documentada. El viaje incorpora imágenes terrestres en varias escalas, aproximación y descenso. También están conectados `MissionLive`, sus estilos y la URL pública compartida para canónica/sitemap.
-- **Implementado en esta entrega, pendiente del commit de Richard:** imprevisto en una vista amplia del escenario, con fechas comparadas, explicación de la sombra y un reloj independiente del plan original. Se puede recorrer el alunizaje atrasado, saltar a la puesta del Sol o a la falla y ver el estado junto a la nave. Las alternativas comprobadas se aplican sin repetir el viaje; volver al original conserva fecha, módulo y cursor.
-- **Verificación:** 311 pruebas del motor y build de producción; recorrido a 1440, 390 y 320 px. Atraso, potencia y falla contrastados con `planDelayIncident` y `simulate`; pausa, repetición, cancelación y las tres alternativas verificadas. El motor no cambia.
-- **Pendientes reales:** capturas manuales de Moon Trek para la validación, sliders de pesos de 8.2 y la futura IA1, fuera de esta entrega. La documentación de validación ya está subida; eso no completa las capturas manuales.
+- **Subido hasta `f139356`:** funciones principales, imprevisto visual, copiloto de rescate, planificación asistida por sitio/mes/módulo/duración, mapa anual de supervivencia, inglés/español, respaldo sin IA y manejo global de errores.
+- **Entrega actual, pendiente del commit de Richard:** el plan elegido conserva sitio, fecha, hora y duración al pasar al simulador; entra al viaje sin repetir el formulario y reemplaza cualquier fecha guardada de una misión anterior.
+- **En la misma entrega pendiente:** comparación de atrasos replanteada como fechas, resultado de supervivencia y tiempos de luz/enlace. Puntajes y franjas se consultan voluntariamente. Verificada a 1440, 390 y 320 px: éxito, falla, recuperación del plan al cambiar de fecha, límite del año, aplicación del cambio, teclado e inglés.
+- **Verificación de cierre:** 350 pruebas y build correctos; traspaso del plan comprobado a 1440 y 390 px, incluida una simulación anterior con otra fecha. App publicada y API de datos responden; petición real al copiloto en producción devuelve propuestas que ejecuta el simulador.
+- **Extras pendientes:** capturas manuales de Moon Trek y sliders de pesos de 8.2. La versión actual de planificación y rescate con IA ya está implementada; el objetivo libre de la especificación original queda como ampliación. La canónica publicada todavía usa el dominio anterior: configurar `SITE_URL=https://geoathecmoon.vercel.app` en el próximo despliegue.
 - Las notas fechadas de abajo conservan las verificaciones de cada entrega. «Subido» indica que ya están en el historial de `frontend`, sin implicar que se hayan publicado los cambios de esta entrega actual.
 
 - **Corrección de la entrada (14 nov), implementada; subido:** sustituye las tres franjas y la inversión de contraste por un corte horizontal en dos mitades. Logo y fondo se abren hacia arriba y abajo para descubrir la landing desde el centro. Verificado: 278 pruebas, build, capturas de la apertura a 1440/390 px, ajuste a 320 px, salto con botón/Escape, movimiento reducido y regreso sin repetir la intro.
@@ -51,7 +52,7 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 **Orden recomendado (camino a la demo):** 3 → 4 → 5 → **S1 → S2** → 6 → 8 → **SU1 → SU2 → SU3** → 7 → 9 → **S3** → 11. El 10, S4, SU4, SU5 y los extras van al final.
 
-**Ampliación futura:** IA1 (planificador de misión con IA integrada), después de estabilizar SU1–SU3 y S3. Pendiente; no forma parte de la entrega actual.
+**IA1 actual:** planificación por mes, módulo y duración y copiloto de rescate implementados. La interpretación de objetivos libres de la especificación original sigue siendo una ampliación.
 
 El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
@@ -530,7 +531,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Probado:** 12 pruebas nuevas (254 en total) y `npm run build`. En navegador (Edge headless): flujo completo, «Aplicar» lleva al 11 feb y la misión sobrevive, móvil sin desborde y sin errores de JavaScript.
 - **IA1 lo puede usar:** la IA explicaría el imprevisto y las salidas que el motor ya comprobó, sin inventar números.
 
-### IA1. Diseñar y aplicar un plan de misión con IA · [ ] · Especificada, por hacer
+### IA1. Diseñar y aplicar un plan de misión con IA · Versión actual implementada
+- **Estado real (15 nov):** `AiPlanner.tsx`, `RescueCopilot.tsx`, `src/sim/aiPlanner.ts`, `src/sim/copilot.ts` y `api/copilot.ts` ya están subidos. El usuario elige mes, módulo y duración; el modelo propone y el motor calcula. El rescate combina palancas comprobadas. La especificación y casillas de abajo conservan la ampliación original por objetivo libre; no indican que falte la integración actual.
 - **Objetivo:** un planificador que **actúa dentro del simulador**, no un chat genérico ni solo explicaciones. El usuario escribe un objetivo y recibe planes comprobados que puede aplicar.
 - **Ejemplo:** «Quiero una misión de 14 días, priorizando comunicación y usando este módulo». El sistema:
   1. Interpreta el objetivo y extrae duración, prioridades y restricciones.
@@ -544,7 +546,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
   - Validar estrictamente las entradas, los argumentos de las herramientas y las respuestas estructuradas.
   - Usar únicamente los sitios, periodos y parámetros disponibles.
   - `OPENAI_API_KEY` solo en el servidor. Nunca en React, variables `VITE_`, archivos públicos ni el repositorio.
-  - Richard todavía no tiene clave: no pedirla en el chat; documentar cómo configurarla localmente.
+  - Clave configurada solo en el servidor; `.env.local` está ignorado por git. Nunca pedir ni pegar la clave en el chat.
   - Sin clave, la interfaz dice que la función está pendiente de configuración y el simulador sigue funcionando. No se simulan respuestas de IA como si fueran reales.
   - El backend principal es de otro integrante (Rafael): revisar qué existe y coordinar el contrato; no reconstruir su trabajo.
 - **Fuera de alcance:** no modificar la portada ni el recorrido Tierra–Luna para esta función.

@@ -227,6 +227,12 @@ describe('api/copilot: la función del servidor', () => {
     assert.equal(((await res.json()) as { error: string }).error, 'not-configured')
   })
 
+  test('rechaza pedidos sin Origin (no vienen de un navegador)', async () => {
+    process.env.OPENAI_API_KEY = 'k'
+    const res = await POST(req({ messages: [{ role: 'user', content: 'x' }] }))
+    assert.equal(res.status, 403)
+  })
+
   test('rechaza otros orígenes', async () => {
     process.env.OPENAI_API_KEY = 'k'
     const res = await POST(req({ messages: [{ role: 'user', content: 'x' }] }, 'https://otro-sitio.com'))
@@ -250,12 +256,28 @@ describe('api/copilot: la función del servidor', () => {
     assert.deepEqual(sent!.body.tools, TOOLS)
   })
 
+  test('con la interfaz en inglés, ni el prompt ni las herramientas piden español', async () => {
+    process.env.OPENAI_API_KEY = 'k'
+    let body: Record<string, unknown> = {}
+    globalThis.fetch = (async (_url: string, init: RequestInit) => {
+      body = JSON.parse(init.body as string)
+      return new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: null } }] }), { status: 200 })
+    }) as typeof fetch
+    for (const mode of ['rescue', 'plan']) {
+      await POST(req({ mode, lang: 'en', messages: [{ role: 'user', content: 'caso' }] }, 'https://geoathectum.vercel.app'))
+      const sent = JSON.stringify(body)
+      assert.doesNotMatch(sent, /en español/, mode)
+      assert.match(sent, /in English/, mode)
+    }
+    assert.match(JSON.stringify(TOOLS), /en español/, 'en español no cambia')
+  })
+
   test('si OpenAI falla, no reenvía su detalle al navegador', async () => {
     process.env.OPENAI_API_KEY = 'k'
     globalThis.fetch = (async () => new Response('detalle interno', { status: 429 })) as unknown as typeof fetch
     const orig = console.error
     console.error = () => {}
-    const res = await POST(req({ messages: [{ role: 'user', content: 'x' }] }))
+    const res = await POST(req({ messages: [{ role: 'user', content: 'x' }] }, 'https://geoathectum.vercel.app'))
     console.error = orig
     assert.equal(res.status, 502)
     assert.doesNotMatch(await res.text(), /detalle interno/)

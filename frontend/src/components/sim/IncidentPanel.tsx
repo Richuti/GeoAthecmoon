@@ -69,7 +69,7 @@ export function IncidentPanel({ data, cfg, startIndex, missionDays, onTryStart, 
   if (!active) {
     return (
       <>
-        <section aria-labelledby="incident-title" className="incident-invite glass-surface mb-7 flex flex-wrap items-center justify-between gap-6 p-5 sm:p-7">
+        <section aria-labelledby="incident-title" data-tour="sim-incident" className="incident-invite glass-surface mb-7 flex flex-wrap items-center justify-between gap-6 p-5 sm:p-7">
           <div className="max-w-2xl">
             <p className="text-xs text-ink-muted">Pon tu misión a prueba · Escenario simulado</p>
             <h2 id="incident-title" className="mt-2 text-2xl font-bold leading-tight text-ink sm:text-3xl">¿Un atraso cambia el final?</h2>

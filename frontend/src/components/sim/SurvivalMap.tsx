@@ -150,7 +150,7 @@ export function SurvivalMap({ data, cfg, missionDays, landing, tolerance, onPick
   const dateOf = (day: number) => formatDate(sampleTime(data, day * perDay))
 
   return (
-    <section aria-labelledby="survival-title" className="survival-map glass-surface my-6 p-5 sm:p-7">
+    <section aria-labelledby="survival-title" data-tour="sim-map" className="survival-map glass-surface my-6 p-5 sm:p-7">
       <p className="text-xs text-ink-muted">Mapa de supervivencia</p>
       <h3 id="survival-title" className="mt-2 text-2xl font-bold leading-tight text-ink sm:text-3xl">¿Qué pasa si cambias la fecha o el sitio?</h3>
       <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-muted">Simulamos tu misión de {missionDays} días con este mismo módulo empezando <b className="text-ink">cada día del año</b>, en <b className="text-ink">los {sites.length} sitios</b>. Así ves al instante qué cambia si el alunizaje se atrasa o si eliges otro lugar.</p>

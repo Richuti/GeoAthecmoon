@@ -1,14 +1,16 @@
 // «¿Y si la misión se atrasa?»: el plan original junto al mismo plan con un atraso que elige el usuario.
 // Sin repetir el viaje ni salir del resultado. Luz, contacto y batería salen de los datos y del módulo.
 import { useMemo, useState } from 'react'
-import { formatDurationLong, formatShortDate, formatTime, sampleTime } from '../lib/time'
+import { dayNumber, formatDateTime, formatDurationLong, sampleTime } from '../lib/time'
 import type { Visibility } from '../lib/visibility'
 import { compareDelay, type PlanOutcome } from '../sim/delay'
 import type { LanderConfig } from '../sim/lander'
 import { delayTolerance } from '../sim/search'
 import type { SiteData } from '../types'
 import { PlanStrips } from './PlanStrips'
+import { MissionBasics } from './MissionBasics'
 import { Button, cx, Segmented } from './ui'
+import './delay-check.css'
 
 const DELAYS = [
   { value: '24', label: '+1 día' },
@@ -17,7 +19,7 @@ const DELAYS = [
   { value: '336', label: '+2 semanas' },
 ] as const
 
-const when = (data: SiteData, i: number) => { const d = sampleTime(data, i); return `${formatShortDate(d)}, ${formatTime(d)}` }
+const when = (data: SiteData, i: number) => formatDateTime(sampleTime(data, i))
 
 export function DelayCheck({ data, vis, cfg, moduleName, startIndex, missionDays, onApply }: {
   data: SiteData
@@ -32,48 +34,66 @@ export function DelayCheck({ data, vis, cfg, moduleName, startIndex, missionDays
   const c = useMemo(() => compareDelay(data, vis, cfg, startIndex, missionDays, Number(delay)), [data, vis, cfg, startIndex, missionDays, delay])
   const tolerance = useMemo(() => delayTolerance(data, cfg, c.original.from, missionDays, vis), [data, cfg, c.original.from, missionDays, vis])
   const label = formatDurationLong(c.appliedHours)
-  const verdict = !c.original.survived
-    ? { tone: 'text-caution', text: `El plan original ya no alcanza con la batería del ${moduleName}.`, detail: 'Prueba otra fecha o simula otro módulo.' }
+  const failedDay = c.delayed.failedAtIndex === null ? null : dayNumber(data, c.delayed.failedAtIndex, c.delayed.from)
+  const verdict = c.appliedHours === 0
+    ? { tone: 'text-ink', text: 'No queda espacio para atrasar esta misión.', detail: 'Elige una fecha anterior: la misión completa tiene que caber en los datos de 2027.' }
     : c.stillWorks
-      ? { tone: 'text-ok', text: `Sí. Con ${label} de atraso, la misión todavía funciona.`, detail: changeText(Math.round(c.delayed.viability) - Math.round(c.original.viability)) }
-      : { tone: 'text-critical', text: `No. Con ${label} de atraso, la batería se agota.`, detail: 'El atraso deja al módulo demasiado tiempo sin Sol.' }
+      ? { tone: 'text-ok', text: `Con la nueva fecha, la misión completa los ${missionDays} días.`, detail: c.original.survived ? 'La batería alcanza hasta el final. Abajo puedes ver qué cambia con el atraso.' : 'Tu plan actual no llega al final. Con esta fecha, la batería sí alcanza.' }
+      : { tone: 'text-critical', text: `Con la nueva fecha, la misión se queda sin energía el día ${failedDay}.`, detail: `La batería llega a su mínimo operativo (20 %) el ${when(data, c.delayed.failedAtIndex!)}.` }
+  const hours = (o: PlanOutcome, pct: number) => formatDurationLong((o.to - o.from) * data.stepHours * pct / 100)
 
   return (
-    <section aria-labelledby="delay-title" data-tour="delay" className="glass-surface p-5 sm:p-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          <h2 id="delay-title" className="text-xl font-bold text-ink">¿Y si la misión se atrasa?</h2>
-          <p className="mt-1 text-sm text-ink-muted">Elige un atraso: ámbar es Sol, azul es la Tierra a la vista y ▲ marca dónde se agota la batería.</p>
-        </div>
-        <Segmented label="Atraso del alunizaje" options={DELAYS} value={delay} onChange={setDelay} className="w-full sm:w-auto [&_button]:min-h-10 [&_button]:px-1.5 [&_button]:text-xs sm:[&_button]:px-3.5 sm:[&_button]:text-sm" />
+    <section aria-labelledby="delay-title" data-tour="delay" className="delay-check glass-surface p-5 sm:p-6">
+      <h2 id="delay-title" className="text-xl font-bold text-ink sm:text-2xl">¿Qué pasa si llegas más tarde?</h2>
+      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">Probamos el mismo sitio y módulo durante los mismos días. Solo movemos la fecha de alunizaje.</p>
+      <div className="mt-5">
+        <p className="mb-2 text-sm font-bold text-ink">¿Cuánto se atrasa la llegada?</p>
+        <Segmented label="Atraso del alunizaje" options={DELAYS} value={delay} onChange={setDelay} className="w-full sm:w-auto [&_button]:min-h-11 [&_button]:px-1.5 [&_button]:text-xs sm:[&_button]:px-3.5 sm:[&_button]:text-sm" />
       </div>
 
-      <p className={cx('mt-5 text-lg font-bold', verdict.tone)} aria-live="polite">{verdict.text}</p>
-      <p className="mt-1 text-sm text-ink-muted">{verdict.detail}</p>
+      <div className="delay-dates mt-6 grid gap-4 border-y border-seam py-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6">
+        <div><p className="text-xs text-ink-muted">Tu llegada actual</p><p className="mt-2 text-base font-bold text-ink">{when(data, c.original.from)}</p></div>
+        <p className="text-sm font-bold text-ink">{label} después <span aria-hidden className="hidden sm:inline">→</span></p>
+        <div><p className="text-xs text-ink-muted">La fecha que estás probando</p><p className="mt-2 text-base font-bold text-ink">{when(data, c.delayed.from)}</p></div>
+      </div>
+      {c.cutByPeriod && <p role="status" className="mt-3 text-sm leading-relaxed text-caution">El atraso se limitó para conservar toda la misión dentro de los datos de 2027.</p>}
 
-      <div className="mt-5 grid gap-5">
-        <PlanLine title="Tu plan" when={when(data, c.original.from)} o={c.original} vis={vis} data={data} moduleName={moduleName} />
-        <PlanLine title={`Con ${label} de atraso`} when={when(data, c.delayed.from)} o={c.delayed} vis={vis} data={data} moduleName={moduleName}
-          change={Math.round(c.delayed.viability) - Math.round(c.original.viability)} />
+      <div className="mt-6" role="status" aria-live="polite" aria-atomic="true">
+        <p className={cx('text-xl font-bold leading-snug sm:text-2xl', verdict.tone)}>{verdict.text}</p>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">{verdict.detail}</p>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-ink-muted">
+      <MissionBasics />
+      <table className="delay-comparison mt-6 w-full text-sm">
+        <caption className="mb-3 text-left text-base font-bold text-ink">Qué cambia durante tu misión</caption>
+        <thead><tr><th scope="col"><span className="sr-only">Condición</span></th><th scope="col">Plan actual</th><th scope="col">Nueva fecha</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">¿Completa la misión?</th><td className={c.original.survived ? 'text-ok' : 'text-critical'}>{c.original.survived ? 'Sí' : 'No'}</td><td className={c.delayed.survived ? 'text-ok' : 'text-critical'}>{c.delayed.survived ? 'Sí' : 'No'}</td></tr>
+          <tr><th scope="row">Luz disponible para producir energía<span className="block text-xs font-normal text-ink-muted">La batería cubre la falta de producción.</span></th><td>{hours(c.original, c.original.lightPct)}</td><td>{hours(c.delayed, c.delayed.lightPct)}</td></tr>
+          <tr><th scope="row">Oportunidades para enviar mediciones<span className="block text-xs font-normal text-ink-muted">Sin señal, las guarda a bordo.</span></th><td>{hours(c.original, c.original.contactPct)}</td><td>{hours(c.delayed, c.delayed.contactPct)}</td></tr>
+        </tbody>
+      </table>
+
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+        <p className="max-w-xl text-sm leading-relaxed text-ink-muted">
           {tolerance.survivesNow
-            ? <>Tu plan tolera atrasos de hasta <strong className="text-ink">{formatDurationLong(tolerance.days * 24)}</strong>{tolerance.limitedByPeriod ? ' (hasta el final de los datos)' : ''}.</>
-            : 'Tu plan no tiene margen de atraso con este módulo.'}
-          {c.cutByPeriod && <span className="block text-xs text-ink-faint">El atraso se recortó: la misión tiene que terminar dentro de los datos de 2027.</span>}
+            ? <>Tu plan actual admite hasta <strong className="text-ink">{formatDurationLong(tolerance.days * 24)}</strong> de atraso{tolerance.limitedByPeriod ? ' (límite de los datos disponibles)' : ''}.</>
+            : 'El plan actual ya necesita otra fecha o configuración.'}
         </p>
-        <Button onClick={() => onApply(c.delayed.from)} disabled={c.appliedHours === 0}>Usar la fecha atrasada</Button>
+        <Button size="lg" onClick={() => onApply(c.delayed.from)} disabled={c.appliedHours === 0}>Cambiar a la nueva fecha</Button>
       </div>
+      <p className="mt-3 text-xs leading-relaxed text-ink-muted">Estás probando una alternativa. Tu plan cambia cuando pulses el botón.</p>
+
+      <details className="delay-detail mt-6 border-t border-seam pt-2">
+        <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 text-sm font-bold text-ink-muted">Ver el detalle hora por hora<span aria-hidden>＋</span></summary>
+        <p className="mb-5 text-xs leading-relaxed text-ink-muted">Ámbar: el panel recibe luz. Azul: la nave puede enviar mediciones. Los tramos oscuros indican que esa condición no está disponible. El triángulo marca la falla de la batería.</p>
+        <div className="grid gap-5">
+          <PlanLine title="Tu plan" when={when(data, c.original.from)} o={c.original} vis={vis} data={data} moduleName={moduleName} />
+          <PlanLine title={`Con ${label} de atraso`} when={when(data, c.delayed.from)} o={c.delayed} vis={vis} data={data} moduleName={moduleName} change={Math.round(c.delayed.viability) - Math.round(c.original.viability)} />
+        </div>
+      </details>
     </section>
   )
-}
-
-function changeText(diff: number): string {
-  const d = Math.round(diff)
-  if (d === 0) return 'La viabilidad no cambia.'
-  return d > 0 ? `La viabilidad sube ${d} puntos.` : `La viabilidad baja ${-d} puntos.`
 }
 
 /** Un plan como franja: cuándo hay Sol y Tierra, dónde se agota la batería y su puntaje. */

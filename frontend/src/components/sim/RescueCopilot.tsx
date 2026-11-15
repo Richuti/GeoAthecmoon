@@ -38,10 +38,11 @@ export function RescueCopilot({ copilotCase, onApply, id = 'copilot', title = '�
     setStatus('running')
     setError(null)
     setRun({ attempts: [], plan: null })
+    let latest: Attempt[] = []
     try {
       const result = await runCopilot(copilotCase, {
         signal: ctrl.signal,
-        onUpdate: (r) => { if (!ctrl.signal.aborted) setRun({ attempts: [...r.attempts], plan: r.plan }) },
+        onUpdate: (r) => { latest = [...r.attempts]; if (!ctrl.signal.aborted) setRun({ attempts: latest, plan: r.plan }) },
       })
       if (ctrl.signal.aborted) return
       setRun(result)
@@ -52,8 +53,13 @@ export function RescueCopilot({ copilotCase, onApply, id = 'copilot', title = '�
       }
     } catch (err) {
       if (ctrl.signal.aborted) return
-      setStatus('error')
-      setError(err instanceof CopilotError ? err.message : 'La IA no respondió. Prueba otra vez.')
+      // Sin IA (red caída, OpenAI sin respuesta), la misión no se queda sin plan: las salidas sencillas ya
+      // están simuladas y se ofrece la mejor que sobrevive, sin explicación del modelo.
+      const best = bestAttempt(latest)
+      setRun({ attempts: latest, plan: best ? { attempt: best, rationale: null } : null })
+      setStatus(best ? 'done' : 'error')
+      const why = err instanceof CopilotError ? err.message.replace(/ Prueba otra vez\.$/, '') : 'La IA no respondió.'
+      setError(best ? `${why} Te mostramos el mejor plan ya simulado sin la IA.` : `${why} Prueba otra vez.`)
     }
   }
   const cancel = () => {

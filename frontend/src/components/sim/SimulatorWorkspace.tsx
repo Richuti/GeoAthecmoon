@@ -18,8 +18,32 @@ import { seriesOf } from '../../sim/search'
 import { MissionLive } from './MissionLive'
 import { MissionTimeline } from './MissionTimeline'
 import { SurvivalMap } from './SurvivalMap'
+import { Tour, type TourStep } from '../Tour'
+
+/** Guía de cada paso del simulador: aparece la primera vez y se repite desde «Ayuda → Guía de esta pantalla». */
+const TOURS: Record<'plan' | 'journey' | 'surface', TourStep[]> = {
+  plan: [
+    { target: '[data-tour="sim-site"]', title: 'Elige dónde alunizar', text: 'Seis lugares reales del polo sur de la Luna. Cada uno tiene su propia luz, su contacto con la Tierra y su relieve.' },
+    { target: '[data-tour="sim-date"]', title: 'Elige el día de llegada', text: 'Según la fecha, las montañas tapan el Sol o la Tierra. Puedes cambiarla después y volver a probar.' },
+    { target: '[data-tour="sim-module"]', title: 'Elige tu módulo', text: 'Cada módulo trae su batería, su panel y su consumo. Con el que viene elegido ya puedes empezar.' },
+    { target: '[data-tour="sim-continue"]', title: 'Sigue al viaje', text: 'Con esto basta. En el siguiente paso ves el viaje de la Tierra a la Luna.' },
+  ],
+  journey: [
+    { target: '[data-tour="sim-start"]', title: 'Pulsa «Iniciar viaje»', text: 'Empieza aquí: verás el despegue, el viaje hasta la Luna y el descenso sobre el relieve real del sitio. Puedes pausarlo cuando quieras.' },
+    { target: '[data-tour="sim-skip"]', title: '¿Con prisa?', text: '«Ir a la llegada» salta al final del viaje. El viaje es ilustrativo: no cambia el resultado de la misión.' },
+    { target: '[data-tour="sim-evaluate"]', title: 'Después, evalúa', text: 'Cuando la nave llegue, aquí comprobamos hora por hora si tu módulo aguanta en la Luna.' },
+  ],
+  surface: [
+    { target: '[data-tour="sim-result"]', title: '¿Sobrevive?', text: 'El veredicto de tu misión: si la batería aguanta todos los días y cuántos datos llegan a la Tierra.' },
+    { target: '[data-tour="sim-live"]', title: 'Mírala en el terreno', text: 'El módulo en el relieve real. Las sombras y la Tierra siguen los datos de cada hora.' },
+    { target: '[data-tour="sim-timeline"]', title: 'Reproduce la misión', text: 'Pulsa reproducir o arrastra la línea de tiempo. Ámbar es el Sol, azul es la Tierra.' },
+    { target: '[data-tour="sim-incident"]', title: '¿Y si algo sale mal?', text: 'Simula un atraso y mira si tu misión todavía funciona y cómo salvarla.' },
+    { target: '[data-tour="sim-map"]', title: 'Qué días funcionan', text: 'Cada celda es un día de llegada en un sitio. Toca uno para simularlo.' },
+  ],
+}
 
 interface WorkspaceProps {
+  initialView?: 'plan' | 'journey'
   data: SiteData
   setup: ComponentProps<typeof MissionSetup>
   report: MissionResultProps | null
@@ -29,9 +53,9 @@ interface WorkspaceProps {
   survivalThreshold: number
 }
 
-export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, survivalThreshold }: WorkspaceProps) {
+export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, survivalThreshold, initialView = 'plan' }: WorkspaceProps) {
   const { state, actions } = useAppState()
-  const [view, setView] = useState<'plan' | 'journey' | 'surface'>('plan')
+  const [view, setView] = useState<'plan' | 'journey' | 'surface'>(initialView)
   const heading = useRef<HTMLHeadingElement>(null)
   const [rescueSignal, setRescueSignal] = useState(0)
   // Aviso después de aplicar un plan (de la IA o de una salida): qué cambió, para que se note que pasó algo.
@@ -100,6 +124,8 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
           </button>
         ))}
       </nav>
+      {/* La guía del resultado espera a que exista el resultado. */}
+      {(view !== 'surface' || report) && <Tour key={view} id={`simulador-${view}`} steps={TOURS[view]} />}
       <section id="mission-step" aria-labelledby="mission-step-title">
       <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -115,8 +141,10 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       {view === 'plan' && <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-14">
       <div className="min-w-0">
       <MissionSetup {...setup} actionLabel="Continuar al viaje →" onSimulate={() => navigate('journey')} siteControl={
-        <Select id="mission-site" label="Sitio de alunizaje" value={data.site.id} onChange={actions.select}
-          options={state.sites?.map(s => ({ value: s.id, label: s.name, description: s.description })) ?? []} />
+        <div data-tour="sim-site" className="min-w-0">
+          <Select id="mission-site" label="Sitio de alunizaje" value={data.site.id} onChange={actions.select}
+            options={state.sites?.map(s => ({ value: s.id, label: s.name, description: s.description })) ?? []} />
+        </div>
       } />
       </div>
       <aside aria-label="Resumen de tu plan" className="min-w-0 lg:border-l lg:border-seam lg:pl-10">
@@ -151,7 +179,7 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
         data={data} cfg={setup.cfg} startIndex={report.result.from} missionDays={report.result.plan.missionDays} originalResult={report.result}
         onTryStart={report.onTryStart} onTrySite={report.onTrySite} onCfg={setup.onCfg} onApplied={announce}>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
-        <div className="terrain-stage h-136 min-w-0 sm:h-128">
+        <div data-tour="sim-live" className="terrain-stage h-136 min-w-0 sm:h-128">
           <ViewerPanel data={data} index={state.index} contact={contact[state.index]} immersive
             missionState={result && sample !== null ? result.series.mode[sample] : undefined}
             missionOverlay={result && <MissionLive key={`${data.site.id}:${result.from}:${JSON.stringify(result.plan)}:${JSON.stringify(setup.cfg)}`}

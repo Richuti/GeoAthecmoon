@@ -64,8 +64,10 @@ export function MissionSetup({
       <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
           {siteControl}
 
-            <DateTimeField id="mission-date" label="Fecha de alunizaje · UTC" value={timelineDate} min={minDate} max={maxDate}
-              onChange={(date) => onDate(toInputValue(date))} />
+            <div data-tour="sim-date" className="min-w-0">
+              <DateTimeField id="mission-date" label="Fecha de alunizaje · UTC" value={timelineDate} min={minDate} max={maxDate}
+                onChange={(date) => onDate(toInputValue(date))} />
+            </div>
             <div>
               <label htmlFor="mission-days" className="mb-2 block text-sm text-ink-muted">Tiempo en la superficie</label>
               <div className="flight-field flex min-h-14 items-center gap-2 border border-seam-strong bg-hull px-4">
@@ -80,15 +82,17 @@ export function MissionSetup({
                 <span className="text-xs text-ink-muted">días</span>
               </div>
             </div>
-            <Select id="mission-module" label="Módulo de la misión" value={preset ?? 'custom'} onChange={v => onPreset(v as PresetId)}
-              options={preset ? PRESET_OPTIONS : [{ value: 'custom', label: 'Personalizado', disabled: true, description: 'Con los parámetros que ajustaste.' }, ...PRESET_OPTIONS]}
-              hint={preset ? `${PRESETS[preset].description} Configuración de referencia.` : 'Estás usando tus propios ajustes.'} />
+            <div data-tour="sim-module" className="min-w-0">
+              <Select id="mission-module" label="Módulo de la misión" value={preset ?? 'custom'} onChange={v => onPreset(v as PresetId)}
+                options={preset ? PRESET_OPTIONS : [{ value: 'custom', label: 'Personalizado', disabled: true, description: 'Con los parámetros que ajustaste.' }, ...PRESET_OPTIONS]}
+                hint={preset ? `${PRESETS[preset].description} Configuración de referencia.` : 'Estás usando tus propios ajustes.'} />
+            </div>
             <dl aria-label="Capacidad del módulo elegido" className="grid grid-cols-3 gap-4 border-y border-seam py-4 sm:col-span-2">
               <Derived label="Panel solar" value={`${Math.round(peak)} W pico`} tone="text-sun" />
               <Derived label="Batería" value={`${cfg.batteryKWh.toLocaleString('es')} kWh`} />
               <Derived label="Sin Sol" value={formatDuration(autonomyHours(cfg))} />
             </dl>
-            <Button variant="primary" size="lg" className="min-h-12 w-full sm:col-span-2" onClick={onSimulate}>
+            <Button variant="primary" size="lg" data-tour="sim-continue" className="min-h-12 w-full sm:col-span-2" onClick={onSimulate}>
               {actionLabel ?? (landingDate === null ? 'Simular misión' : 'Volver a simular')}
             </Button>
       </div>

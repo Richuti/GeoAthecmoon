@@ -1,0 +1,15 @@
+.delay-comparison { table-layout: fixed; border-collapse: collapse; }
+.delay-comparison th, .delay-comparison td { padding: 14px 10px; border-bottom: 1px solid var(--color-seam); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.delay-comparison thead th { padding-top: 0; color: var(--color-ink-muted); font-size: 0.75rem; font-weight: 400; }
+.delay-comparison th:first-child { width: 44%; padding-left: 0; }
+.delay-comparison tbody th { color: var(--color-ink); font-weight: 700; }
+.delay-comparison td { font-variant-numeric: tabular-nums; }
+.delay-detail summary { list-style: none; }
+.delay-detail summary::-webkit-details-marker { display: none; }
+.delay-detail summary:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 3px; }
+.delay-detail[open] summary > span { transform: rotate(45deg); }
+@media (max-width: 420px) {
+  .delay-comparison th, .delay-comparison td { padding-inline: 5px; font-size: 0.75rem; }
+  .delay-comparison th:first-child { width: 42%; }
+  .delay-comparison tbody th span { font-size: 0.6875rem; }
+}
