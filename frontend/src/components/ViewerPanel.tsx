@@ -1,18 +1,14 @@
 // Panel de la vista 3D: carga el visor aparte (three.js pesa) y pone encima la información del sitio,
 // el estado del Sol y la Tierra según los datos, y los avisos de escala.
 
-import { Component, lazy, Suspense, useCallback, useMemo, useState, type ReactNode } from 'react'
+import { Component, lazy, Suspense, useCallback, useState, type ReactNode } from 'react'
 import { formatCoords } from '../lib/format'
-import { clearanceDeg, horizonAt } from '../lib/horizon'
+import { clearanceDeg } from '../lib/horizon'
 import { CATEGORY_LABEL } from '../lib/sites'
-import { formatDateTime, formatDurationLong, sampleTime } from '../lib/time'
-import { contactSeries, litSeries } from '../lib/visibility'
-import { horizonProfile, nextSunEvent, PATH_DAYS, skyPath } from '../sim/astronautView'
 import { sunFraction } from '../sim/simulate'
 import type { SiteData } from '../types'
 import { Badge, Button, cx, Panel } from './ui'
-import type { EyeData, Sky } from './Viewer3D'
-import './eye-view.css'
+import type { Sky } from './Viewer3D'
 
 const Viewer3D = lazy(() => import('./Viewer3D'))
 
@@ -30,8 +26,6 @@ export function ViewerPanel({ data, index, contact, missionState, immersive = fa
   const s = data.site
   const [ground, setGround] = useState<{ siteId: string; y: number } | null>(null)
   const [resetKey, setResetKey] = useState(0)
-  const [view, setView] = useState<'aerial' | 'astronaut'>('aerial')
-  const astronaut = view === 'astronaut'
   const onGroundHeight = useCallback((y: number) => setGround({ siteId: s.id, y }), [s.id])
   const loaded = ground?.siteId === s.id
   const Heading = immersive ? 'h2' : 'h1'
@@ -47,36 +41,6 @@ export function ViewerPanel({ data, index, contact, missionState, immersive = fa
   }
   const sunState = frac >= 1 ? 'iluminado' : frac <= 0 ? 'en sombra' : `${Math.round(frac * 100)} % del disco`
 
-  // Junto al astronauta: horizonte LOLA y caminos del Sol y la Tierra de los próximos días, desde los datos.
-  const series = useMemo(() => ({ lit: litSeries(data), contact: contactSeries(data) }), [data])
-  const horizon = useMemo(() => horizonProfile(data.horizon), [data.horizon])
-  const sunEvent = useMemo(() => nextSunEvent(data, series.lit, index), [data, series, index])
-  const eye = useMemo<EyeData | undefined>(() => {
-    if (!astronaut) return undefined
-    return {
-      horizon,
-      sunPath: skyPath(data, 'sun', series.lit, index),
-      earthPath: skyPath(data, 'earth', series.contact, index, PATH_DAYS, 2),
-      from: index,
-      event: sunEvent && { az: sunEvent.az, el: sunEvent.el, label: `${sunEvent.appears ? 'Vuelve el Sol' : 'Se oculta'} · ${formatDateTime(sampleTime(data, sunEvent.index))}` },
-    }
-  }, [astronaut, horizon, data, series, index, sunEvent])
-  // Al entrar, mira hacia el Sol; si está oculto, hacia donde volverá a salir.
-  const [aim, setAim] = useState({ yaw: 0, pitch: 2 })
-  const enterAstronaut = () => {
-    const az = series.lit[index] || !sunEvent ? data.sun.az[index] : sunEvent.az
-    setAim({ yaw: az, pitch: Math.max(1, horizonAt(data.horizon, az) + 1.5) })
-    setView('astronaut')
-    setResetKey(k => k + 1)
-  }
-  const leaveAstronaut = () => {
-    setView('aerial')
-    setResetKey(k => k + 1)
-  }
-  const eventText = sunEvent
-    ? `${sunEvent.appears ? 'El Sol vuelve a salir' : 'El Sol se oculta tras el relieve'} en ${formatDurationLong((sunEvent.index - index) * data.stepHours)}.`
-    : series.lit[index] ? `El Sol no se oculta en los próximos ${PATH_DAYS} días.` : `El Sol no vuelve en los próximos ${PATH_DAYS} días.`
-
   const unavailable = (
     <div className="absolute inset-0 grid place-items-center p-8 text-center">
       <p className="max-w-sm text-sm leading-relaxed text-ink-muted">
@@ -88,11 +52,10 @@ export function ViewerPanel({ data, index, contact, missionState, immersive = fa
 
   const content = (
     <>
-      <div className="absolute inset-0" role="img" aria-label={astronaut ? `Vista junto a un astronauta en ${s.name}, a escala real, con el Sol ${sunState}. ${eventText}` : `Vista 3D del relieve de ${s.name}, 20 por 20 kilómetros, con el Sol ${sunState}.`}>
+      <div className="absolute inset-0" role="img" aria-label={`Vista 3D del relieve de ${s.name}, 20 por 20 kilómetros, con el Sol ${sunState}.`}>
         <ViewerError key={s.id} fallback={unavailable}>
           <Suspense fallback={null}>
-            <Viewer3D siteId={s.id} sky={sky} groundY={loaded ? ground.y : 0} onGroundHeight={onGroundHeight} resetKey={resetKey} shipState={showShipStatus && !astronaut ? missionState : undefined}
-              view={view} eye={eye} eyeYaw={aim.yaw} eyePitch={aim.pitch} />
+            <Viewer3D siteId={s.id} sky={sky} groundY={loaded ? ground.y : 0} onGroundHeight={onGroundHeight} resetKey={resetKey} shipState={showShipStatus ? missionState : undefined} />
           </Suspense>
         </ViewerError>
       </div>
@@ -115,31 +78,13 @@ export function ViewerPanel({ data, index, contact, missionState, immersive = fa
           <p className="mt-2 font-mono text-xs text-ink-muted">{formatCoords(s)}</p>
           {missionOverlay && <p className="mt-2 text-xs leading-relaxed text-ink-muted">Sol: {sunState} · Tierra: {contact ? 'con contacto' : 'sin contacto'}</p>}
         </div>
-        <div className="pointer-events-auto flex shrink-0 flex-wrap justify-end gap-2">
-          <Button size="sm" aria-pressed={astronaut} className="min-h-11 bg-void/90" onClick={astronaut ? leaveAstronaut : enterAstronaut}>
-            <svg aria-hidden viewBox="0 0 20 20" className="size-4">{astronaut
-              ? <path d="M3 13l7-7 7 7M6 10v6h8v-6" fill="none" stroke="currentColor" strokeWidth="1.5" />
-              : <><circle cx="10" cy="5" r="2.2" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M6 18v-6.5a4 4 0 0 1 8 0V18M8 18v-4M12 18v-4" fill="none" stroke="currentColor" strokeWidth="1.5" /></>}</svg>
-            <span>{astronaut ? 'Vista aérea' : 'Junto al astronauta'}</span>
-          </Button>
-          <Button size="sm" aria-label={astronaut ? 'Mirar hacia el Sol' : 'Restablecer vista'} className="min-h-11 bg-void/90" onClick={astronaut ? enterAstronaut : () => setResetKey((k) => k + 1)}>
-            <svg aria-hidden viewBox="0 0 20 20" className="size-4"><path d="M4 6v4h4M4.5 9a6 6 0 1 1 1 5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
-            <span className="hidden sm:inline">{astronaut ? 'Mirar al Sol' : 'Restablecer'}</span>
-          </Button>
-        </div>
+        <Button size="sm" aria-label="Restablecer vista" className="pointer-events-auto min-h-11 shrink-0 bg-void/90" onClick={() => setResetKey((k) => k + 1)}>
+          <svg aria-hidden viewBox="0 0 20 20" className="size-4"><path d="M4 6v4h4M4.5 9a6 6 0 1 1 1 5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+          <span className="hidden sm:inline">Restablecer</span>
+        </Button>
       </div>
 
-      {astronaut && <div className={cx('eye-legend pointer-events-none absolute left-4 right-4', missionOverlay ? 'eye-legend--mission' : 'bottom-4')} role="note" aria-label="Qué se ve junto al astronauta">
-        <p className="text-sm font-bold text-ink">{eventText}</p>
-        <ul className="mt-2 space-y-1 text-xs text-ink-muted">
-          <li><i aria-hidden className="eye-key is-horizon" />Horizonte calculado (LOLA, 150 km): manda sobre el modelo 3D</li>
-          <li><i aria-hidden className="eye-key is-sun" />Sol, próximos {PATH_DAYS} días · un punto por día</li>
-          <li><i aria-hidden className="eye-key is-earth" />Tierra · punteado: oculto o sin contacto</li>
-        </ul>
-        <p className="mt-2 text-[0.6875rem] text-ink-faint">Escala real. Arrastra para mirar alrededor.</p>
-      </div>}
-
-      {!missionOverlay && !astronaut && <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-3 bg-[linear-gradient(to_top,rgb(5_7_13/0.85),transparent)] p-4 pt-10 sm:px-6">
+      {!missionOverlay && <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-3 bg-[linear-gradient(to_top,rgb(5_7_13/0.85),transparent)] p-4 pt-10 sm:px-6">
         <div className="flex flex-wrap gap-2">
           <Badge tone={frac > 0 ? 'sun' : 'neutral'}>
             Sol {sky.sunEl.toFixed(2)}° · {sunState}

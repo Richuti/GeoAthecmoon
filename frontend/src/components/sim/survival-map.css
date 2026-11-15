@@ -4,14 +4,36 @@
 /* Solo se desplaza en horizontal cuando no cabe: así el globo de ayuda no queda recortado en escritorio. */
 @media (max-width: 899px) { .survival-scroll { overflow-x: auto; overscroll-behavior-x: contain; } }
 .survival-grid {
-  display: grid; grid-template-columns: 10.5rem minmax(0, 1fr) 6.5rem; column-gap: 14px; row-gap: 8px;
+  display: grid; grid-template-columns: 10.5rem minmax(0, 1fr) 9.5rem; column-gap: 14px; row-gap: 8px;
   min-width: 760px;
 }
 .survival-names, .survival-stats { display: grid; grid-auto-rows: var(--row); row-gap: var(--gap); }
 .survival-names p, .survival-stats p { display: flex; align-items: center; min-width: 0; font-size: 13px; color: var(--color-ink-muted); line-height: 1.15; }
 .survival-names p { justify-content: flex-end; text-align: right; }
 .survival-names p.is-current, .survival-stats p.is-current { color: var(--color-ink); font-weight: 700; }
-.survival-stats p { gap: 4px; flex-wrap: wrap; align-content: center; }
+.survival-names p { flex-direction: column; align-items: flex-end; justify-content: center; }
+.survival-names small { font-size: 10px; font-weight: 400; color: var(--color-ink-faint); }
+.survival-stats small.is-best { color: var(--color-ok); }
+
+/* Respuestas: lo que el mapa dice del plan, en palabras. */
+.survival-answers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.survival-answer { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 16px; border-radius: 14px; border: 1px solid rgb(232 235 241 / 0.16); background: rgb(5 7 13 / 0.45); }
+.survival-answer.is-ok { border-color: rgb(69 212 155 / 0.5); }
+.survival-answer.is-fail { border-color: rgb(255 107 107 / 0.5); }
+.survival-answer__k { font-size: 12px; color: var(--color-ink-muted); }
+.survival-answer__v { font-size: 20px; font-weight: 700; line-height: 1.2; color: var(--color-ink); }
+.survival-answer.is-ok .survival-answer__v { color: var(--color-ok); }
+.survival-answer.is-fail .survival-answer__v { color: var(--color-critical); }
+.survival-answer__d { font-size: 13px; line-height: 1.45; color: var(--color-ink-muted); }
+.survival-answer__d b { color: var(--color-ink); }
+.survival-answer__go {
+  align-self: flex-start; margin-top: auto; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid rgb(232 235 241 / 0.35); color: var(--color-ink); font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.survival-answer__go:hover { background: rgb(232 235 241 / 0.1); }
+.survival-answer__go:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+@media (max-width: 899px) { .survival-answers { grid-template-columns: 1fr; } }
+.survival-stats p { gap: 0 4px; flex-wrap: wrap; align-content: center; white-space: nowrap; font-size: 12px; }
 .survival-stats b { color: var(--color-ink); }
 .survival-stats small { flex-basis: 100%; font-size: 11px; color: var(--color-ink-faint); font-weight: 400; }
 
@@ -54,5 +76,5 @@
 @keyframes survival-scan { from { background-position: -40% 0; } to { background-position: 140% 0; } }
 @keyframes survival-in { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 639px) {
-  .survival-grid { grid-template-columns: 8rem minmax(0, 1fr) 4.5rem; min-width: 640px; }
+  .survival-grid { grid-template-columns: 8rem minmax(0, 1fr) 8rem; min-width: 680px; }
 }

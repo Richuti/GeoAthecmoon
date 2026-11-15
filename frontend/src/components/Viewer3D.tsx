@@ -17,7 +17,6 @@ import { SpaceBackground } from './SpaceBackground'
 import { descentFrame } from '../sim/transferView'
 import { useFlightModel } from './sim/useFlightModel'
 import type { Mode } from '../sim/simulate'
-import { ASTRONAUT_AZ_DEG, ASTRONAUT_DISTANCE_KM, ASTRONAUT_HEIGHT_KM, EYE_HEIGHT_KM, type SkyPoint } from '../sim/astronautView'
 
 export interface Sky {
   sunAz: number
@@ -39,11 +38,6 @@ const SUN_RADIUS = 0.6
 const EARTH_RADIUS = 1.6
 
 const DEG = Math.PI / 180
-
-/** Altura real del cohete (km): junto al astronauta la nave se ve a escala real, no agrandada. */
-const SHIP_REAL_HEIGHT_KM = 0.11
-/** Junto al astronauta, el Sol y la Tierra van más lejos que el relieve de 150 km (mismo tamaño aparente). */
-const EYE_SKY_DISTANCE = 600
 
 /** Dirección hacia un cuerpo: norte = -Z, este = +X, arriba = +Y. */
 function direction(azDeg: number, elDeg: number): THREE.Vector3 {
@@ -86,7 +80,7 @@ function Terrain({ siteId, onGroundHeight }: { siteId: string; onGroundHeight: (
 }
 
 /** El mismo cohete del despegue, de pie: la base toca el suelo en (0, groundY, 0). */
-function Ship({ groundY, height = SHIP_HEIGHT_KM }: { groundY: number; height?: number }) {
+function Ship({ groundY }: { groundY: number }) {
   const ship = useFlightModel('/models/launch_vehicle.glb')
   useLayoutEffect(() => {
     ship.traverse((o) => {
@@ -94,10 +88,10 @@ function Ship({ groundY, height = SHIP_HEIGHT_KM }: { groundY: number; height?: 
     })
   }, [ship])
   // El grupo escala; el modelo conserva su propia normalización (altura 1).
-  return <group position={[0, groundY + height / 2, 0]} scale={height}><primitive object={ship} dispose={null} /></group>
+  return <group position={[0, groundY + SHIP_CENTER_KM, 0]} scale={SHIP_HEIGHT_KM}><primitive object={ship} dispose={null} /></group>
 }
 
-function SkyBody({ url, az, el, radius, unlit = false, mirror = false, distance = SKY_DISTANCE }: { url: string; az: number; el: number; radius: number; unlit?: boolean; mirror?: boolean; distance?: number }) {
+function SkyBody({ url, az, el, radius, unlit = false, mirror = false }: { url: string; az: number; el: number; radius: number; unlit?: boolean; mirror?: boolean }) {
   const { scene } = useGLTF(url)
   const body = useMemo(() => {
     const clone = scene.clone(true)
@@ -113,11 +107,9 @@ function SkyBody({ url, az, el, radius, unlit = false, mirror = false, distance 
     }
     return clone
   }, [scene, unlit])
-  const pos = direction(az, el).multiplyScalar(distance)
-  // Mismo tamaño aparente a cualquier distancia.
-  const r = radius * distance / SKY_DISTANCE
+  const pos = direction(az, el).multiplyScalar(SKY_DISTANCE)
   // earth.glb trae la textura en espejo; se refleja en X (ver useGlobeModel).
-  return <primitive object={body} position={pos} scale={[mirror ? -r : r, r, r]} />
+  return <primitive object={body} position={pos} scale={[mirror ? -radius : radius, radius, radius]} />
 }
 
 /** Penumbra: casi nada de día (las sombras lunares son negras) y más de noche para que el relieve se lea. */
@@ -294,192 +286,6 @@ function DescentEffects({ groundY, progress, overlay }: { groundY: number; progr
 }
 
 // ---------------------------------------------------------------------------
-// Junto al astronauta: persona a escala real, cámara tras su hombro y capa con el horizonte y los caminos
-// del Sol y la Tierra (SVG proyectado, sin geometría)
-// ---------------------------------------------------------------------------
-
-export interface EyeData {
-  /** Horizonte LOLA, un punto por grado */
-  horizon: Array<{ az: number; el: number }>
-  sunPath: SkyPoint[]
-  earthPath: SkyPoint[]
-  /** Muestra actual: el camino marca un punto por día desde aquí */
-  from: number
-  /** Próximo cambio de luz, con su texto */
-  event: { az: number; el: number; label: string } | null
-}
-
-/** Dirección de la mirada (grados): la comparten la cámara y el astronauta, que gira hacia donde se mira. */
-interface Gaze { yaw: number; pitch: number }
-
-const ASTRONAUT_XZ = direction(ASTRONAUT_AZ_DEG, 0).multiplyScalar(ASTRONAUT_DISTANCE_KM)
-
-/** Altura del relieve LOLA en (x, z): un rayo vertical sobre el terreno del sitio. */
-function useGroundAt(siteId: string, x: number, z: number): number {
-  const { scene } = useGLTF(`/models/terrain/${siteId}.glb`)
-  return useMemo(() => {
-    const hit = new THREE.Raycaster(new THREE.Vector3(x, 50, z), new THREE.Vector3(0, -1, 0)).intersectObject(scene, true)[0]
-    return hit ? hit.point.y : 0
-  }, [scene, x, z])
-}
-
-function Astronaut({ siteId, gaze }: { siteId: string; gaze: RefObject<Gaze> }) {
-  const model = useFlightModel('/models/astronaut.glb')
-  const ground = useGroundAt(siteId, ASTRONAUT_XZ.x, ASTRONAUT_XZ.z)
-  const group = useRef<THREE.Group>(null)
-  useLayoutEffect(() => { model.traverse((o) => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = true }) }, [model])
-  // El modelo mira hacia +Z; se gira para mirar hacia el azimut de la vista (de espaldas a la cámara).
-  useFrame(() => { if (group.current) group.current.rotation.y = Math.PI - gaze.current.yaw * DEG })
-  return <group ref={group} position={[ASTRONAUT_XZ.x, ground + ASTRONAUT_HEIGHT_KM / 2, ASTRONAUT_XZ.z]} scale={ASTRONAUT_HEIGHT_KM}>
-    <primitive object={model} dispose={null} />
-  </group>
-}
-
-/** Cámara tras el hombro del astronauta. Arrastrar gira la mirada; el astronauta gira con ella. */
-function EyeRig({ siteId, gaze, startYaw, startPitch, resetKey }: { siteId: string; gaze: RefObject<Gaze>; startYaw: number; startPitch: number; resetKey: number }) {
-  const { camera, gl } = useThree()
-  const ground = useGroundAt(siteId, ASTRONAUT_XZ.x, ASTRONAUT_XZ.z)
-  const v = useMemo(() => ({ eye: new THREE.Vector3(), fwd: new THREE.Vector3(), right: new THREE.Vector3(), look: new THREE.Vector3() }), [])
-
-  useEffect(() => {
-    gaze.current.yaw = startYaw
-    gaze.current.pitch = startPitch
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al entrar o al restablecer la vista
-  }, [resetKey])
-
-  useEffect(() => {
-    const cam = camera as THREE.PerspectiveCamera
-    cam.near = 0.0003
-    cam.far = 1500
-    cam.updateProjectionMatrix()
-    const el = gl.domElement
-    let last: { x: number; y: number } | null = null
-    const down = (e: PointerEvent) => { last = { x: e.clientX, y: e.clientY }; el.setPointerCapture(e.pointerId) }
-    const move = (e: PointerEvent) => {
-      if (!last) return
-      gaze.current.yaw = (gaze.current.yaw - (e.clientX - last.x) * 0.18 + 360) % 360
-      gaze.current.pitch = Math.max(-8, Math.min(28, gaze.current.pitch + (e.clientY - last.y) * 0.12))
-      last = { x: e.clientX, y: e.clientY }
-    }
-    const up = (e: PointerEvent) => { last = null; if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId) }
-    el.addEventListener('pointerdown', down)
-    el.addEventListener('pointermove', move)
-    el.addEventListener('pointerup', up)
-    el.addEventListener('pointercancel', up)
-    el.style.cursor = 'grab'
-    return () => {
-      el.removeEventListener('pointerdown', down)
-      el.removeEventListener('pointermove', move)
-      el.removeEventListener('pointerup', up)
-      el.removeEventListener('pointercancel', up)
-      el.style.cursor = ''
-      cam.near = 0.01
-      cam.far = 400
-      cam.updateProjectionMatrix()
-    }
-  }, [camera, gl, gaze])
-
-  useFrame(() => {
-    const { yaw, pitch } = gaze.current
-    v.fwd.copy(direction(yaw, 0))
-    v.right.set(-v.fwd.z, 0, v.fwd.x)
-    v.eye.set(ASTRONAUT_XZ.x, ground + EYE_HEIGHT_KM, ASTRONAUT_XZ.z)
-    // 10 m detrás, 3 m a la derecha y 0.3 m sobre sus ojos: el astronauta se ve entero, a la izquierda y
-    // sobre la franja de abajo, donde van los indicadores de la misión.
-    camera.position.copy(v.eye).addScaledVector(v.fwd, -0.01).addScaledVector(v.right, 0.003)
-    camera.position.y += 0.0003
-    v.look.copy(v.eye).add(direction(yaw, pitch))
-    camera.lookAt(v.look)
-  })
-  return null
-}
-
-export interface EyeOverlayRefs {
-  horizon: RefObject<SVGPathElement | null>
-  sunLit: RefObject<SVGPathElement | null>
-  sunHidden: RefObject<SVGPathElement | null>
-  sunDays: RefObject<SVGPathElement | null>
-  earthSeen: RefObject<SVGPathElement | null>
-  earthHidden: RefObject<SVGPathElement | null>
-  labels: RefObject<Record<string, HTMLElement | null>>
-}
-
-/** Proyecta en cada cuadro el horizonte y los caminos sobre la capa SVG, y coloca las etiquetas. */
-function EyeProjector({ eye, sky, refs }: { eye: EyeData; sky: Sky; refs: EyeOverlayRefs }) {
-  const { camera, size } = useThree()
-  const tmp = useMemo(() => ({ p: new THREE.Vector3(), fwd: new THREE.Vector3() }), [])
-  useFrame(() => {
-    camera.getWorldDirection(tmp.fwd)
-    const project = (az: number, el: number): [number, number] | null => {
-      const d = direction(az, el)
-      if (d.dot(tmp.fwd) < 0.1) return null
-      tmp.p.copy(camera.position).addScaledVector(d, 50).project(camera)
-      return [(tmp.p.x + 1) * size.width / 2, (1 - tmp.p.y) * size.height / 2]
-    }
-    const line = (pts: Array<{ az: number; el: number }>) => {
-      let d = ''
-      let pen = false
-      for (const pt of pts) {
-        const xy = project(pt.az, pt.el)
-        if (!xy) { pen = false; continue }
-        d += `${pen ? 'L' : 'M'}${xy[0].toFixed(1)},${xy[1].toFixed(1)}`
-        pen = true
-      }
-      return d
-    }
-    /** Separa un camino en tramos visibles y ocultos (el punto de cambio va en los dos para que se unan). */
-    const split = (path: SkyPoint[]) => {
-      const seen: SkyPoint[][] = []
-      const hidden: SkyPoint[][] = []
-      let cur: SkyPoint[] = []
-      path.forEach((pt, k) => {
-        if (k > 0 && pt.visible !== path[k - 1].visible) {
-          cur.push(pt);
-          (path[k - 1].visible ? seen : hidden).push(cur)
-          cur = [path[k - 1]]
-        }
-        cur.push(pt)
-      })
-      if (cur.length) (path.at(-1)?.visible ? seen : hidden).push(cur)
-      return { seen: seen.map(line).join(''), hidden: hidden.map(line).join('') }
-    }
-    refs.horizon.current?.setAttribute('d', line(eye.horizon))
-    const sun = split(eye.sunPath)
-    refs.sunLit.current?.setAttribute('d', sun.seen)
-    refs.sunHidden.current?.setAttribute('d', sun.hidden)
-    const earth = split(eye.earthPath)
-    refs.earthSeen.current?.setAttribute('d', earth.seen)
-    refs.earthHidden.current?.setAttribute('d', earth.hidden)
-    // Un punto por día en el camino del Sol, para leer cuánto falta.
-    const perDay = eye.sunPath.length > 1 ? Math.round(24 / Math.max(1, eye.sunPath[1].index - eye.sunPath[0].index)) : 24
-    let dots = ''
-    eye.sunPath.forEach((pt, k) => {
-      if (k === 0 || k % perDay !== 0) return
-      const xy = project(pt.az, pt.el)
-      if (xy) dots += `M${(xy[0] - 2.5).toFixed(1)},${xy[1].toFixed(1)}a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0`
-    })
-    refs.sunDays.current?.setAttribute('d', dots)
-
-    const place = (key: string, az: number, el: number, dy = 0) => {
-      const node = refs.labels.current?.[key]
-      if (!node) return
-      const xy = project(az, el)
-      const onScreen = xy !== null && xy[0] > -40 && xy[0] < size.width + 40 && xy[1] > -40 && xy[1] < size.height + 40
-      node.style.visibility = onScreen ? 'visible' : 'hidden'
-      if (xy) node.style.transform = `translate(${xy[0].toFixed(0)}px, ${(xy[1] + dy).toFixed(0)}px)`
-    }
-    place('sun', sky.sunAz, sky.sunEl, -26)
-    place('earth', sky.earthAz, sky.earthEl, -34)
-    if (eye.event) place('event', eye.event.az, eye.event.el, 14)
-    for (const [key, az] of [['N', 0], ['E', 90], ['S', 180], ['O', 270]] as const) {
-      const h = eye.horizon[az]?.el ?? 0
-      place(key, az, h, 12)
-    }
-  })
-  return null
-}
-
-// ---------------------------------------------------------------------------
 // Componente público
 // ---------------------------------------------------------------------------
 
@@ -492,10 +298,6 @@ export default function Viewer3D({
   arrivalProgress,
   active = true,
   shipState,
-  view = 'aerial',
-  eye,
-  eyeYaw = 0,
-  eyePitch = 2,
 }: {
   siteId: string
   sky: Sky
@@ -506,23 +308,8 @@ export default function Viewer3D({
   arrivalProgress?: number
   active?: boolean
   shipState?: Mode
-  /** Vista aérea (por defecto) o junto al astronauta, a escala real */
-  view?: 'aerial' | 'astronaut'
-  eye?: EyeData
-  /** Hacia dónde mira el astronauta al entrar o al restablecer (grados) */
-  eyeYaw?: number
-  eyePitch?: number
 }) {
   const controls = useRef<OrbitControlsImpl | null>(null)
-  const astronaut = view === 'astronaut' && arrivalProgress === undefined
-  const gaze = useRef<Gaze>({ yaw: eyeYaw, pitch: eyePitch })
-  const eyeRefs: EyeOverlayRefs = {
-    horizon: useRef(null), sunLit: useRef(null), sunHidden: useRef(null), sunDays: useRef(null),
-    earthSeen: useRef(null), earthHidden: useRef(null), labels: useRef({}),
-  }
-  const label = (key: string) => (node: HTMLElement | null) => { eyeRefs.labels.current[key] = node }
-  const shipHeight = astronaut ? SHIP_REAL_HEIGHT_KM : SHIP_HEIGHT_KM
-  const skyDistance = astronaut ? EYE_SKY_DISTANCE : SKY_DISTANCE
   const overlay: DescentOverlay = { sheet: useRef(null), inner: useRef(null), outer: useRef(null), glow: useRef(null), marker: useRef(null) }
   const descending = arrivalProgress !== undefined
 
@@ -533,8 +320,8 @@ export default function Viewer3D({
       frameloop={active ? 'always' : 'never'}
       dpr={[1, 1.75]}
       camera={{ fov: 45, near: 0.01, far: 400, position: [6, 2.5, 6] }}
-      // Conviven el relieve de 300 km, la nave y, junto al astronauta, una persona de 1.85 m: profundidad logarítmica.
-      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, logarithmicDepthBuffer: true }}
+      // En el descenso conviven el relieve de 300 km y la nave de 0.4 km: profundidad logarítmica.
+      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, logarithmicDepthBuffer: descending }}
       aria-hidden
     >
       <Suspense fallback={null}>
@@ -542,42 +329,25 @@ export default function Viewer3D({
         <Lights sky={sky} />
         <Terrain siteId={siteId} onGroundHeight={onGroundHeight} />
         <FarTerrain siteId={siteId} />
-        <Ship groundY={groundY + (arrivalProgress === undefined ? 0 : descentFrame(arrivalProgress, 1).altitudeKm)} height={shipHeight} />
-        {astronaut && <Astronaut siteId={siteId} gaze={gaze} />}
-        {astronaut && <EyeRig siteId={siteId} gaze={gaze} startYaw={eyeYaw} startPitch={eyePitch} resetKey={resetKey} />}
-        {astronaut && eye && <EyeProjector eye={eye} sky={sky} refs={eyeRefs} />}
-        {shipState && <Html position={[0, groundY + shipHeight * 0.55, 0]} center zIndexRange={[1, 0]} style={{ pointerEvents: 'none' }}>
+        <Ship groundY={groundY + (arrivalProgress === undefined ? 0 : descentFrame(arrivalProgress, 1).altitudeKm)} />
+        {shipState && <Html position={[0, groundY + SHIP_HEIGHT_KM * 0.55, 0]} center zIndexRange={[1, 0]} style={{ pointerEvents: 'none' }}>
           <span aria-hidden className={`incident-ship-label is-${shipState}`}>{shipState === 'failed' ? 'Sin energía' : shipState === 'survival' ? 'Instrumentos apagados' : sky.sunFraction <= 0 ? 'Panel sin Sol' : sky.sunFraction < 1 ? 'Panel con luz parcial' : 'Panel iluminado'}</span>
         </Html>}
-        <SkyBody url="/models/sun.glb" az={sky.sunAz} el={sky.sunEl} radius={SUN_RADIUS} distance={skyDistance} />
-        <SkyBody url="/models/earth.glb" az={sky.earthAz} el={sky.earthEl} radius={EARTH_RADIUS} distance={skyDistance} unlit mirror />
-        {!astronaut && <CameraRig key={resetKey} siteId={siteId} sky={sky} groundY={groundY} controls={controls} arrivalProgress={arrivalProgress} />}
+        <SkyBody url="/models/sun.glb" az={sky.sunAz} el={sky.sunEl} radius={SUN_RADIUS} />
+        <SkyBody url="/models/earth.glb" az={sky.earthAz} el={sky.earthEl} radius={EARTH_RADIUS} unlit mirror />
+        <CameraRig key={resetKey} siteId={siteId} sky={sky} groundY={groundY} controls={controls} arrivalProgress={arrivalProgress} />
         {descending && <DescentEffects groundY={groundY} progress={arrivalProgress} overlay={overlay} />}
       </Suspense>
       <OrbitControls
         ref={controls}
         makeDefault
-        enabled={arrivalProgress === undefined && !astronaut}
+        enabled={arrivalProgress === undefined}
         enableDamping
         minDistance={0.3}
         maxDistance={24}
         maxPolarAngle={Math.PI * 0.49}
       />
     </Canvas>
-    {astronaut && eye && <div aria-hidden className="eye-overlay pointer-events-none absolute inset-0 overflow-hidden">
-      <svg className="absolute inset-0 size-full">
-        <path ref={eyeRefs.horizon} className="eye-horizon" />
-        <path ref={eyeRefs.earthHidden} className="eye-earth is-hidden" />
-        <path ref={eyeRefs.earthSeen} className="eye-earth" />
-        <path ref={eyeRefs.sunHidden} className="eye-sun is-hidden" />
-        <path ref={eyeRefs.sunLit} className="eye-sun" />
-        <path ref={eyeRefs.sunDays} className="eye-sun-days" />
-      </svg>
-      <span ref={label('sun')} className="eye-label is-sun">Sol ahora</span>
-      <span ref={label('earth')} className="eye-label is-earth">Tierra</span>
-      {eye.event && <span ref={label('event')} className="eye-label is-event">{eye.event.label}</span>}
-      {(['N', 'E', 'S', 'O'] as const).map(k => <span key={k} ref={label(k)} className="eye-label is-compass">{k}</span>)}
-    </div>}
     {descending && <svg aria-hidden className="pointer-events-none absolute inset-0 size-full overflow-hidden">
       <defs>
         <radialGradient id="engine-glow"><stop offset="0" stopColor="#f4f7ff" /><stop offset="0.35" stopColor="#dfe8ff" stopOpacity="0.6" /><stop offset="1" stopColor="#dfe8ff" stopOpacity="0" /></radialGradient>
@@ -603,4 +373,3 @@ export default function Viewer3D({
 useGLTF.preload('/models/launch_vehicle.glb')
 useGLTF.preload('/models/sun.glb')
 useGLTF.preload('/models/earth.glb')
-

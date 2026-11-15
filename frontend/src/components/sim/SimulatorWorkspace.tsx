@@ -1,7 +1,7 @@
 // Un espacio de trabajo lunar: el plan arriba, el terreno en el centro y la evidencia debajo.
 // Conserva la tipografía y los colores de vuelo; evita marcos repetidos y columnas con scroll independiente.
 import { useRef, useState, type ComponentProps, type CSSProperties } from 'react'
-import { formatDate, formatDateTime, formatDurationLong, formatMissionClock, sampleTime } from '../../lib/time'
+import { dayNumber, formatDate, formatDateTime, sampleTime } from '../../lib/time'
 import { PRESETS } from '../../sim/lander'
 import { useAppState } from '../../state'
 import type { SiteData } from '../../types'
@@ -124,14 +124,31 @@ function MissionTransport({ data, report, onSeek }: { data: SiteData; report: Mi
   const end = from + report.result.series.soc.length - 1
   const fill = end > from ? ((state.index - from) / (end - from)) * 100 : 0
   const date = sampleTime(data, state.index)
+  const { missionDays } = report.result.plan
+  const failedAt = report.result.summary.failedAtIndex
+  const day = Math.min(missionDays, Math.max(1, dayNumber(data, state.index, from)))
+  const atEnd = state.index >= end
   return (
-    <section aria-label="Reproducir misión" className="glass-surface my-6 flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3">
-      <Button size="sm" onClick={actions.togglePlay} aria-label={state.playing ? 'Pausar' : 'Reproducir'}>{state.playing ? 'Pausar' : 'Reproducir'}</Button>
-      <p className="min-w-0 text-sm tabular-nums text-ink">{formatMissionClock(data, state.index, from)}</p>
-      <input type="range" className="range min-w-28 flex-1" aria-label="Fecha y hora" aria-valuetext={formatDateTime(date)}
-        min={from} max={end} value={state.index} onChange={(e) => onSeek(Number(e.target.value))} style={{ '--fill': `${fill}%` } as CSSProperties} />
+    <section aria-label="Reproducir la misión" className="glass-surface my-6 flex flex-wrap items-center gap-x-6 gap-y-4 px-4 py-4 sm:px-6">
+      <Button variant="primary" className="min-h-12" onClick={actions.togglePlay}>
+        {state.playing ? 'Pausar' : atEnd ? '↻ Ver de nuevo' : state.index > from ? '▶ Continuar' : '▶ Reproducir la misión'}
+      </Button>
+      <div className="min-w-56 flex-1">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-sm font-bold tabular-nums text-ink">Día {day} de {missionDays}</p>
+          <p className="text-xs tabular-nums text-ink-muted">{formatDateTime(date)}</p>
+        </div>
+        <input type="range" className="range mt-2 w-full" aria-label="Momento de la misión" aria-valuetext={`Día ${day} de ${missionDays}, ${formatDateTime(date)}`}
+          min={from} max={end} value={state.index} onChange={(e) => onSeek(Number(e.target.value))} style={{ '--fill': `${fill}%` } as CSSProperties} />
+        <div className="mt-1 flex justify-between gap-3 text-xs text-ink-faint">
+          <span>Alunizaje · {formatDate(sampleTime(data, from))}</span>
+          {failedAt !== null
+            ? <span className="text-critical">Sin energía · {formatDateTime(sampleTime(data, failedAt))}</span>
+            : <span>Fin · {formatDate(sampleTime(data, report.result.to))}</span>}
+        </div>
+      </div>
       <TimeScale speed={state.speed} onSpeed={actions.setSpeed} spanHours={report.result.series.soc.length * data.stepHours}
-        spanLabel={`La misión de ${formatDurationLong(report.result.series.soc.length * data.stepHours)}`} />
+        spanLabel={failedAt !== null ? 'hasta la falla' : `la misión de ${missionDays} días`} />
     </section>
   )
 }

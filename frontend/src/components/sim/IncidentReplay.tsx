@@ -80,7 +80,7 @@ export function IncidentReplay({ data, cfg, incident, missionDays, explanation }
           className="range min-w-32 flex-1" aria-label="Avance del escenario de imprevisto" aria-valuetext={formatDateTime(sampleTime(data, index))}
           style={{ '--fill': `${end > result.from ? (index - result.from) * 100 / (end - result.from) : 0}%` } as CSSProperties} />
       </div>
-      <TimeScale className="mt-4" speed={speed} onSpeed={setSpeed} spanHours={result.series.soc.length * data.stepHours} spanLabel="El recorrido de este escenario" />
+      <TimeScale className="mt-4" speed={speed} onSpeed={setSpeed} spanHours={result.series.soc.length * data.stepHours} spanLabel="el escenario" />
     </section>
     </div>
   </>

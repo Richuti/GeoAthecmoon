@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerE
 import { formatDate, formatDurationLong, sampleTime } from '../../lib/time'
 import type { LanderConfig } from '../../sim/lander'
 import type { DelayTolerance } from '../../sim/search'
-import { dayState, rowSummary, stateRuns, type DayCell, type DayState } from '../../sim/survivalMap'
+import { dayState, rowSummary, safeRunFrom, stateRuns, type DayCell, type DayState } from '../../sim/survivalMap'
 import type { SurvivalJob } from '../../sim/survivalMap.worker'
 import { useAppState } from '../../state'
 import type { SiteData } from '../../types'
@@ -131,29 +131,81 @@ export function SurvivalMap({ data, cfg, missionDays, landing, tolerance, onPick
   const showCursor = cursor !== null && (hover || document.activeElement === mapRef.current)
   const toleranceDays = tolerance.survivesNow ? tolerance.days : 0
 
+  // Respuestas concretas, sacadas del mapa: el plan, la misma fecha en otro sitio y el mismo sitio en otra fecha.
+  const today = Math.min(days - 1, Math.floor(landingDay))
+  const sameDay = sites
+    .map((s, r) => ({ s, r, c: rows[s.site.id]?.[today] }))
+    .filter((x) => x.r !== currentRow && x.c && x.c.ok > 0)
+    .sort((a, b) => (summaries[b.s.site.id]?.safeDays ?? 0) - (summaries[a.s.site.id]?.safeDays ?? 0))
+  const currentCells = rows[data.site.id]
+  const nextSafe = (from: number) => {
+    if (!currentCells) return null
+    for (let d = from; d < days; d++) if (dayState(currentCells[d]) === 'safe') return d
+    return null
+  }
+  // Si el plan sobrevive: último día seguro seguido (la fecha límite) y cuándo vuelve a funcionar después.
+  const run = currentCells ? safeRunFrom(currentCells, today) : 0
+  const lastSafe = run > 0 ? today + run - 1 : null
+  const nextDate = nextSafe(run > 0 ? today + run : today + 1)
+  const dateOf = (day: number) => formatDate(sampleTime(data, day * perDay))
+
   return (
     <section aria-labelledby="survival-title" className="survival-map glass-surface my-6 p-5 sm:p-7">
-      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
-        <div className="max-w-3xl">
-          <p className="text-xs text-ink-muted">Mapa de supervivencia · {sites.length} sitios × {days} días · simulador real</p>
-          <h3 id="survival-title" className="mt-2 text-2xl font-bold leading-tight text-ink sm:text-3xl">¿Cuándo y dónde sobrevive tu módulo?</h3>
-          <p className="mt-3 text-sm leading-relaxed text-ink-muted">Cada fila es un sitio y cada columna, un día. Una franja verde larga es una misión que tolera atrasos: si el alunizaje se corre unos días, sigue cayendo en verde. Haz clic en cualquier día para simularlo.</p>
+      <p className="text-xs text-ink-muted">Mapa de supervivencia</p>
+      <h3 id="survival-title" className="mt-2 text-2xl font-bold leading-tight text-ink sm:text-3xl">¿Qué pasa si cambias la fecha o el sitio?</h3>
+      <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-muted">Simulamos tu misión de {missionDays} días con este mismo módulo empezando <b className="text-ink">cada día del año</b>, en <b className="text-ink">los {sites.length} sitios</b>. Así ves al instante qué cambia si el alunizaje se atrasa o si eliges otro lugar.</p>
+
+      <div className="survival-answers mt-6" aria-live="polite">
+        <div className={cx('survival-answer', tolerance.survivesNow ? 'is-ok' : 'is-fail')}>
+          <p className="survival-answer__k">Tu plan · {data.site.name}, {dateOf(today)}</p>
+          <p className="survival-answer__v">{tolerance.survivesNow ? '✓ Sobrevive' : '✗ Se queda sin batería'}</p>
+          <p className="survival-answer__d">{tolerance.survivesNow
+            ? (toleranceDays > 0 ? <>Aguanta <b>{formatDurationLong(toleranceDays * 24)}</b> de atraso. Más tarde, ya no.</> : 'Pero un atraso de 6 horas ya la hace fallar.')
+            : 'Con esta fecha y este sitio la misión no llega al final.'}</p>
         </div>
-        <p className="text-sm leading-relaxed text-ink" aria-live="polite">
-          {leader ? <>Con este módulo, <b>{leader.site.name}</b> tiene más días seguros: <b className="tabular-nums text-ok">{summaries[leader.site.id].safeDays}</b> de {summaries[leader.site.id].testedDays}.</> : 'Simulando un año por sitio…'}
+        <div className="survival-answer">
+          <p className="survival-answer__k">La misma fecha, en otro sitio</p>
+          {!done ? <p className="survival-answer__d">Simulando…</p> : sameDay.length ? <>
+            <p className="survival-answer__v">{sameDay[0].s.site.name}</p>
+            <p className="survival-answer__d">{sameDay.length > 1 ? `También sobrevive en ${sameDay.slice(1).map((x) => x.s.site.name).join(', ')}.` : 'Es el único otro sitio donde sobrevive ese día.'}</p>
+            <button type="button" className="survival-answer__go" onClick={() => pick(sameDay[0].r, today)}>Probar en {sameDay[0].s.site.name} →</button>
+          </> : <><p className="survival-answer__v">Ningún sitio</p><p className="survival-answer__d">Ese día no sobrevive en ningún otro lugar con este módulo.</p></>}
+        </div>
+        {lastSafe !== null ? <div className="survival-answer">
+          <p className="survival-answer__k">Fecha límite en {data.site.name}</p>
+          <p className="survival-answer__v">{dateOf(lastSafe)}</p>
+          <p className="survival-answer__d">Es el último día seguido en que la misión sobrevive.{nextDate !== null ? ` Después falla, y vuelve a funcionar el ${dateOf(nextDate)}.` : ' Después ya no vuelve a funcionar este año.'}</p>
+        </div> : <div className="survival-answer">
+          <p className="survival-answer__k">El mismo sitio, otra fecha</p>
+          {!currentCells ? <p className="survival-answer__d">Simulando…</p> : nextDate !== null ? <>
+            <p className="survival-answer__v">{dateOf(nextDate)}</p>
+            <p className="survival-answer__d">La próxima fecha segura en {data.site.name}, {nextDate - today === 1 ? 'un día después' : `${nextDate - today} días después`}.</p>
+            <button type="button" className="survival-answer__go" onClick={() => pick(currentRow, nextDate)}>Probar esa fecha →</button>
+          </> : <><p className="survival-answer__v">Ninguna</p><p className="survival-answer__d">No hay otra fecha segura en {data.site.name} este año.</p></>}
+        </div>}
+      </div>
+
+      <div className="mt-8 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+        <p className="text-sm font-bold text-ink">Todo el año, sitio por sitio</p>
+        <p className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted">
+          <span><i aria-hidden className="survival-key is-safe" />Sobrevive</span>
+          <span><i aria-hidden className="survival-key is-partial" />Depende de la hora</span>
+          <span><i aria-hidden className="survival-key is-fail" />Se queda sin batería</span>
+          <span><i aria-hidden className="survival-key is-tol" />Atraso que aguanta tu plan</span>
         </p>
       </div>
+      <p className="mt-1 text-xs text-ink-faint">Cada fila es un sitio y cada columna, un día de alunizaje. Pasa el cursor para leer un día; haz clic para simularlo.</p>
 
       <div className="survival-scroll mt-6">
         <div className="survival-grid">
           <div aria-hidden />
           <div className="survival-landing-label" aria-hidden>
-            <span style={{ left: pct(landingDay) }}>Tu alunizaje{toleranceDays > 0 ? ` · tolera ${formatDurationLong(toleranceDays * 24)}` : tolerance.survivesNow ? '' : ' · falla'}</span>
+            <span style={{ left: pct(landingDay) }}>▼ Tu alunizaje ({dateOf(today)})</span>
           </div>
           <div aria-hidden />
 
           <div className="survival-names" aria-hidden>
-            {sites.map((s, r) => <p key={s.site.id} className={cx(r === currentRow && 'is-current')}>{s.site.name}</p>)}
+            {sites.map((s, r) => <p key={s.site.id} className={cx(r === currentRow && 'is-current')}>{s.site.name}{r === currentRow && <small>tu sitio</small>}</p>)}
           </div>
 
           <div ref={mapRef} className="survival-map__body" tabIndex={0} role="group" aria-roledescription="mapa"
@@ -185,7 +237,7 @@ export function SurvivalMap({ data, cfg, missionDays, landing, tolerance, onPick
             {sites.map((s, r) => {
               const sum = summaries[s.site.id]
               return <p key={s.site.id} className={cx(r === currentRow && 'is-current')}>
-                {sum ? <><b className="tabular-nums">{sum.safeDays}</b> días<small>racha {sum.longest.length} d</small></> : '…'}
+                {sum ? <><b className="tabular-nums">{sum.safeDays}</b> días seguros{s.site.id === leader?.site.id && <small className="is-best">el más confiable</small>}</> : '…'}
               </p>
             })}
           </div>
@@ -196,14 +248,7 @@ export function SurvivalMap({ data, cfg, missionDays, landing, tolerance, onPick
         </div>
       </div>
 
-      <p className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs text-ink-muted">
-        <span><i aria-hidden className="survival-key is-safe" />Sobrevive</span>
-        <span><i aria-hidden className="survival-key is-partial" />Solo en algunos horarios</span>
-        <span><i aria-hidden className="survival-key is-fail" />La batería se agota</span>
-        <span><i aria-hidden className="survival-key is-tol" />Tolerancia a atrasos de tu plan</span>
-        <span>Sin color: la misión ya no cabe en los datos de {new Date(data.start).getUTCFullYear()}.</span>
-      </p>
-      <p className="mt-2 text-xs leading-relaxed text-ink-faint">Misión de {missionDays} días con el módulo elegido. Cada día prueba cuatro horarios de alunizaje (cada 6 horas) con JPL Horizons, el horizonte LOLA y el modelo de energía.</p>
+      <p className="mt-4 text-xs leading-relaxed text-ink-faint">Cada día se prueban cuatro horas de alunizaje (cada 6 horas) con JPL Horizons, el horizonte LOLA y el modelo de energía. Los últimos días del año quedan sin color: la misión ya no cabe en los datos de {new Date(data.start).getUTCFullYear()}.</p>
     </section>
   )
 }

@@ -388,7 +388,7 @@ function Timeline({
         </span>
         <TimeScale className="sm:ml-auto" speed={speed} onSpeed={onSpeed}
           spanHours={(max - min + 1) * p.data.stepHours}
-          spanLabel={mission ? `La misión de ${formatDurationLong((max - min + 1) * p.data.stepHours)}` : `El periodo de ${days} días`} />
+          spanLabel={mission ? `la misión de ${formatDurationLong((max - min + 1) * p.data.stepHours)}` : `el periodo de ${days} días`} />
       </div>
       <input
         type="range"
