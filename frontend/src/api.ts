@@ -131,7 +131,30 @@ export function validateSiteData(json: unknown, expectedId?: string): string[] {
     if (samples >= 0 && b.el.length !== samples) p.push(`sun y earth tienen distinta cantidad de muestras (${samples} y ${b.el.length}).`)
     samples = b.el.length
     if (b.az.some((a) => a < 0 || a > 360)) p.push(`${key}.az tiene valores fuera de 0–360.`)
+    if (b.distKm !== undefined && (!isNumArray(b.distKm) || b.distKm.length !== b.el.length || b.distKm.some((x) => x <= 0))) {
+      p.push(`${key}.distKm debe tener una distancia positiva por muestra (${b.el.length}).`)
+    }
   }
+
+  // Campos opcionales: si vienen, tienen que tener el largo correcto.
+  if (h && isNumArray(h.elevationDeg)) {
+    for (const key of ['distanceKm', 'obstacleHeightM'] as const) {
+      const v = h[key]
+      if (v !== undefined && (!isNumArray(v) || v.length !== h.elevationDeg.length)) {
+        p.push(`horizon.${key} debe tener un valor por azimut (${h.elevationDeg.length}).`)
+      }
+    }
+  }
+  const dsn = d.dsn
+  if (dsn !== undefined) {
+    if (!isNum(dsn.minElevationDeg) || !Array.isArray(dsn.stations)) {
+      p.push('dsn debe tener minElevationDeg y stations.')
+    } else if (dsn.stations.some((s) => typeof s?.id !== 'string' || !isNumArray(s.el) || (samples >= 0 && s.el.length !== samples))) {
+      p.push(`cada estación de dsn debe tener id y una elevación por muestra (${samples}).`)
+    }
+  }
+  const ref = d.reference
+  if (ref !== undefined && (!isNum(ref.sunPct) || !isNum(ref.earthPct))) p.push('reference debe tener sunPct y earthPct (números).')
 
   const t = d.terrain
   if (t !== undefined) {

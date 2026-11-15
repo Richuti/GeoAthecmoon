@@ -48,9 +48,9 @@ describe('con los datos de JPL Horizons y LOLA', () => {
     assert.equal(storyFacts(sites.map((site) => ({ ...site, sources: undefined }))), null)
     assert.equal(storyFacts([...sites, { ...sites[0], mock: true }])!.siteCount, sites.length)
   })
-  test('6 sitios y 60 días', () => {
+  test('6 sitios y 365 días (todo 2027)', () => {
     assert.equal(f.siteCount, 6)
-    assert.equal(f.periodDays, 60)
+    assert.equal(f.periodDays, 365)
   })
   test('sin sitios: null', () => assert.equal(storyFacts([]), null))
 })

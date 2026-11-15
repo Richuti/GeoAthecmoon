@@ -11,8 +11,8 @@
     {
       "id": "connecting-ridge",
       "name": "Connecting Ridge",
-      "lat": -89.45,
-      "lon": 222,
+      "lat": -89.44,
+      "lon": 222.6,
       "category": "artemis",
       "description": "Cresta que une Shackleton con de Gerlache. Muy iluminada y alta sobre su entorno."
     },
@@ -20,14 +20,14 @@
       "id": "de-gerlache-rim",
       "name": "Borde del cráter de Gerlache",
       "lat": -88.67,
-      "lon": 292,
+      "lon": 291.6,
       "category": "artemis",
       "description": "Borde de un cráter de 32 km. Buena luz con algunas sombras largas del relieve vecino."
     },
     {
       "id": "mons-mouton",
       "name": "Mons Mouton",
-      "lat": -84.8,
+      "lat": -84.81,
       "lon": 29.2,
       "category": "clps",
       "description": "Meseta de cima plana, cerca de donde alunizó IM-2 (2025). Terreno suave y Tierra visible."
@@ -35,8 +35,8 @@
     {
       "id": "malapert-massif",
       "name": "Macizo Malapert",
-      "lat": -86,
-      "lon": 2.9,
+      "lat": -85.99,
+      "lon": 2.1,
       "category": "artemis",
       "description": "Montaña cara a la Tierra: buen contacto directo. Ladera con más pendiente."
     },

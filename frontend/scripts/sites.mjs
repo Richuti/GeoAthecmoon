@@ -1,10 +1,24 @@
 // Sitios y periodo que comparten los scripts de datos (generate-mock-data.mjs y fetch-horizons.mjs).
 
-/** Periodo de los datos: 60 días cada 1 hora (1440 muestras). */
+/** Periodo de los datos: todo 2027, cada 1 hora (8760 muestras). Un año cubre el ciclo de estaciones de la luz polar. */
 export const START = '2027-01-01T00:00:00Z'
 export const STEP_HOURS = 1
-export const DAYS = 60
+export const DAYS = 365
 export const SAMPLES = (DAYS * 24) / STEP_HOURS
+
+/**
+ * Antenas de 70 m de la Red de Espacio Profundo (DSN) de NASA, una por complejo.
+ * Coordenadas geodésicas: longitud este (0–360), latitud y altura en km.
+ * Fuente: NASA/JPL, documento DSN 301 (https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301K.pdf).
+ */
+export const DSN_STATIONS = [
+  { id: 'goldstone', name: 'Goldstone (EE. UU.)', antenna: 'DSS-14', lon: 243.1105, lat: 35.4259, altKm: 1.002 },
+  { id: 'madrid', name: 'Madrid (España)', antenna: 'DSS-63', lon: 355.752, lat: 40.4313, altKm: 0.865 },
+  { id: 'canberra', name: 'Canberra (Australia)', antenna: 'DSS-43', lon: 148.9813, lat: -35.4024, altKm: 0.689 },
+]
+
+/** Elevación mínima de la Luna sobre el horizonte de la estación para poder enlazar (grados). */
+export const DSN_MIN_ELEVATION_DEG = 10
 
 // Connecting Ridge, de Gerlache, Mons Mouton y Malapert usan las coordenadas verificadas del backend
 // (backend/sites_verified.json). Shackleton y Nobile siguen siendo aproximadas (paso 3.3).

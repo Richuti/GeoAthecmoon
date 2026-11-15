@@ -74,6 +74,21 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
   - Los archivos generados no se suben al repo (`.gitignore`); se regeneran con el comando.
 - **Commit:** `Tarea 3.4: exportar relieve de cada sitio para Blender`
 
+### D1. Datos completos: un año, coordenadas verificadas, eclipses, crestas, DSN y validación con NASA · [ ] · Implementado, pendiente de revisión de Richard
+- **Periodo:** todo 2027 cada 1 h (8760 muestras, `scripts/sites.mjs`). Empieza el mismo 1 de enero, así que los primeros 60 días no cambian. Unos 600 KB por sitio (235 KB comprimidos).
+- **Horizonte propio desde el DEM** (`npm run horizon`, `scripts/compute-horizon.mjs` → `assets-src/horizon/{id}.json`): mismo método que `build_terrains.py`, con las coordenadas verificadas. En Shackleton coincide con el de Python con diferencia 0.0000°. Guarda además la **distancia y la altura de la cresta** que limita cada azimut.
+- **Horizons** (`npm run horizons`): agrega la **distancia** al Sol y a la Tierra (`QUANTITIES='4,20'`), `TIME_TYPE='UT'` (el pendiente pequeño) y la **Luna vista desde Goldstone, Madrid y Canberra** (`public/data/horizons/dsn.json`).
+- **`src/lib/sky.ts`** con sus pruebas (`tests/sky.test.ts`): tamaño aparente real del Sol y la Tierra, **eclipses del Sol por la Tierra**, fracción visible del disco de la Tierra, cresta que tapa una dirección (`sunBlocker`, `compassPoint`), ventanas DSN y comparación con NASA.
+- **Simulador:** la energía usa el radio real del Sol y descuenta los eclipses (`solarFraction`). Sin distancias en los datos da lo mismo que antes. La DSN **no** cambia el simulador: sigue el supuesto de que siempre hay una estación; queda lista para que Richard decida.
+- **Verificación:**
+  - Primeros 60 días contra `origin/backend:backend/out`: luz y contacto de los 6 sitios a menos de 0.5 puntos.
+  - Caso de la demo: Malapert sobrevive el 15 ene (85.1 % de datos enviados) y falla el 20 ene (2 feb, 10:00 UTC; el documento del backend dice 07:00). Tolerancia de 4.25 días (el documento dice 4.5). Las dos diferencias no vienen de este cambio: salen igual sin las distancias.
+  - Validación contra el mapa de iluminación de NASA (AVGVISIB, 2009–2013), con observador a ras de suelo como el mapa: luz a menos de 5 puntos en los 6 sitios (mediana 2.6). Con el panel a 2 m, en las crestas se ve más Sol (Connecting Ridge: 93 % frente a 72 % a ras de suelo).
+  - Eclipse detectado: el 17 ago 2027, hacia las 06:00 UTC, la Tierra tapa hasta el 42.9 % del Sol en Malapert (eclipse penumbral de Luna de ese día).
+  - Las 242 pruebas pasan y `npm run build` compila.
+- **Aviso para el backend:** `backend/build.py` no escribe los campos nuevos (`distKm`, `distanceKm`, `dsn`, `reference`); si se regenera con él, se pierden.
+- **Commit sugerido:** `Tarea D1: un año de datos con coordenadas verificadas, eclipses, crestas, DSN y validación con NASA`
+
 ---
 
 ## Fase B · Carga de datos y cálculos

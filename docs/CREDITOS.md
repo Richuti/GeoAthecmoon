@@ -25,8 +25,11 @@ NASA no avala este proyecto. El material de NASA se usa según las NASA Images a
 | `earth_night.jpg` | Black Marble — NASA Earth Observatory, vía geovista-data | Dominio público (NASA) |
 
 ## Datos
-- **Posiciones del Sol y la Tierra:** JPL Horizons (NASA/JPL).
-- **Relieve:** LOLA / LRO (NASA), vía Moon Trek.
+- **Posiciones y distancias del Sol y la Tierra, y la Luna vista desde la DSN:** JPL Horizons (NASA/JPL).
+- **Relieve:** LOLA / LRO (NASA), DEM `LDEM_80S_80M` del PDS Geosciences Node (dominio público), vía Moon Trek.
+- **Validación de la luz y de la Tierra visible:** mapas de iluminación `AVGVISIB_75S_120M_201608` y `_EARTH` del equipo LOLA (NASA/GSFC; Mazarico et al. 2011, *Icarus* 211, 1066–1081), dominio público.
+- **Estaciones de la DSN:** coordenadas de DSS-14, DSS-63 y DSS-43 del documento [DSN 810-005, módulo 301](https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301K.pdf) (NASA/JPL).
+- **Radios del Sol y la Tierra:** IAU 2015 (resolución B3) y WGS84.
 - **Transferencia Tierra–Luna idealizada:** constante gravitatoria terrestre de [JPL DE440](https://ssd.jpl.nasa.gov/astro_par.html); radios, distancia media y periodo lunar de [NASA Moon Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html). Modelo y límites en `docs/TRANSFERENCIA.md`.
 
 > Pendiente: reemplazar la textura de la Luna por el **CGI Moon Kit** de NASA SVS (LROC color), que es dominio público, cuando se pueda descargar.

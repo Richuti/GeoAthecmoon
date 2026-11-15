@@ -120,11 +120,11 @@ describe('con los datos de prueba', () => {
   const sites: SiteData[] = readdirSync(dir).map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')))
   const byId = Object.fromEntries(sites.map((d) => [d.site.id, siteViability(d, visibility(d))]))
 
-  test('el orden de los sitios es el esperado con LOLA (Mons Mouton primero, Nobile último)', () => {
+  test('el orden de los sitios en 2027 es el esperado con LOLA (Connecting Ridge y Malapert arriba, Nobile último)', () => {
     const order = Object.entries(byId)
       .sort((a, b) => b[1].score - a[1].score)
       .map(([id]) => id)
-    assert.equal(order[0], 'mons-mouton')
+    assert.deepEqual(order.slice(0, 2).sort(), ['connecting-ridge', 'malapert-massif'])
     assert.equal(order.at(-1), 'nobile-rim')
   })
   test('Nobile avisa por su pendiente', () => assert.ok(byId['nobile-rim'].warnings.some((w) => w.includes('pendiente'))))

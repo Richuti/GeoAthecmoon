@@ -3,8 +3,8 @@
 // No inventa números: la energía sale de la fracción visible del disco solar sobre el relieve (horizonte del
 // sitio) y los envíos, de las ventanas de contacto con la Tierra. Todo lo demás son los parámetros del módulo.
 
-import { clearanceDeg } from '../lib/horizon.ts'
 import { missionWindow } from '../lib/recommend.ts'
+import { solarFraction } from '../lib/sky.ts'
 import { formatDurationLong, formatMissionClock, hoursBetween } from '../lib/time.ts'
 import { contactSeries, litSeries, windowAt } from '../lib/visibility.ts'
 import type { SiteData } from '../types'
@@ -145,8 +145,8 @@ export function simulate(data: SiteData, cfg: LanderConfig, plan: MissionPlan, p
       }
     }
 
-    // Energía.
-    const frac = sunFraction(clearanceDeg(data.horizon, data.sun.az[i], data.sun.el[i]))
+    // Energía: parte del disco solar sobre el relieve, con su tamaño real y menos lo que tapa la Tierra en un eclipse.
+    const frac = solarFraction(data, i)
     const gen = peak * frac
     const load = cfg.baseLoadW + (mode === 'nominal' ? cfg.instrumentLoadW : 0)
     const net = gen - load
