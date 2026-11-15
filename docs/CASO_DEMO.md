@@ -12,6 +12,8 @@ Sitio **Macizo Malapert**, módulo **Explorador ligero** (el que viene por defec
 4. **Momento wow:** elegir **+1 semana**. *"No. Con 7 días de atraso, la batería se agota."* La luz baja del 100 % al **73 %** y la batería pasa de "Aguanta" a **"Se agota"** (llega al 20 %).
 5. (Opcional) **Usar la fecha atrasada** aplica el 22 ene, y en las alternativas se ve qué fecha o qué sitio la salva.
 
+> **Dom 00:55:** Richard rehízo este bloque "sin tablas" (commit `1d52a97`). La tabla de abajo ya no aparece tal cual en la app: es la referencia de los números. En la demo se lee **la frase** ("Sí…" / "No…") y **la tolerancia** (4 días y 6 horas). El tope del 40 % sigue sin aplicarse ahí. Dilan: confirma los textos nuevos.
+
 | Atraso | ¿Funciona? | Viabilidad | Luz | Tierra visible | Batería mínima |
 |---|---|---|---|---|---|
 | Plan (15 ene) | ✅ | 95 | 100 % | 85 % | 100 % |
