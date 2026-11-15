@@ -109,7 +109,7 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       </IncidentPanel>}
       </section>
       <Disclosure className="mt-10" title="Fuentes y supuestos de la simulación" description="De dónde vienen los datos y qué incluye este modelo.">
-        <p className="mt-2 max-w-4xl text-sm leading-relaxed text-ink-muted">Los módulos son configuraciones de referencia. El panel sigue al Sol; se supone una estación DSN disponible cuando la Tierra es visible. La batería falla al llegar al 20 %. Luz y contacto se calculan con JPL Horizons y el horizonte LOLA del sitio. El recorrido Tierra–Luna usa una transferencia orbital idealizada.</p>
+        <p className="mt-2 max-w-4xl text-sm leading-relaxed text-ink-muted">Los módulos son configuraciones de referencia, no naves reales. El panel gira para seguir al Sol. Hay contacto cada vez que la Tierra está a la vista, con una antena de la Red de Espacio Profundo (DSN) disponible para recibir los datos. La misión falla si la batería baja al 20 %. La luz y el contacto se calculan hora por hora con JPL Horizons y el horizonte LOLA de cada sitio. El viaje de la Tierra a la Luna es una transferencia orbital idealizada.</p>
       </Disclosure>
     </main>
   )

@@ -14,7 +14,8 @@ export function TimeScale({ speed, onSpeed, spanHours, spanLabel, className }: {
   className?: string
 }) {
   return (
-    <div className={cx('min-w-0', className)}>
+    // Ancho fijo: el texto de abajo cambia de largo con la escala, y así los botones no se mueven bajo el cursor.
+    <div className={cx('min-w-0 sm:w-[27rem] sm:max-w-full', className)}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <span className="text-xs text-ink-muted">1 segundo en pantalla =</span>
         <Segmented label="Escala de tiempo: tiempo de misión por cada segundo en pantalla" size="sm" options={speedOptions()}

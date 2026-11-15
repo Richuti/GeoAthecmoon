@@ -159,20 +159,42 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
           <div className="flex justify-between gap-4"><dt className="text-ink-muted">Velocidad respecto a la Tierra</dt><dd className="tabular-nums text-ink">{launch ? '—' : sample.speedKmS.toFixed(2) + ' km/s'}</dd></div>
         </dl>
         <Button variant="primary" size="lg" className="mt-6 w-full" onClick={onArrive}>Evaluar misión en la Luna →</Button>
-        <Disclosure className="mt-4" title="Cómo se calcula el viaje" description="Modelo orbital, límites y fuentes de NASA.">
-          <div className="mt-2 space-y-3 text-xs leading-relaxed text-ink-muted">
-            <p>Elipse de dos cuerpos, órbita inicial de 200 km y Luna circular a distancia media. La fase lunar se ajusta para un encuentro ideal a 100 km de su superficie. No usa efemérides de lanzamiento ni modela gravedad lunar o solar, captura, descenso o consumo del cohete.</p>
-            <p>La batería y los datos del módulo se simulan desde el alunizaje, por separado del viaje.</p>
-            <p>Salida orbital de referencia: {formatDateTime(departure)}. Encuentro de referencia: {formatDateTime(arrival)}. Se ancla a la fecha elegida de alunizaje; no calcula una ventana real de lanzamiento.</p>
-            <p>Impulso de salida de órbita: {orbit.injectionDeltaVKmS.toFixed(2)} km/s (sin incluir el ascenso). Fecha durante el recorrido: {formatDateTime(clock)}.</p>
-            <p><a className="underline underline-offset-4" href="https://ssd.jpl.nasa.gov/astro_par.html" target="_blank" rel="noreferrer">Constantes JPL</a> · <a className="underline underline-offset-4" href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html" target="_blank" rel="noreferrer">Datos Tierra–Luna de NASA</a>.</p>
-            <p>Modelos de referencia: Tierra Blue Marble y cohete Saturn V (NASA). Se usa la misma nave en el despegue, el viaje y el alunizaje como ilustración; no representa un vehículo CLPS concreto. Textura lunar del globo: <a className="underline underline-offset-4" href="https://svs.gsfc.nasa.gov/4720/" target="_blank" rel="noreferrer">NASA SVS, CGI Moon Kit</a>.</p>
-            <p>Imagen aérea de Kennedy: <a className="underline underline-offset-4" href="https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer" target="_blank" rel="noreferrer">USGS / USDA, NAIP</a>. Florida y el Caribe al subir: <a className="underline underline-offset-4" href="https://nasa-gibs.github.io/gibs-api-docs/" target="_blank" rel="noreferrer">NASA GIBS</a> (Landsat WELD y Blue Marble Next Generation). Humo y escape son efectos visuales, sin dinámica de fluidos.</p>
-            <p>Plataforma y torre: <a className="underline underline-offset-4" href="https://science.nasa.gov/3d-resources/mobile-launcher/" target="_blank" rel="noreferrer">NASA / Samuel H. Neblett, Mobile Launcher</a>. El conjunto es una referencia visual, no una reconstrucción de una instalación o un lanzamiento concretos.</p>
-          </div>
-        </Disclosure>
       </div>
     </div>
+    <Disclosure className="mt-6" title="Cómo se calcula el viaje" description="Qué se calcula, qué es ilustración y de dónde salen los datos.">
+      <div className="grid gap-8 md:grid-cols-3 md:gap-10">
+        <section>
+          <h4 className="text-sm font-bold text-ink">Lo que se calcula</h4>
+          <p className="mt-2 text-sm leading-relaxed text-ink-muted">Una elipse de dos cuerpos, desde una órbita de 200 km hasta 100 km sobre la Luna, con la Luna en órbita circular a su distancia media.</p>
+          <dl className="mt-4 divide-y divide-seam text-sm">
+            <div className="flex justify-between gap-4 py-2.5"><dt className="text-ink-muted">Duración</dt><dd className="tabular-nums text-ink">{formatDuration(orbit.durationSeconds / 3600)}</dd></div>
+            <div className="flex justify-between gap-4 py-2.5"><dt className="text-ink-muted">Impulso de salida</dt><dd className="tabular-nums text-ink">{orbit.injectionDeltaVKmS.toFixed(2)} km/s</dd></div>
+            <div className="flex justify-between gap-4 py-2.5"><dt className="text-ink-muted">Sale de la órbita</dt><dd className="text-right tabular-nums text-ink">{formatDateTime(departure)}</dd></div>
+            <div className="flex justify-between gap-4 py-2.5"><dt className="text-ink-muted">Llega a la Luna</dt><dd className="text-right tabular-nums text-ink">{formatDateTime(arrival)}</dd></div>
+            <div className="flex justify-between gap-4 py-2.5"><dt className="text-ink-muted">Ahora en el viaje</dt><dd className="text-right tabular-nums text-ink">{formatDateTime(clock)}</dd></div>
+          </dl>
+        </section>
+        <section>
+          <h4 className="text-sm font-bold text-ink">Lo que es ilustración</h4>
+          <ul className="mt-2 list-disc space-y-2.5 pl-5 marker:text-ink-faint text-sm leading-relaxed text-ink-muted">
+            <li>La fecha se ancla al alunizaje elegido; no es una ventana real de lanzamiento.</li>
+            <li>No incluye la gravedad de la Luna ni del Sol, la captura en órbita lunar ni el frenado.</li>
+            <li>El despegue y el descenso son animaciones: no se calcula el combustible. El humo y el escape son efectos visuales.</li>
+            <li>La misma nave hace todo el recorrido; no representa un vehículo CLPS concreto.</li>
+          </ul>
+          <p className="mt-4 text-sm leading-relaxed text-ink">La batería y los datos del módulo se simulan desde el alunizaje, aparte del viaje.</p>
+        </section>
+        <section>
+          <h4 className="text-sm font-bold text-ink">Fuentes</h4>
+          <ul className="mt-2 space-y-2.5 text-sm leading-relaxed text-ink-muted">
+            <li><a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://ssd.jpl.nasa.gov/astro_par.html">Constantes JPL</a> y <a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html">datos Tierra–Luna de NASA</a>: la órbita.</li>
+            <li>NASA: la Tierra (Blue Marble) y el cohete Saturn V. La Luna: <a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://svs.gsfc.nasa.gov/4720/">NASA SVS, CGI Moon Kit</a>.</li>
+            <li>Kennedy desde el aire: <a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer">USGS / USDA, NAIP</a>. Florida y el Caribe: <a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://nasa-gibs.github.io/gibs-api-docs/">NASA GIBS</a>.</li>
+            <li>Plataforma y torre: <a className="underline decoration-seam-strong underline-offset-4 hover:text-ink hover:decoration-ink" target="_blank" rel="noreferrer" href="https://science.nasa.gov/3d-resources/mobile-launcher/">NASA / Samuel H. Neblett, Mobile Launcher</a>. Referencia visual, no un lanzamiento concreto.</li>
+          </ul>
+        </section>
+      </div>
+    </Disclosure>
     <p className="mt-4 text-sm text-ink-muted">La transferencia avanza a la escala elegida (1 segundo en pantalla = {scale} horas de viaje). El despegue y el descenso duran 10 s cada uno y son ilustrativos. Puedes pausar, arrastrar la línea de tiempo o usar las flechas del teclado.</p>
   </section>
 }

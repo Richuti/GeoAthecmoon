@@ -10,6 +10,8 @@ import type { SiteData } from '../../types'
 import { Button } from '../ui'
 import type { SimResult } from '../../sim/simulate'
 import { IncidentReplay } from './IncidentReplay'
+import { RescueCopilot } from './RescueCopilot'
+import type { CopilotCase } from '../../sim/copilot'
 import './incident.css'
 
 interface IncidentPanelProps {
@@ -30,11 +32,12 @@ export function IncidentPanel({ data, cfg, startIndex, missionDays, onTryStart, 
   const [pending, startTransition] = useTransition()
   const heading = useRef<HTMLHeadingElement>(null)
   const trigger = useRef<HTMLDivElement>(null)
+  const sites = useMemo(() => (active ? Object.values(state.data).map((d) => ({ data: d, series: seriesOf(d) })) : []), [active, state.data])
   const incident = useMemo<Incident | null>(() => {
     if (!active) return null
-    const sites = Object.values(state.data).map((d) => ({ data: d, series: seriesOf(d) }))
     return planDelayIncident({ data, cfg, startIndex, missionDays, sites, series: sites.find((s) => s.data.site.id === data.site.id)?.series })
-  }, [active, state.data, data, cfg, startIndex, missionDays])
+  }, [active, sites, data, cfg, startIndex, missionDays])
+  const copilotCase = useMemo<CopilotCase | null>(() => (incident ? { data, cfg, missionDays, incident, sites } : null), [incident, data, cfg, missionDays, sites])
   useEffect(() => {
     if (!active) return
     heading.current?.focus({ preventScroll: true })
@@ -46,11 +49,13 @@ export function IncidentPanel({ data, cfg, startIndex, missionDays, onTryStart, 
     requestAnimationFrame(() => trigger.current?.querySelector('button')?.focus({ preventScroll: true }))
   }
 
-  const apply = (o: IncidentOption) => {
+  const apply = (o: IncidentOption) => applyPlan(o.siteId, o.cfg, o.startIndex)
+  /** Aplica un plan al original: sitio, módulo y fecha. Se evalúa sin repetir el viaje. */
+  const applyPlan = (siteId: string, next: LanderConfig, start: number) => {
     setActive(false)
-    if (o.kind === 'site') onTrySite(o.siteId)
-    if (o.kind === 'save') onCfg(o.cfg)
-    onTryStart(o.startIndex)
+    if (siteId !== data.site.id) onTrySite(siteId)
+    if (JSON.stringify(next) !== JSON.stringify(cfg)) onCfg(next)
+    onTryStart(start)
     requestAnimationFrame(() => {
       const title = document.getElementById('mission-step-title')
       title?.focus({ preventScroll: true })
@@ -103,6 +108,7 @@ export function IncidentPanel({ data, cfg, startIndex, missionDays, onTryStart, 
           <IncidentReplay key={`${data.site.id}:${incident.delayedStart}`} data={data} cfg={cfg} incident={incident} missionDays={missionDays}
             explanation={incident.cause ? causeText(data, incident.cause, cfg) : null} />
           <Options data={data} incident={incident} onApply={apply} />
+          {copilotCase && incident.breaksMission && !incident.delayed.survived && <RescueCopilot copilotCase={copilotCase} onApply={applyPlan} />}
         </>
       )}
     </section>
