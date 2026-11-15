@@ -2,6 +2,7 @@ import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
 import { Help } from './components/Help'
+import { LangToggle } from './i18n/LangToggle'
 import { SkyPlot } from './components/SkyPlot'
 import { dataNotice } from './api'
 import { Sources } from './components/Sources'
@@ -188,6 +189,7 @@ function Planner() {
         <Segmented label="Modo" options={MODES} value={mode} onChange={changeMode} />
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
           {notice && <Badge tone="caution">Datos de prueba</Badge>}
+          <LangToggle />
           <Help />
           <Sources data={p?.data} />
         </div>

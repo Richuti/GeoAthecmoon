@@ -83,7 +83,7 @@ export function MissionTimeline({ data, result, lit, contact, index, playing, sp
   const control = useMemo(() => ({ data, result, lit, contact, survivalThreshold, fix }), [data, result, lit, contact, survivalThreshold, fix])
 
   return (
-    <section aria-label="Reproducir la misión" className="mission-timeline glass-surface my-6 p-4 sm:p-6">
+    <section aria-label="Reproducir la misión" data-tour="sim-timeline" className="mission-timeline glass-surface my-6 p-4 sm:p-6">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
         <Button variant="primary" className="min-h-12" onClick={onToggle}>
           {playing ? 'Pausar' : atEnd ? '↻ Ver de nuevo' : index > from ? '▶ Continuar' : '▶ Reproducir la misión'}

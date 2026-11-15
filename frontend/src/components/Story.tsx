@@ -15,6 +15,7 @@ import { formatDate, formatDateTime, sampleTime } from '../lib/time'
 import type { SiteData } from '../types'
 import { cx } from './ui'
 import { BrandIntro } from './BrandIntro'
+import { LangToggle } from '../i18n/LangToggle'
 
 export interface Readout {
   value: number
@@ -334,7 +335,10 @@ function StoryBar({ onOpen, solid }: { onOpen: () => void; solid: boolean }) {
         <p className="story-brand font-display text-[clamp(1.5rem,7vw,2rem)] font-extrabold uppercase leading-none tracking-[0.01em] text-ink sm:text-4xl lg:text-5xl">
           GEOATHECMOON
         </p>
-        <PlannerButton onOpen={onOpen} compact />
+        <div className="flex items-center gap-2 sm:gap-4">
+          <LangToggle className="pointer-events-auto" />
+          <PlannerButton onOpen={onOpen} compact />
+        </div>
       </div>
     </header>
   )
