@@ -18,7 +18,7 @@ export function TimeScale({ speed, onSpeed, spanHours, spanLabel, className }: {
 }) {
   return (
     // Ancho fijo: la frase de abajo cambia de largo y así los botones no se mueven bajo el cursor.
-    <div className={cx('min-w-0 sm:w-[21rem] sm:max-w-full', className)}>
+    <div className={cx('min-w-0 sm:w-84 sm:max-w-full', className)}>
       <div className="flex items-center gap-3">
         <span className="text-xs font-bold text-ink-muted">Velocidad</span>
         <Segmented label="Velocidad de la reproducción" size="sm" options={OPTIONS}

@@ -26,7 +26,7 @@ export function MissionResult({ data, result, tolerance, assessment, onRescue }:
   const hours = (result.to - result.from) * data.stepHours
   const slopeWarning = assessment.warnings.find(w => w.includes('pendiente'))
   return (
-    <section aria-label="Resultado de la misión" className="order-first flex h-full flex-col px-1 py-2 lg:order-none lg:px-6 lg:py-5">
+    <section aria-label="Resultado de la misión" className="order-first flex h-full flex-col px-1 py-2 lg:order-0 lg:px-6 lg:py-5">
       <h2 className="text-sm font-bold text-ink-muted">Viabilidad de la misión</h2>
       <div className="mt-3 flex items-baseline gap-3">
         <p className="font-display text-6xl font-extrabold leading-none text-ink">{Math.round(assessment.score)}<span className="ml-1 text-3xl">%</span></p>

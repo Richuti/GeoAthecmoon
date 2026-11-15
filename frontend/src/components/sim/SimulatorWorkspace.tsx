@@ -120,7 +120,7 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       } />
       </div>
       <aside aria-label="Resumen de tu plan" className="min-w-0 lg:border-l lg:border-seam lg:pl-10">
-        <img src="/media/i2-borde-crater.jpg" alt="" className="mb-6 aspect-[16/7] w-full object-cover" />
+        <img src="/media/i2-borde-crater.jpg" alt="" className="mb-6 aspect-16/7 w-full object-cover" />
         <p className="text-sm text-ink-muted">Tu destino · Polo sur lunar</p>
         <h3 className="mt-2 font-display text-4xl font-bold uppercase leading-tight text-ink">{data.site.name}</h3>
         <dl className="mt-5 divide-y divide-seam text-sm">
@@ -151,7 +151,7 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
         data={data} cfg={setup.cfg} startIndex={report.result.from} missionDays={report.result.plan.missionDays} originalResult={report.result}
         onTryStart={report.onTryStart} onTrySite={report.onTrySite} onCfg={setup.onCfg} onApplied={announce}>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
-        <div className="terrain-stage h-[34rem] min-w-0 sm:h-[32rem]">
+        <div className="terrain-stage h-136 min-w-0 sm:h-128">
           <ViewerPanel data={data} index={state.index} contact={contact[state.index]} immersive
             missionState={result && sample !== null ? result.series.mode[sample] : undefined}
             missionOverlay={result && <MissionLive key={`${data.site.id}:${result.from}:${JSON.stringify(result.plan)}:${JSON.stringify(setup.cfg)}`}
