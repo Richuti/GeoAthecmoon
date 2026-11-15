@@ -264,7 +264,7 @@ describe('api/copilot: la función del servidor', () => {
       return new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: null } }] }), { status: 200 })
     }) as typeof fetch
     for (const mode of ['rescue', 'plan']) {
-      await POST(req({ mode, lang: 'en', messages: [{ role: 'user', content: 'caso' }] }))
+      await POST(req({ mode, lang: 'en', messages: [{ role: 'user', content: 'caso' }] }, 'https://geoathectum.vercel.app'))
       const sent = JSON.stringify(body)
       assert.doesNotMatch(sent, /en español/, mode)
       assert.match(sent, /in English/, mode)
