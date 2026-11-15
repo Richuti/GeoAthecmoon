@@ -74,7 +74,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
   - Los archivos generados no se suben al repo (`.gitignore`); se regeneran con el comando.
 - **Commit:** `Tarea 3.4: exportar relieve de cada sitio para Blender`
 
-### D1. Datos completos: un año, coordenadas verificadas, eclipses, crestas, DSN y validación con NASA · [ ] · Implementado, pendiente de revisión de Richard
+### D1. Datos completos: un año, coordenadas verificadas, eclipses, crestas, DSN y validación con NASA · [x]
 - **Periodo:** todo 2027 cada 1 h (8760 muestras, `scripts/sites.mjs`). Empieza el mismo 1 de enero, así que los primeros 60 días no cambian. Unos 600 KB por sitio (235 KB comprimidos).
 - **Horizonte propio desde el DEM** (`npm run horizon`, `scripts/compute-horizon.mjs` → `assets-src/horizon/{id}.json`): mismo método que `build_terrains.py`, con las coordenadas verificadas. En Shackleton coincide con el de Python con diferencia 0.0000°. Guarda además la **distancia y la altura de la cresta** que limita cada azimut.
 - **Horizons** (`npm run horizons`): agrega la **distancia** al Sol y a la Tierra (`QUANTITIES='4,20'`), `TIME_TYPE='UT'` (el pendiente pequeño) y la **Luna vista desde Goldstone, Madrid y Canberra** (`public/data/horizons/dsn.json`).
@@ -439,7 +439,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 ### SU5. Animación de descenso · Extra
 - Al empezar la simulación, el módulo baja hasta el sitio en unos 3 segundos, antes de que empiece el tiempo de la misión. Respeta `prefers-reduced-motion`.
 
-### SU6. Viaje Tierra–Luna y accesibilidad · [ ] · Implementado, pendiente de revisión de Richard
+### SU6. Viaje Tierra–Luna y accesibilidad · [x]
 - `src/sim/transfer.ts`, `tests/transfer.test.ts`, `src/components/sim/EarthMoonJourney.tsx` y `TransferViewer.tsx`.
 - Ascenso ilustrativo con un GLB Saturn V de NASA y transferencia orbital educativa calculada desde una órbita terrestre de 200 km. Muestra duración, distancia y velocidad; la Luna se mueve hacia el encuentro previsto.
 - Reproducción sin autoplay, pausa, avance manual y controles por teclado. Movimiento reducido detiene la reproducción y usa una cámara general fija. «Evaluar este alunizaje» conecta con el motor de superficie.
@@ -447,6 +447,17 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - Simplificación: tres campos principales; ajustes del módulo y gráfica detallada de batería, datos y eventos desplegables. Las cifras y unidades de los sliders se anuncian a lectores de pantalla.
 - **Probado:** conservación de energía y momento angular, condiciones de salida y encuentro; recorrido completo en navegador con escritorio, móvil, teclado y movimiento reducido. La simulación y comparación de sitios siguen funcionando.
 - **Commit sugerido:** `Tarea SU6: viaje Tierra-Luna calculado y simplificación accesible del simulador`.
+
+### SU7. Imprevisto en el alunizaje · [ ] · Implementado, pendiente de revisión de Richard
+- **Idea:** después del viaje, en «Evaluar», el botón «Simular el imprevisto» plantea que una corrección de trayectoria atrasa la llegada. El usuario ve si su misión todavía funciona y elige cómo salvarla. Es la pregunta del reto llevada a una decisión.
+- **Motor** (`src/sim/incident.ts`, pruebas en `tests/incident.test.ts`): el escenario es simulado, pero sus números salen de los datos.
+  - El atraso es el **más corto que hace fallar la misión** (la tolerancia a atrasos más un paso de 6 h). Si ningún atraso la hace fallar, se muestran 5 días y se dice que la misión aguanta.
+  - **Causa:** la última puesta de Sol antes de la falla, las horas de sombra que siguen y el relieve que lo tapa (dirección, distancia y altura, de los datos de D1). Distingue una cresta que tapa el Sol de un Sol que se pone bajo el horizonte.
+  - **Tres salidas, todas simuladas:** esperar en órbita hasta la primera llegada que sobrevive; cambiar al sitio que sobrevive y envía más datos con la misma llegada; encender menos instrumentos (75, 50 o 25 %, con menos consumo y menos datos en la misma proporción).
+- **Interfaz** (`src/components/sim/IncidentPanel.tsx`, montado en la vista «Evaluar» de `SimulatorWorkspace.tsx`): atraso, llegada prevista y nueva, día de la falla y su causa, y las salidas con batería mínima y datos enviados. «Aplicar» cambia el plan y vuelve a simular. Dice en pantalla que el atraso es un escenario y que el Sol, la Tierra y el relieve son datos reales.
+- **Caso de la demo** (Malapert, 15 ene 2027, Explorador ligero): atraso de 4 días y 12 horas, falla el día 14 (el 1 feb el Sol se pone por el suroeste y siguen 8 días y 6 horas de sombra). Salidas: esperar al 11 feb (84 % de datos), ir a de Gerlache (34 %) o encender el 75 % de los instrumentos (54 %).
+- **Probado:** 12 pruebas nuevas (254 en total) y `npm run build`. En navegador (Edge headless): flujo completo, «Aplicar» lleva al 11 feb y la misión sobrevive, móvil sin desborde y sin errores de JavaScript.
+- **IA1 lo puede usar:** la IA explicaría el imprevisto y las salidas que el motor ya comprobó, sin inventar números.
 
 ### IA1. Diseñar y aplicar un plan de misión con IA · Futura · [ ]
 - **Objetivo:** integrar la IA en el trabajo del simulador para proponer planes que se puedan comprobar y aplicar. No se plantea como un chat de preguntas generales.
@@ -527,7 +538,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
   - **NASA Visible Earth / Goddard** (dominio público): Blue Marble Next Generation, en `earth.glb`.
   - **NASA Earth Observatory** (dominio público): Black Marble, en `earth_night.jpg`.
   - **Solar System Scope, CC BY 4.0: dar crédito es obligatorio.** Son las texturas de la Luna (`moon.glb`, basada en datos de NASA LRO) y del Sol (`sun.glb`). Texto: *"Texturas de la Luna y el Sol: Solar System Scope (solarsystemscope.com), CC BY 4.0"*, con enlace a la licencia.
-- **Aviso:** "NASA no avala este proyecto". El material de NASA se usa según las NASA Images and Media Usage Guidelines, sin insignias que den a entender un aval.
+- **Sobre el proyecto:** "Proyecto creado por nuestro equipo para el NASA Space Apps Challenge 2026". El material de NASA se usa según las NASA Images and Media Usage Guidelines, sin sus insignias.
 - **Términos de uso:** Quickmap es de Arizona State University, no del gobierno de EE. UU. Hay que respetar sus condiciones de uso y no presentarlo como aval de la NASA.
 - **Commit:** `Tarea 11.2: panel de fuentes y créditos`
 

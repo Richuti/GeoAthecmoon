@@ -1,6 +1,6 @@
 # Créditos de modelos, texturas y datos
 
-NASA no avala este proyecto. El material de NASA se usa según las NASA Images and Media Usage Guidelines (reconocer a NASA como fuente, sin usar sus insignias para dar a entender aval).
+Proyecto del equipo para el NASA Space Apps Challenge 2026. El material de NASA se usa según las NASA Images and Media Usage Guidelines: se reconoce a NASA como fuente y no se usan sus insignias.
 
 ## Modelos 3D (`frontend/public/models/`)
 

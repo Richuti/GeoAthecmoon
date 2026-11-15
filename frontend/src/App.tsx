@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
+import { Sources } from './components/Sources'
 import { SimulatorWorkspace } from './components/sim/SimulatorWorkspace'
 import { Story } from './components/Story'
 import { ViewerPanel } from './components/ViewerPanel'
@@ -164,6 +165,7 @@ function Planner() {
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
           {p?.data.sources?.ephemeris === 'jpl-horizons' && <Badge>Sol y Tierra: JPL Horizons (NASA)</Badge>}
           {p?.data.sources?.terrain === 'synthetic' && <Badge tone="caution">Terreno de prueba</Badge>}
+          <Sources data={p?.data} />
         </div>
       </header>
 

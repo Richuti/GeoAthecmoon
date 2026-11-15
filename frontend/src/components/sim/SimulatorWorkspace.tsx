@@ -11,6 +11,7 @@ import { MissionSetup } from './MissionSetup'
 import { MissionOptions, MissionResult, type MissionResultProps } from './MissionResult'
 import { MissionTrace } from './MissionTrace'
 import { EarthMoonJourney } from './EarthMoonJourney'
+import { IncidentPanel } from './IncidentPanel'
 
 interface WorkspaceProps {
   data: SiteData
@@ -107,6 +108,9 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       )}
 
       {report && view === 'surface' && <>
+        <IncidentPanel key={`${data.site.id}:${report.result.from}:${report.result.plan.missionDays}:${JSON.stringify(setup.cfg)}`}
+          data={data} cfg={setup.cfg} startIndex={report.result.from} missionDays={report.result.plan.missionDays}
+          onTryStart={report.onTryStart} onTrySite={report.onTrySite} onCfg={setup.onCfg} />
         <MissionTransport data={data} report={report} onSeek={onSeek} />
         <MissionOptions {...report} />
         <details className="mt-4">
