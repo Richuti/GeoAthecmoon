@@ -1,114 +1,126 @@
 # GEOATHECMOON · Lunar Landing Site Navigator
 
-Proyecto para el **NASA Space Apps Challenge 2026**, reto *Lunar Landing Site Navigator*.
+**English** · [Español](README.es.md)
 
-> **En 10 segundos sabes si un sitio y una fecha sirven en el polo sur lunar, y qué pasa si tu misión se atrasa.**
->
-> *In 10 seconds you know whether a site and a date work at the lunar south pole, and what happens if your mission is delayed.*
+Project by team **GeoAthectum** for the **NASA Space Apps Challenge 2026**, challenge *Lunar Landing Site Navigator*.
 
-En el polo sur de la Luna el Sol nunca sube más de un par de grados: una cresta a varios kilómetros basta para dejar un sitio a oscuras o cortar el contacto con la Tierra. GEOATHECMOON compara **6 sitios** del polo sur durante **todo 2027, hora por hora**, con posiciones reales del Sol y la Tierra (JPL Horizons) y el relieve real (LOLA). Después **simula tu módulo**: batería, paneles y envío de datos.
+> **In 10 seconds you know whether a site and a date work at the lunar south pole, and what happens if your mission is delayed.**
 
-## Cómo se usa
+**Live app:** https://geoathectum.vercel.app (English by default; switch to Spanish with the EN/ES button, bottom left).
 
-**Planificador** (la entrada principal), en tres pasos: sitio, fecha y resultado. La primera vez, cada elemento se explica junto a donde se usa; se repite desde «Ayuda».
+At the Moon's south pole the Sun never climbs more than a couple of degrees: a ridge several kilometers away is enough to leave a site in darkness or cut contact with Earth. GEOATHECMOON compares **6 south pole sites** over **all of 2027, hour by hour**, using real Sun and Earth positions (JPL Horizons) and real topography (LOLA). Then it **simulates your lander**: battery, solar panels and data downlink.
 
-1. **Elige el sitio** entre 6 lugares reales del polo sur, con fotografías regionales de LROC.
-2. **Elige la fecha** (UTC) y los días en la superficie.
-3. **Mira el resultado:** puntaje de 0 a 100, qué lo limita y el terreno 3D con la luz de esa fecha. Desde ahí:
-   - **¿Y si la misión se atrasa?** Eliges un atraso (+1 día a +2 semanas) y ves tu plan y el atrasado como franjas hora por hora de Sol y Tierra, con la marca donde se agotaría la batería y cuántos días de atraso tolera.
-   - **Compara tu plan** con otro sitio en las mismas fechas o con un plan que guardaste, lado a lado, y cambia a la mejor opción con un clic.
-   - **Simular este plan** abre el mismo plan en el simulador.
+## How to use it
 
-**Simulador:**
+**Planner** (the main entry point), in three steps: site, date and result. On the first visit each element is explained next to where it is used; the guide can be reopened from "Help".
 
-1. **Prepara la misión.** Elige el sitio, la fecha de alunizaje y la duración. El módulo trae una configuración inicial; los presets son ilustrativos.
-2. **Viaja.** El recorrido Tierra–Luna usa una transferencia orbital calculada (modelo educativo de dos cuerpos).
-3. **Evalúa.** Ves la viabilidad, las horas de luz y de contacto, la pendiente, si la batería aguanta y cuántos días de atraso tolera la misión.
-   Puedes pulsar **Ver la misión** para recorrerla sobre el terreno: batería, potencia del panel, consumo y envío de datos siguen la misma serie calculada. Los avisos explican cuándo se oculta el Sol, se pierde el contacto o cambia el estado de energía; la reproducción se detiene al fallar.
-4. **Simula un imprevisto.** Una corrección de trayectoria atrasa la llegada. Un escenario independiente muestra las nuevas fechas, la pérdida de luz, el estado junto a la nave y la batería hora por hora. Puedes saltar al momento crítico, reproducirlo, volver al plan original o aplicar una salida comprobada: esperar para alunizar, cambiar de sitio o encender menos instrumentos. Explorar el escenario conserva el plan original y su cursor.
+1. **Choose the site** among 6 real south pole locations, with LROC regional imagery.
+2. **Choose the date** (UTC) and the days on the surface.
+3. **See the result:** a 0–100 score, what limits it, and the 3D terrain lit for that date. From there:
+   - **What if the mission is delayed?** Pick a delay (+1 day to +2 weeks) and compare your plan with the delayed one as hour-by-hour Sun and Earth bands, with a mark where the battery would run out and how many days of delay the plan tolerates.
+   - **Compare your plan** with another site on the same dates, or with a saved plan, side by side.
+   - **Simulate this plan** opens the same plan in the simulator.
+   - **Plan it for me (AI):** choose a lander and a month; the AI proposes sites and dates and the simulator checks each one.
 
-La reproducción dice su escala de tiempo (por ejemplo, «1 segundo en pantalla = 1 hora», 3 600 veces más rápido) y cuánto tarda en verse la misión completa. Se puede cambiar sitio, fecha, duración o módulo y volver a evaluar cuantas veces se quiera, sin repetir el viaje. El calendario, las ventanas de luz/contacto/DSN y los gráficos del cielo quedan como detalles opcionales.
+**Simulator:**
 
-## Qué se calcula
+1. **Prepare the mission:** site, landing date, duration and lander (illustrative presets, or your own battery, panel and instruments).
+2. **Travel:** an Earth–Moon trip computed as an educational two-body transfer.
+3. **Evaluate:** viability, hours of light and contact, slope, whether the battery lasts, and how many days of delay the mission tolerates. **Play the mission** replays it over the terrain hour by hour.
+4. **Simulate a setback:** a trajectory correction delays the arrival. The app shows what happens and offers fixes that are all simulated: wait in orbit, change site or run fewer instruments.
+5. **Rescue copilot (AI):** if the mission fails, an AI combines those levers and **checks every idea with the simulator**, keeping the plan that survives and sends the most data.
+6. **Survival map:** 6 sites × 365 days with the same lander, to see at a glance where and when the mission survives.
 
-| Cálculo | Cómo |
+## What is computed
+
+| Calculation | How |
 |---|---|
-| Luz | El Sol está sobre el relieve: `sun.el > horizonte(sun.az)` |
-| Contacto | La Tierra está sobre el relieve: `earth.el > horizonte(earth.az)` |
-| Horizonte | Rayos de 150 km sobre el DEM LOLA de 80 m, con la curvatura lunar `d²/(2R)`, desde 2 m de altura |
-| Energía | `1361 W/m² × área × eficiencia × fracción visible del disco solar`, con el tamaño real del Sol y menos lo que tapa la Tierra en un eclipse |
-| Batería | Eficiencias de carga y descarga de 0.90; falla al llegar al 20 % |
-| Viabilidad | Índice de 0 a 100 que combina luz, contacto y pendiente; tope de 40 si el módulo no sobrevive |
-| Atrasos | Cuántos días se puede atrasar el alunizaje y la misión sigue sobreviviendo |
-| Extras | Qué cresta tapa el Sol y a cuántos km está, eclipses del Sol por la Tierra y visibilidad de la Luna desde Goldstone, Madrid y Canberra (DSN) |
+| Light | The Sun is above the terrain: `sun.el > horizon(sun.az)` |
+| Contact | Earth is above the terrain: `earth.el > horizon(earth.az)` |
+| Horizon | 150 km rays over the 80 m LOLA DEM, with lunar curvature `d²/(2R)`, from 2 m above the ground |
+| Power | `1361 W/m² × area × efficiency × visible fraction of the solar disk`, with the Sun's real size and minus what Earth blocks during an eclipse |
+| Battery | Charge and discharge efficiency 0.90; the mission fails when it reaches 20% |
+| Viability | 0–100 index combining light, contact and slope; capped at 40 if the lander does not survive |
+| Delays | How many days the landing can slip and the mission still survives |
+| Extras | Which ridge blocks the Sun and how far it is, solar eclipses by Earth, and Moon visibility from Goldstone, Madrid and Canberra (DSN) |
 
-**Regla del proyecto:** el simulador no inventa números. Todo sale de los datos de NASA y de los parámetros que elige el usuario.
+**Project rule:** the simulator does not invent numbers. Everything comes from NASA data and the parameters the user chooses.
 
-## Validación
+## Use of AI
 
-- **Contra los mapas de iluminación oficiales del equipo LOLA** (`AVGVISIB_75S_120M_201608`, NASA/GSFC, Mazarico et al. 2011): con el observador a ras de suelo, como en el mapa, nuestro % de luz queda a menos de 5 puntos en los 6 sitios (mediana de 2.6). Ejemplos: Connecting Ridge 72.3 % frente a 72.6 %, Malapert 62.6 % frente a 61.3 %.
-- **Contra el backend del equipo** (Python, independiente): en los primeros 60 días, la luz y el contacto coinciden a menos de 0.5 puntos en los 6 sitios.
-- **Eclipse real:** el cálculo detecta el eclipse penumbral de Luna del 17 de agosto de 2027 como un eclipse parcial de Sol visto desde Malapert (hasta el 43 % del disco).
-- **Pruebas automáticas:** `npm test` verifica los cálculos, el simulador, los datos y la configuración de la URL pública.
+- **In the app:** the rescue copilot and "Plan it for me" use an OpenAI model through a server function (`frontend/api/copilot.ts`; the API key never reaches the browser). The AI only **decides what to try and explains its choice**: every figure shown comes from the app's simulator with JPL Horizons and LOLA data. If the AI is unavailable, the rest of the app works the same.
+- **In development:** the team used AI coding assistants to write and review code and documentation. The data, the methods and the validation are the team's responsibility and are documented below.
 
-Tabla completa sitio por sitio en [`docs/VALIDACION_NASA.md`](docs/VALIDACION_NASA.md).
+## Validation
 
-## Limitaciones
+- **Against the official LOLA illumination maps** (`AVGVISIB_75S_120M_201608`, NASA/GSFC, Mazarico et al. 2011): with the observer at ground level, as in the map, our % of light is within 5 points at all 6 sites (median 2.6). Examples: Connecting Ridge 72.3% vs 72.6%, Malapert 62.6% vs 61.3%.
+- **Against published values:** over all of 2027, Connecting Ridge gets **89.5%** sunlight at 2 m; Mazarico et al. (2011) report **89%** at the same point.
+- **Against the team's independent Python backend:** over the full year (8,760 hours), light and contact agree within 0.5 points at 5 of 6 sites; de Gerlache differs by 1.0 point because of a single sub-pixel obstacle 120 m from the site ([`docs/validacion/valores.md`](docs/validacion/valores.md)).
+- **A real eclipse:** the calculation detects the penumbral lunar eclipse of August 17, 2027 as a partial solar eclipse seen from Malapert (up to 43% of the disk).
+- **Coordinates:** all 6 sites were checked on LRO QuickMap with a visible marker.
+- **Automated tests:** `npm test` checks the calculations, the simulator, the data and the translation.
 
-- No se modelan la temperatura real (el consumo de supervivencia es fijo), el polvo sobre los paneles, la degradación de la batería ni los satélites de relevo.
-- El simulador supone que siempre hay una antena de la DSN disponible cuando la Tierra es visible. Los datos de las tres antenas ya están calculados.
-- La pendiente es regional (DEM de 80 m): no ve rocas ni cráteres más pequeños que un píxel.
-- El viaje Tierra–Luna es un modelo educativo de dos cuerpos: no incluye ascenso físico, captura lunar ni descenso.
-- Los presets de los módulos y el imprevisto son escenarios ilustrativos; las posiciones del Sol, la Tierra y el relieve son reales.
-- Las imágenes de la portada son ilustraciones: ningún dato sale de ellas.
+Full site-by-site table in [`docs/VALIDACION_NASA.md`](docs/VALIDACION_NASA.md) (Spanish).
 
-## Datos y créditos
+## Limitations
 
-- **JPL Horizons (NASA/JPL):** posición y distancia del Sol y la Tierra desde cada sitio, y de la Luna desde las antenas DSN.
-- **LOLA / LRO (NASA, PDS):** relieve del polo sur (DEM `LDEM_80S_80M`) y mapas de iluminación para la validación.
-- **Quickmap (ASU) y Moon Trek (NASA):** verificación de las coordenadas de los sitios.
-- Modelos 3D de NASA 3D Resources y texturas de Solar System Scope (CC BY 4.0). Lista completa en [`docs/CREDITOS.md`](docs/CREDITOS.md) y en el panel «Fuentes» de la app.
+- Not modeled: real temperature (survival power draw is fixed), dust on the panels, battery degradation and relay satellites.
+- The simulator assumes a DSN antenna is always available when Earth is visible (the visibility from the three antennas is already computed).
+- Slope is regional (80 m DEM): it does not see rocks or craters smaller than a pixel.
+- The Earth–Moon trip is an educational two-body model: no physical ascent, lunar capture or powered descent.
+- Lander presets and the setback are illustrative scenarios; Sun and Earth positions and the terrain are real.
+- Home page images are illustrations: no data comes from them.
 
-Proyecto creado por nuestro equipo para el NASA Space Apps Challenge 2026. El material de NASA se usa según las NASA Images and Media Usage Guidelines, sin sus insignias.
+## Data and credits
 
-## Correr el proyecto
+- **JPL Horizons (NASA/JPL):** position and distance of the Sun and Earth from each site, and of the Moon from the DSN antennas.
+- **LOLA / LRO (NASA, PDS):** south pole topography (DEM `LDEM_80S_80M`) and illumination maps for validation.
+- **LRO QuickMap (ASU) and Moon Trek (NASA):** verification of the site coordinates.
+- **CSA Moon Exploration:** mission context and Canada's role in Artemis.
+- 3D models from NASA 3D Resources and textures from Solar System Scope (CC BY 4.0). Full list in [`docs/CREDITOS.md`](docs/CREDITOS.md) and in the app's "Sources" panel.
 
-Requisitos: Node 22 o superior.
+Project created by our team for the NASA Space Apps Challenge 2026. NASA material is used according to the NASA Images and Media Usage Guidelines, without NASA insignia.
+
+## Running the project
+
+Requirements: Node 22 or later.
 
 ```bash
 cd frontend
 npm install
 npm run dev      # http://localhost:5173
-npm test         # pruebas
-npm run build    # build de producción en frontend/dist
+npm test         # tests
+npm run build    # production build in frontend/dist
 ```
 
-Los datos ya vienen en `frontend/public/data/`. Para regenerarlos:
+The data is already in `frontend/public/data/`. To regenerate it:
 
 ```bash
-npm run horizons   # descarga el Sol, la Tierra y la DSN de JPL Horizons
-npm run horizon    # horizonte y pendiente desde el DEM LOLA (pide LDEM_80S_80M.IMG)
-npm run mock       # arma public/data/sites/{id}.json
+npm run horizons   # downloads Sun, Earth and DSN positions from JPL Horizons
+npm run horizon    # horizon and slope from the LOLA DEM (needs LDEM_80S_80M.IMG)
+npm run mock       # builds public/data/sites/{id}.json
 ```
 
-**Deploy (Vercel):** Root Directory `frontend`, framework Vite, build `npm run build`, salida `dist`. El build también genera una versión estática de la portada para buscadores, `robots.txt` y `sitemap.xml` (`scripts/prerender.mjs`).
+**Language:** English by default; `?lang=es` or the EN/ES button switches to Spanish. The translation lives in `frontend/src/i18n/` (dictionary in `en.ts`).
 
-La URL de las etiquetas Open Graph, la canónica y el sitemap se resuelve en `frontend/scripts/site-url.mjs`: primero `SITE_URL`, después `VERCEL_PROJECT_PRODUCTION_URL` y, si no hay variables, `https://geoathectum.vercel.app`. Si cambia el dominio, configurar `SITE_URL` con la URL pública completa. No se necesita una variable para compilar en local.
+**Deploy (Vercel):** Root Directory `frontend`, framework Vite, build `npm run build`, output `dist`.
 
-**Datos:** sin `VITE_API_URL`, la app lee los archivos estáticos de `public/data`. Con `VITE_API_URL` usa el backend (`GET /sites` y `GET /sites/{id}`), y si no responde en 6 s o falla, vuelve sola a los archivos estáticos. En producción, `VITE_API_URL=https://geoathecmoon-api.onrender.com` (API de `backend/api/main.py`); la app la despierta al abrir la portada.
+**Data API:** without `VITE_API_URL`, the app reads the static files in `public/data`. With `VITE_API_URL` it uses the backend (`GET /sites` and `GET /sites/{id}`) and falls back to the static files if it does not answer within 6 s. In production, `VITE_API_URL=https://geoathecmoon-api.onrender.com` (FastAPI, `backend/api/main.py`), which returns exactly the same JSON.
 
-## Estructura
+## Structure
 
 ```
-GEOATHECMOON/
-├── frontend/          React 19 + Vite + TypeScript + Tailwind, React Three Fiber para el 3D
-│   ├── src/lib/       luz, contacto, viabilidad, recomendaciones, cielo (eclipses, DSN, crestas)
-│   ├── src/sim/       módulo, simulación hora por hora, búsquedas, imprevisto, viaje Tierra–Luna
-│   ├── scripts/       descarga y armado de los datos
-│   └── public/data/   datos de los 6 sitios (JSON)
-├── backend/           Python: JPL Horizons + DEM LOLA → JSON (rama backend)
-├── assets-src/        relieve LOLA procesado y horizontes
-└── docs/              contrato de datos, tareas, diseño, créditos
+GeoAthectum/
+├── frontend/          React 19 + Vite + TypeScript + Tailwind, React Three Fiber for 3D
+│   ├── src/lib/       light, contact, viability, recommendations, sky (eclipses, DSN, ridges)
+│   ├── src/sim/       lander, hour-by-hour simulation, searches, setback, Earth–Moon trip, AI copilot
+│   ├── src/i18n/      English version (Spanish → English dictionary)
+│   ├── api/           server function for the AI copilot (OpenAI)
+│   ├── scripts/       data download and assembly
+│   └── public/data/   data for the 6 sites (JSON)
+├── backend/           Python: LOLA DEM horizon pipeline, cross-validation and data API (FastAPI)
+├── assets-src/        processed LOLA terrain and horizons
+└── docs/              data contract, tasks, design, validation, credits (Spanish)
 ```
 
-Más detalle: [`docs/CONTRATO_DATOS.md`](docs/CONTRATO_DATOS.md) (formato de los datos), [`docs/TAREAS.md`](docs/TAREAS.md) (plan y estado) y [`docs/DISENO.md`](docs/DISENO.md) (sistema de diseño).
+More detail (Spanish): [`docs/CONTRATO_DATOS.md`](docs/CONTRATO_DATOS.md) (data format), [`docs/TAREAS.md`](docs/TAREAS.md) (plan and status) and [`docs/DISENO.md`](docs/DISENO.md) (design system).
