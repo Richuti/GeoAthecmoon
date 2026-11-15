@@ -71,6 +71,8 @@ La acción principal es **neutra** (fondo `ink`, texto `void`). El ámbar y el a
 
 ## Reglas de calidad
 
+- **Excepción pedida por Richard:** los botones de acceso al planificador de la landing usan cristal líquido neutro: silueta redondeada, transparencia, desenfoque del fondo y reflejos blancos. Esta excepción no se extiende a los controles del planificador o del simulador. Conservan foco visible y contraste; con transparencia reducida o contraste alto usan un fondo opaco. Sin movimiento continuo.
+
 En **Explorar sitio**, la lectura sigue sitio → fecha y duración → terreno y viabilidad → evolución temporal → recomendaciones. La página usa un único scroll; la lista de sitios permanece a mano en escritorio y se pliega en móvil. Los porcentajes de luz y contacto llevan su etiqueta y corresponden al mismo plan, no al año completo. El horizonte y el gráfico polar se abren en «Entender el cielo y el relieve». «Simular este plan» conserva sitio, fecha y duración. La viabilidad es un índice de condiciones; el simulador comprueba la energía del módulo.
 
 - **Accesibilidad:** foco visible (contorno claro de 2 px), contraste AA, controles con nombre accesible y tooltips que se abren con teclado.

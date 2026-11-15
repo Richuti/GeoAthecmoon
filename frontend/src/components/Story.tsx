@@ -13,7 +13,7 @@ import type { StoryFacts } from '../lib/storyFacts'
 import { storyCues, storyVideoProgress } from '../lib/storyTiming'
 import { formatDate, formatDateTime, sampleTime } from '../lib/time'
 import type { SiteData } from '../types'
-import { Button, cx } from './ui'
+import { cx } from './ui'
 
 interface Readout {
   value: number
@@ -332,18 +332,31 @@ function StoryBar({ onOpen, solid }: { onOpen: () => void; solid: boolean }) {
         <p className="font-display text-[clamp(1.5rem,7vw,2rem)] font-extrabold uppercase leading-none tracking-[0.01em] text-ink sm:text-4xl lg:text-5xl">
           GEOATHECMOON
         </p>
-        <Button variant="primary" size="sm" aria-label="Abrir el planificador"
-          className="pointer-events-auto min-h-12 sm:px-5 sm:text-base" onClick={onOpen}>
-          <span className="sm:hidden">Planificador</span>
-          <span className="hidden sm:inline">Abrir el planificador</span>
-          <span aria-hidden className="hidden text-xl leading-none sm:inline">→</span>
-        </Button>
+        <PlannerButton onOpen={onOpen} compact />
       </div>
       {!solid && <p className="mt-3 text-right text-xs leading-relaxed text-ink-muted">
         Ilustración · los datos no salen de la imagen
       </p>}
     </header>
   )
+}
+
+/** Cristal líquido pedido por Richard: exclusivo del acceso al planificador en la portada. */
+function PlannerButton({ onOpen, compact = false, className }: { onOpen: () => void; compact?: boolean; className?: string }) {
+  return <button type="button" aria-label="Abrir el planificador" onClick={onOpen}
+    className={cx('planner-glass pointer-events-auto', compact && 'planner-glass--compact', className)}
+    onPointerMove={e => {
+      if (e.pointerType !== 'mouse') return
+      const rect = e.currentTarget.getBoundingClientRect()
+      e.currentTarget.style.setProperty('--glass-x', `${e.clientX - rect.left}px`)
+      e.currentTarget.style.setProperty('--glass-y', `${e.clientY - rect.top}px`)
+    }}>
+    <span className={compact ? 'sm:hidden' : 'hidden'}>Planificador</span>
+    <span className={compact ? 'hidden sm:inline' : undefined}>Abrir el planificador</span>
+    <svg aria-hidden viewBox="0 0 20 20" className={cx('planner-glass__arrow', compact && 'hidden sm:block')}>
+      <path d="M4 10h12m-5-5 5 5-5 5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  </button>
 }
 
 function ChapterNav({ scenes, active, onGo }: { scenes: Scene[]; active: number; onGo: (k: number) => void }) {
@@ -445,9 +458,7 @@ function Finale({ facts, onOpen }: { facts: StoryFacts | null; onOpen: () => voi
         {facts ? `${facts.siteCount} sitios del polo sur y ${facts.periodDays} días` : 'Sitios del polo sur y un año'} de posiciones
         reales del Sol y la Tierra, con el relieve de LOLA. Compara fechas, configura tu módulo y comprueba si tu misión sobrevive.
       </p>
-      <Button variant="primary" size="lg" className="mt-8" onClick={onOpen}>
-        Abrir el planificador
-      </Button>
+      <PlannerButton className="mt-8" onOpen={onOpen} />
       <p className="mt-10 max-w-xl text-xs leading-relaxed text-ink-faint">
         Fuentes: JPL Horizons (NASA/JPL) y altimetría LOLA (Lunar Reconnaissance Orbiter).
         {facts && <> Periodo: {formatDate(sampleTime(facts.period, 0))} – {formatDate(sampleTime(facts.period, (facts.periodDays * 24) / facts.period.stepHours - 1))}. Fechas en UTC.</>}
