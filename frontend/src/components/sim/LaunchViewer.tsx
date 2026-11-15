@@ -2,16 +2,19 @@ import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
 import { EARTH_RADIUS_KM } from '../../sim/transfer'
-import { LAUNCH_PAD_DECK_M, LAUNCH_ROCKET_HEIGHT_M, launchFrame } from '../../sim/transferView'
+import { LAUNCH_PAD_DECK_M, LAUNCH_SHIP_HEIGHT_M, launchFrame } from '../../sim/transferView'
 import { useFlightModel } from './useFlightModel'
 
 const EARTH_RADIUS_M = EARTH_RADIUS_KM * 1000
 const clamp = (value: number) => Math.max(0, Math.min(1, value))
+// El escape y el vapor se diseñaron para un cohete de 110 m; se escalan al tamaño del módulo.
+const FX = LAUNCH_SHIP_HEIGHT_M / 110
 
 function LaunchScene({ altitudeM, ascent, reduced, onReady }: { altitudeM: number; ascent: number; reduced: boolean; onReady: () => void }) {
   const earth = useFlightModel('/models/earth.glb')
   const earthShadow = useFlightModel('/models/earth.glb')
-  const rocket = useFlightModel('/models/launch_vehicle.glb')
+  // La misma nave que se ve en la transferencia y en el alunizaje.
+  const rocket = useFlightModel('/models/lander.glb')
   const platform = useFlightModel('/models/launch_platform.glb')
   const regionalMap = useLoader(THREE.TextureLoader, '/textures/flight/kennedy-naip.jpg')
   const ship = useRef<THREE.Group>(null)
@@ -102,7 +105,7 @@ function LaunchScene({ altitudeM, ascent, reduced, onReady }: { altitudeM: numbe
     <fog attach="fog" args={['#98bdd6', 2000, 12000]} />
     <hemisphereLight args={['#d5e9ff', '#72725a', 1.25]} />
     <directionalLight position={[200, 350, 120]} intensity={2.8} castShadow
-      shadow-mapSize={[1024, 1024]} shadow-camera-left={-220} shadow-camera-right={220}
+      shadow-mapSize={[2048, 2048]} shadow-camera-left={-220} shadow-camera-right={220}
       shadow-camera-top={220} shadow-camera-bottom={-220} shadow-camera-near={1} shadow-camera-far={1000} shadow-bias={-0.0001} />
     <group position={ground.position} quaternion={ground.rotation} scale={EARTH_RADIUS_M * 2}>
       <primitive object={earth} dispose={null} />
@@ -110,7 +113,7 @@ function LaunchScene({ altitudeM, ascent, reduced, onReady }: { altitudeM: numbe
     </group>
     {/* Anclajes medidos en el GLB NASA: boca a x=0; cubierta a 4.85 m. */}
     <group position={[9.2, 60, 0]} scale={120}><primitive object={platform} dispose={null} /></group>
-    <group ref={ship} position={[0, LAUNCH_PAD_DECK_M + LAUNCH_ROCKET_HEIGHT_M / 2, 0]} scale={LAUNCH_ROCKET_HEIGHT_M}>
+    <group ref={ship} position={[0, LAUNCH_PAD_DECK_M + LAUNCH_SHIP_HEIGHT_M / 2, 0]} scale={LAUNCH_SHIP_HEIGHT_M}>
       <primitive object={rocket} dispose={null} />
     </group>
   </>
@@ -126,9 +129,9 @@ function Exhaust({ altitudeM, ascent, plume, clouds }: { altitudeM: number; asce
       const p = points[index].set(x, y, z).project(camera)
       return { x: (p.x + 1) * size.width / 2, y: (1 - p.y) * size.height / 2, visible: p.z > -1 && p.z < 1 }
     }
-    const nozzleY = LAUNCH_PAD_DECK_M + altitudeM + 1
+    const nozzleY = LAUNCH_PAD_DECK_M + altitudeM + 1 * FX
     const origin = project(0, nozzleY, 0, 0)
-    const tail = project(0, nozzleY - 170 * ignition, 0, 1)
+    const tail = project(0, nozzleY - 170 * FX * ignition, 0, 1)
     if (plume.current) {
       const length = Math.hypot(tail.x - origin.x, tail.y - origin.y)
       const width = length * 0.45
@@ -138,9 +141,9 @@ function Exhaust({ altitudeM, ascent, plume, clouds }: { altitudeM: number; asce
     clouds.current.forEach((cloud, i) => {
       if (!cloud) return
       const expansion = clamp(ascent / 0.28)
-      const drift = (i - 1.5) * (30 + expansion * 100)
-      const center = project(drift, 10 + expansion * 22, i % 2 ? 25 : -20, 0)
-      const edge = project(drift + 100 + expansion * 160, 10 + expansion * 22, i % 2 ? 25 : -20, 1)
+      const drift = (i - 1.5) * (30 + expansion * 100) * FX
+      const center = project(drift, (10 + expansion * 22) * FX, (i % 2 ? 25 : -20) * FX, 0)
+      const edge = project(drift + (100 + expansion * 160) * FX, (10 + expansion * 22) * FX, (i % 2 ? 25 : -20) * FX, 1)
       const width = Math.min(size.width * 2, Math.hypot(edge.x - center.x, edge.y - center.y) * 2)
       Object.assign(cloud.style, { left: `${center.x}px`, top: `${center.y}px`, width: `${width}px`, opacity: `${center.visible ? ignition * (1 - clamp((ascent - 0.35) / 0.35)) * 0.8 : 0}`, transform: `translate(-50%, -50%) scaleX(${i % 2 ? -1 : 1}) rotate(${i * 7 - 10}deg)` })
     })

@@ -7,6 +7,7 @@ import { compareDelay, type PlanOutcome } from '../sim/delay'
 import type { LanderConfig } from '../sim/lander'
 import { delayTolerance } from '../sim/search'
 import type { SiteData } from '../types'
+import { PlanStrips } from './PlanStrips'
 import { Button, cx, Segmented } from './ui'
 
 const DELAYS = [
@@ -42,7 +43,7 @@ export function DelayCheck({ data, vis, cfg, moduleName, startIndex, missionDays
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h2 id="delay-title" className="text-xl font-bold text-ink">¿Y si la misión se atrasa?</h2>
-          <p className="mt-1 text-sm text-ink-muted">Elige un atraso y compáralo con tu plan.</p>
+          <p className="mt-1 text-sm text-ink-muted">Elige un atraso: ámbar es Sol, azul es la Tierra a la vista y ▲ marca dónde se agota la batería.</p>
         </div>
         <Segmented label="Atraso del alunizaje" options={DELAYS} value={delay} onChange={setDelay} className="max-w-full [&_button]:min-h-10" />
       </div>
@@ -50,26 +51,11 @@ export function DelayCheck({ data, vis, cfg, moduleName, startIndex, missionDays
       <p className={cx('mt-5 text-lg font-bold', verdict.tone)} aria-live="polite">{verdict.text}</p>
       <p className="mt-1 text-sm text-ink-muted">{verdict.detail}</p>
 
-      <table className="delay-table mt-5 w-full text-sm">
-        <caption className="sr-only">Plan original comparado con el plan atrasado</caption>
-        <thead>
-          <tr>
-            <th scope="col" className="w-[34%]"><span className="sr-only">Dato</span></th>
-            <th scope="col">Tu plan<span className="block font-normal text-ink-faint">{when(data, c.original.from)}</span></th>
-            <th scope="col">Con atraso<span className="block font-normal text-ink-faint">{when(data, c.delayed.from)}</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          <Row label="Viabilidad" a={c.original.viability} b={c.delayed.viability} unit="/100" />
-          <Row label="Luz solar" tone="text-sun" a={c.original.lightPct} b={c.delayed.lightPct} unit=" %" />
-          <Row label="Tierra visible" tone="text-earth" a={c.original.contactPct} b={c.delayed.contactPct} unit=" %" />
-          <tr>
-            <th scope="row">Batería<span className="block font-normal text-ink-faint">{moduleName}</span></th>
-            <td><Battery o={c.original} /></td>
-            <td><Battery o={c.delayed} /></td>
-          </tr>
-        </tbody>
-      </table>
+      <div className="mt-5 grid gap-5">
+        <PlanLine title="Tu plan" when={when(data, c.original.from)} o={c.original} vis={vis} data={data} moduleName={moduleName} />
+        <PlanLine title={`Con ${label} de atraso`} when={when(data, c.delayed.from)} o={c.delayed} vis={vis} data={data} moduleName={moduleName}
+          change={Math.round(c.delayed.viability) - Math.round(c.original.viability)} />
+      </div>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-muted">
@@ -90,23 +76,28 @@ function changeText(diff: number): string {
   return d > 0 ? `La viabilidad sube ${d} puntos.` : `La viabilidad baja ${-d} puntos.`
 }
 
-/** La diferencia se calcula con los valores ya redondeados, para que cuadre con lo que se lee. */
-function Row({ label, a, b, unit, tone }: { label: string; a: number; b: number; unit: string; tone?: string }) {
-  const d = Math.round(b) - Math.round(a)
+/** Un plan como franja: cuándo hay Sol y Tierra, dónde se agota la batería y su puntaje. */
+function PlanLine({ title, when, o, vis, data, moduleName, change }: {
+  title: string; when: string; o: PlanOutcome; vis: Visibility; data: SiteData; moduleName: string; change?: number
+}) {
   return (
-    <tr>
-      <th scope="row" className={tone}>{label}</th>
-      <td className="tabular-nums">{Math.round(a)}{unit}</td>
-      <td className="tabular-nums">
-        {Math.round(b)}{unit}
-        {d !== 0 && <span className={cx('ml-2 text-xs', d > 0 ? 'text-ok' : 'text-critical')}>{d > 0 ? `+${d}` : `−${-d}`}</span>}
-      </td>
-    </tr>
+    <div>
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <p className="text-sm font-bold text-ink">{title} <span className="font-normal text-ink-faint">· desde {when}</span></p>
+        <p className="text-sm tabular-nums text-ink">
+          {Math.round(o.viability)}/100
+          {change !== undefined && change !== 0 && <span className={cx('ml-2 text-xs font-bold', change > 0 ? 'text-ok' : 'text-critical')}>{change > 0 ? `+${change}` : `−${-change}`}</span>}
+          <span className="ml-3"><Battery o={o} /></span>
+        </p>
+      </div>
+      <PlanStrips lit={vis.lit} contact={vis.contact} from={o.from} to={o.to} stepHours={data.stepHours} failedAt={o.failedAtIndex} />
+      <span className="sr-only">Batería: {moduleName}.</span>
+    </div>
   )
 }
 
 function Battery({ o }: { o: PlanOutcome }) {
   return o.survived
-    ? <span className="text-ok">Aguanta<span className="block text-xs text-ink-faint">mínimo {Math.round(o.minSocPct)} %</span></span>
-    : <span className="text-critical">Se agota<span className="block text-xs text-ink-faint">llega al 20 %</span></span>
+    ? <span className="text-xs font-bold text-ok">Batería: aguanta</span>
+    : <span className="text-xs font-bold text-critical">Batería: se agota ▲</span>
 }

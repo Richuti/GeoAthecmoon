@@ -12,6 +12,7 @@ import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
 import { TimeScale } from './components/TimeScale'
 import { DelayCheck } from './components/DelayCheck'
+import { PlanCompare, type SavedPlan } from './components/PlanCompare'
 import { SiteConditions } from './components/SiteConditions'
 import { VisibilityCalendar } from './components/VisibilityCalendar'
 import { Badge, Button, DateTimeField, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
@@ -98,6 +99,8 @@ function Planner() {
   const [cfg, setCfg] = useState<LanderConfig>(PRESETS[DEFAULT_PRESET].config)
   const [landing, setLanding] = useState<number | null>(null)
   const [draftStart, setDraftStart] = useState<number | null>(null)
+  /** Plan de referencia para comparar (tarea 10); se conserva al cambiar sitio, fecha o duración. */
+  const [savedPlan, setSavedPlan] = useState<SavedPlan | null>(null)
   const simCfg = useDeferredValue(cfg)
   const evaluationStart = mode === 'simulate' && landing !== null ? landing : i
 
@@ -253,6 +256,9 @@ function Planner() {
                 {current && <DelayCheck data={p.data} vis={current.vis} cfg={cfg} moduleName={preset ? PRESETS[preset].label : 'módulo personalizado'}
                   startIndex={i} missionDays={missionDays} onApply={seek} />}
                 {rec && <PlanAlternatives p={p} rec={rec} onSelect={actions.select} onSeek={seek} />}
+                <PlanCompare contexts={contexts} siteId={p.data.site.id} startIndex={i} missionDays={missionDays} cfg={cfg}
+                  moduleName={preset ? PRESETS[preset].label : 'módulo personalizado'} saved={savedPlan} onSave={setSavedPlan}
+                  onApply={(plan) => { actions.select(plan.siteId); actions.setMissionDays(plan.missionDays); seek(plan.startIndex) }} />
                 <Disclosure title="Ver luz, comunicación y calendario" description="Explora el entorno del módulo y busca otros días para alunizar.">
                   <SiteConditions data={p.data} index={i} lit={p.lit} contact={p.contact} />
                   <div className="mt-7"><Timeline p={p} index={i} playing={state.playing} speed={state.speed} onIndex={seek} onTogglePlay={actions.togglePlay} onSpeed={actions.setSpeed} /></div>

@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { journeyAt, lunarTransfer, MOON_RADIUS_KM } from '../src/sim/transfer.ts'
-import { LAUNCH_PAD_DECK_M, LAUNCH_ROCKET_HEIGHT_M, descentFrame, encounterFrame, launchFrame } from '../src/sim/transferView.ts'
+import { LAUNCH_PAD_DECK_M, LAUNCH_SHIP_HEIGHT_M, descentFrame, encounterFrame, launchFrame } from '../src/sim/transferView.ts'
 
-test('el cohete parte apoyado en la cubierta y el encuadre conserva el conjunto en móvil', () => {
+test('la nave parte apoyada en la cubierta y el encuadre conserva el conjunto en móvil', () => {
   for (const aspect of [0.6, 350 / 400, 808 / 448, 2.5]) {
     const frame = launchFrame(0, aspect)
-    assert.ok(Math.abs(frame.centerY - LAUNCH_ROCKET_HEIGHT_M / 2 - LAUNCH_PAD_DECK_M) < 1e-8)
+    assert.ok(Math.abs(frame.centerY - LAUNCH_SHIP_HEIGHT_M / 2 - LAUNCH_PAD_DECK_M) < 1e-8)
     const halfHeight = frame.distanceM * Math.tan(21 * Math.PI / 180)
-    assert.ok(halfHeight > 90)
-    assert.ok(halfHeight * aspect > 90)
+    assert.ok(halfHeight > LAUNCH_SHIP_HEIGHT_M)
+    assert.ok(halfHeight * aspect > LAUNCH_SHIP_HEIGHT_M)
   }
 })
 

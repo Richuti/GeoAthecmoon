@@ -451,7 +451,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - El código gira `SolarPanel` hacia el Sol y `Antenna` hacia la Tierra en cada instante.
 - **Commit de la tarea 9:** `Tarea 9: visor 3D con modelos, luz solar y módulo animado`
 
-### 10. Comparador · Extra (MVP si hay tiempo)
+### 10. Comparador · Extra (MVP si hay tiempo) · [ ] · Implementado, pendiente de revisión de Richard
+- **Hecho (14 nov, noche):** `PlanCompare.tsx` en el resultado del planificador. Tu plan junto a «Otro sitio» (mismas fechas, propone el mejor) o junto a «Mi plan guardado» (plan de referencia que se conserva al cambiar sitio, fecha o duración). Cada columna: foto del sitio, puntaje, franjas hora por hora de Sol y Tierra (`PlanStrips.tsx`, `src/lib/strips.ts`), ▲ donde se agota la batería y «Cambiar a este plan». «¿Y si la misión se atrasa?» usa las mismas franjas en lugar de tabla. Verificado: 294 pruebas, build, capturas a 1440/390 px; Malapert 15 ene frente a 20 ene (falla el día 14) coincide con el caso de la demo.
 - Dos sitios lado a lado, con las mismas fechas, las mismas métricas y la viabilidad de cada uno.
 - **Commit:** `Tarea 10: comparador de sitios`
 

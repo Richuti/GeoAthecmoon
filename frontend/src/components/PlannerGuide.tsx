@@ -44,6 +44,7 @@ const TOURS: TourStep[][] = [
     { target: 'aside[aria-label="Elegir sitio de alunizaje"]', title: 'Compara sitios', text: 'El puntaje de cada lugar con tus mismas fechas. Toca uno para cambiar de destino.' },
     { target: '[data-tour="delay"]', title: '¿Y si te atrasas?', text: 'Elige un atraso y compáralo con tu plan: así sabes cuánto margen tienes.' },
     { target: '[data-tour="improve"]', title: 'Cómo mejorarlo', text: 'Si existe una fecha o un sitio mejor, aparece aquí con un botón para probarlo.' },
+    { target: '[data-tour="compare-plans"]', title: 'Compara lado a lado', text: 'Pon tu plan junto a otro sitio o junto a un plan que guardaste. Las franjas muestran cuándo hay Sol y cuándo se ve la Tierra.' },
     { target: '[data-tour="simulate"]', title: 'Simula tu módulo', text: 'Comprueba hora por hora si la batería aguanta toda la misión.' },
   ],
 ]
