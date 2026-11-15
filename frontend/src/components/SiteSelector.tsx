@@ -54,9 +54,9 @@ export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }:
   }
 
   return (
-    <aside aria-label="Elegir sitio de alunizaje" className="glass-surface min-w-0 p-4">
-      <div className="flex items-baseline justify-between gap-3"><h2 className="text-base font-bold text-ink">Sitios de alunizaje</h2><span className="text-xs text-ink-muted">{sites.length} sitios</span></div>
-      <p className="mb-4 mt-2 text-xs leading-relaxed text-ink-muted">Las cifras comparan la fecha y los días de tu plan.</p>
+    <aside aria-label="Elegir sitio de alunizaje" className="glass-surface min-w-0 p-4 lg:sticky lg:top-6 lg:flex lg:max-h-[calc(100dvh-3rem)] lg:flex-col">
+      <div className="flex shrink-0 items-baseline justify-between gap-3"><h2 className="text-base font-bold text-ink">Sitios de alunizaje</h2><span className="text-xs text-ink-muted">{sites.length} sitios</span></div>
+      <p className="mb-4 mt-2 shrink-0 text-xs leading-relaxed text-ink-muted">Las cifras comparan la fecha y los días de tu plan.</p>
       {/* Móvil: solo el sitio elegido y un botón para desplegar la lista */}
       <button
         ref={toggleRef}
@@ -81,10 +81,10 @@ export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }:
         ref={navRef}
         aria-label="Sitios de alunizaje"
         onKeyDown={onKeyDown}
-        className={cx('flex-col gap-4 max-lg:mt-4', open ? 'flex' : 'hidden', 'lg:flex')}
+        className={cx('flex-col gap-4 max-lg:mt-4', open ? 'flex' : 'hidden', 'lg:flex lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1')}
       >
         {groupByCategory(sites).map(({ category, sites: list }) => (
-          <div key={category} role="group" aria-label={CATEGORY_LABEL[category]}>
+          <div key={category} role="group" aria-label={CATEGORY_LABEL[category]} className="shrink-0">
             <h3 className="mb-2 flex items-center gap-1.5 text-xs text-ink-muted">
               {CATEGORY_LABEL[category]}
               <InfoTip label={CATEGORY_LABEL[category]} align="start">
@@ -111,7 +111,7 @@ export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }:
           </div>
         ))}
       </nav>
-      <p className="mt-4 text-xs leading-relaxed text-ink-muted">Imágenes de la región · LROC<br />{SITE_IMAGE_CREDIT}
+      <p className="mt-4 shrink-0 text-xs leading-relaxed text-ink-muted">Imágenes de la región · LROC<br />{SITE_IMAGE_CREDIT}
         {selected && SITE_IMAGERY[selected.id] && <a className="mt-1 block text-ink underline decoration-white/30 underline-offset-4 hover:decoration-white" href={SITE_IMAGERY[selected.id].source} target="_blank" rel="noreferrer">Fuente del sitio elegido ↗</a>}
       </p>
     </aside>
