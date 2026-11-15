@@ -8,12 +8,12 @@ Las cifras salen de `README.md`, `docs/VALIDACION_NASA.md` y `docs/CASO_DEMO.md`
 
 | # | Diapositiva | Texto | Criterio del jurado |
 |---|---|---|---|
-| 1 | Portada | Se queda igual: «GeoAthecmoon · NASA Space Apps Challenge 2026 · Lunar Landing Site Navigator». | Presentación |
-| 2 | Problema | Título: **«Un atraso de días puede apagar la misión»**. Cuerpo: «En el polo sur lunar el Sol nunca sube más de un par de grados. Una cresta a kilómetros deja el sitio a oscuras o sin contacto con la Tierra. Horizons, QuickMap y Moon Trek tienen los datos, pero no responden: ¿mi misión sobrevive?» | Relevancia, Impacto |
-| 3 | Solución | Título se queda. Bajo la captura: **«6 sitios · 8 760 horas de 2027 · horizonte LOLA a 150 km»** y «Pruébala en vivo: geoathectum.vercel.app». | Validez, Relevancia |
-| 4 | Demo | 1. Malapert, 15 de enero: viabilidad 95 % · 2. Una semana de atraso: se queda sin energía · 3. Copiloto con IA: cada idea se comprueba en el simulador · 4. Mapa: 6 sitios × 365 días | Creatividad |
-| 5 | Impacto y validación | La frase actual se queda. Debajo: **«A menos de 5 puntos del mapa oficial de iluminación de NASA en los 6 sitios · 89.5 % frente a 89 % publicado en Connecting Ridge · 359 pruebas automáticas»**. Los límites (temperatura, polvo, relevos) se dicen de voz. | Validez, Impacto |
-| 6 | Cierre | Se queda. Se suma «EN / ES · funciona en el celular». | Presentación |
+| 1 | Portada | Pregunta grande: **«¿Y si tu misión a la Luna se atrasa una semana?»**. Debajo, en pequeño: «GEOATHECMOON · NASA Space Apps Challenge 2026 · Lunar Landing Site Navigator». | Presentación |
+| 2 | Problema | Título: **«Un atraso de días puede apagar la misión»**, sobre el panel del horizonte con el Sol y la Tierra. Una línea: «El Sol nunca sube más de un par de grados. Una cresta lejana basta para dejarte sin energía o sin la Tierra.» | Relevancia, Impacto |
+| 3 | Solución | Título: «Planea un alunizaje con datos reales de la NASA» · «Sol y Tierra: JPL Horizons · Relieve: LRO LOLA». Tres cifras grandes: **6** sitios reales del polo sur · **8 760** horas de 2027 · **150 km** de relieve en cada horizonte. Captura pequeña de la app y la dirección. | Validez, Relevancia |
+| 4 | Demo | «Demo en vivo»: 1. Malapert, 15 de enero: viabilidad 95 % · 2. Una semana de atraso: sin energía · 3. Copiloto con IA: cada idea se simula · 4. Mapa: 6 sitios × 365 días | Creatividad |
+| 5 | Validación e impacto | Título: **«Validado contra la NASA»**. Tres cifras grandes: **6 / 6** sitios a menos de 5 puntos del mapa oficial de iluminación LOLA · **89.5 %** de luz en Connecting Ridge (publicado: 89 %) · **359** pruebas automáticas. Debajo: «Para planificadores de CLPS y Artemis, docentes y público general. Sin modelar todavía: temperatura, polvo ni satélites de relevo.» | Validez, Impacto |
+| 6 | Cierre | Frase grande: **«Si el alunizaje se atrasa, ¿la misión todavía funciona? Ahora cualquiera lo sabe en segundos.»** Debajo: dirección de la app, EN / ES, y las fuentes. | Presentación |
 
 ## Guion de Joshua
 
