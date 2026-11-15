@@ -12,9 +12,9 @@ import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
 import { SiteConditions } from './components/SiteConditions'
 import { VisibilityCalendar } from './components/VisibilityCalendar'
-import { Badge, Button, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
+import { Badge, Button, DateTimeField, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
 import { formatLat, formatLon } from './lib/format'
-import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, toInputValue, totalDays } from './lib/time'
+import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, totalDays } from './lib/time'
 import { missionWindow, recommend, type Recommendation } from './lib/recommend'
 import { storyFacts } from './lib/storyFacts'
 import { DEFAULT_WEIGHTS, VERDICT_LABEL, siteViability, type Verdict, type ViabilityResult } from './lib/viability'
@@ -237,13 +237,9 @@ function Planner() {
             step={plannerStep} onStep={setPlannerStep}
             date={sampleTime(p.data, i)} missionDays={missionDays} schedule={
                 <section aria-label="Fecha y duración del plan" className="glass-surface grid grid-cols-1 items-end gap-5 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">
-                  <div className="min-w-0">
-                    <label htmlFor="explore-date" className="mb-2 block text-sm text-ink-muted">Fecha de alunizaje · UTC</label>
-                    <input id="explore-date" type="datetime-local" step={3600} value={toInputValue(sampleTime(p.data, i))}
-                      min={toInputValue(sampleTime(p.data, 0))} max={toInputValue(sampleTime(p.data, p.data.sun.el.length - 1))}
-                      onChange={e => { const date = fromInputValue(e.target.value); if (date && e.target.validity.valid) seek(indexAt(p.data, date, p.data.sun.el.length)) }}
-                      className="min-h-12 w-full min-w-0 border border-seam-strong bg-void px-3 text-base text-ink" />
-                  </div>
+                  <DateTimeField id="explore-date" label="Fecha de alunizaje · UTC" value={sampleTime(p.data, i)}
+                    min={sampleTime(p.data, 0)} max={sampleTime(p.data, p.data.sun.el.length - 1)}
+                    onChange={date => seek(indexAt(p.data, date, p.data.sun.el.length))} />
                   <div className="min-w-0"><p className="mb-2 text-sm text-ink-muted">Días en la superficie</p>
                     <Segmented label="Duración de la misión" options={MISSION_LENGTHS.some(o => o.value === String(missionDays)) ? MISSION_LENGTHS : [...MISSION_LENGTHS, { value: String(missionDays), label: `${missionDays} d` }]} value={String(missionDays)} onChange={v => actions.setMissionDays(Number(v))} className="min-h-12 w-full items-center [&_button]:min-h-10" />
                   </div>

@@ -9,7 +9,7 @@ import {
   type LanderConfig,
   type PresetId,
 } from '../../sim/lander'
-import { Button, cx, Disclosure, Select, Slider } from '../ui'
+import { Button, cx, DateTimeField, Disclosure, Select, Slider } from '../ui'
 
 const PRESET_OPTIONS = (Object.keys(PRESETS) as PresetId[]).map((id) => ({ value: id, label: PRESETS[id].label,
   description: PRESETS[id].description,
@@ -64,13 +64,8 @@ export function MissionSetup({
       <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
           {siteControl}
 
-            <div className="min-w-0">
-              <label htmlFor="mission-date" className="mb-2 block text-sm text-ink-muted">Fecha de alunizaje · UTC</label>
-              <input id="mission-date" type="datetime-local" value={toInputValue(timelineDate)}
-                min={toInputValue(minDate)} max={toInputValue(maxDate)} step={3600}
-                onChange={(e) => { if (e.target.validity.valid && e.target.value) onDate(e.target.value) }}
-                className="min-h-14 w-full min-w-0 border border-seam-strong bg-hull px-4 text-base text-ink" />
-            </div>
+            <DateTimeField id="mission-date" label="Fecha de alunizaje · UTC" value={timelineDate} min={minDate} max={maxDate}
+              onChange={(date) => onDate(toInputValue(date))} />
             <div>
               <label htmlFor="mission-days" className="mb-2 block text-sm text-ink-muted">Tiempo en la superficie</label>
               <div className="flight-field flex min-h-14 items-center gap-2 border border-seam-strong bg-hull px-4">

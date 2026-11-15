@@ -72,7 +72,7 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
               disabled={!!errors[site.id]} onClick={() => onSelect(site.id)}
               className={cx('guide-site glass-surface relative flex min-w-0 flex-col overflow-hidden text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40', active ? 'guide-site--selected' : 'hover:border-ink-faint')}>
               <div className="relative aspect-[16/9] w-full overflow-hidden bg-hull">
-                {photo && <img src={photo.src} alt="" width={640} height={360} className="size-full object-cover" style={{ objectPosition: photo.position }} />}
+                {photo && <img src={photo.src} alt="" width={640} height={360} className="guide-site__photo size-full object-cover" style={{ objectPosition: photo.position }} />}
                 {active && <span className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-ink text-void" aria-hidden>
                   <svg viewBox="0 0 20 20" className="size-4"><path d="m4 10 4 4 8-8" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
                 </span>}
@@ -80,7 +80,7 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
               <span className="flex flex-1 flex-col p-3 sm:p-4">
                 <span className="text-sm font-bold leading-snug text-ink sm:text-base">{site.name}</span>
                 <span className="mt-2 hidden text-xs leading-relaxed text-ink-muted sm:block">{site.description}</span>
-                <span className="mt-auto pt-3 text-xs font-bold text-ink-muted">{errors[site.id] ? 'Datos no disponibles' : active ? 'Destino elegido' : 'Elegir este sitio'}</span>
+                <span className="guide-site__cta mt-auto pt-3 text-xs font-bold text-ink-muted">{errors[site.id] ? 'Datos no disponibles' : active ? 'Destino elegido' : <>Elegir este sitio<span aria-hidden className="guide-site__arrow ml-1.5">→</span></>}</span>
               </span>
             </button>
           })}
