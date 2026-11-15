@@ -159,12 +159,17 @@ function CameraRig({ siteId, sky, groundY, controls, arrivalProgress }: { siteId
   sunAzRef.current = sky.sunAz
 
   useEffect(() => {
-    // A unos 3 km del sitio, de costado al Sol: se ven el módulo y las sombras largas.
-    const view = direction(sunAzRef.current + 135, 0).multiplyScalar(3.2)
-    camera.position.set(view.x, groundY + 0.9, view.z)
-    controls.current?.target.set(0, groundY + SHIP_CENTER_KM, 0)
+    // La vista inicial es exactamente la última del alunizaje (mismo sitio, ángulo y distancia), para que
+    // «Evaluar» y el planificador muestren el lugar donde se vio aterrizar la nave.
+    const frame = descentFrame(1, size.width / size.height)
+    const elev = frame.cameraElevationDeg * DEG
+    const horizontal = direction(sunAzRef.current + 50, 0)
+    const targetY = groundY + SHIP_CENTER_KM * 0.6
+    const d = frame.cameraDistanceKm
+    camera.position.set(horizontal.x * Math.cos(elev) * d, targetY + Math.sin(elev) * d, horizontal.z * Math.cos(elev) * d)
+    controls.current?.target.set(0, targetY, 0)
     controls.current?.update()
-  }, [siteId, groundY, camera, controls])
+  }, [siteId, groundY, camera, controls, size.width, size.height])
   useFrame(() => {
     if (arrivalProgress === undefined) return
     const frame = descentFrame(arrivalProgress, size.width / size.height)

@@ -97,7 +97,7 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
 
   return <section aria-label="Viaje Tierra–Luna">
     <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-4 border-y border-seam py-4">
-      <Button variant="primary" size="lg" disabled={!ready && !failed} aria-label={playing ? 'Pausar viaje' : 'Reproducir viaje'} onClick={() => { if (complete) setProgress(0); setPlaying(p => !p) }}>{!ready && !failed ? 'Cargando viaje…' : playing ? 'Pausar viaje' : complete ? 'Repetir viaje' : 'Iniciar viaje'}</Button>
+      <Button variant="primary" size="lg" disabled={!ready && !failed} aria-label={playing ? 'Pausar viaje' : progress > 0 && !complete ? 'Continuar viaje' : 'Reproducir viaje'} onClick={() => { if (complete) setProgress(0); setPlaying(p => !p) }}>{!ready && !failed ? 'Cargando viaje…' : playing ? 'Pausar viaje' : complete ? 'Repetir viaje' : progress > 0 ? 'Continuar viaje' : 'Iniciar viaje'}</Button>
       <label className="min-w-40 flex-1 text-sm text-ink-muted">Avance del viaje
         <input type="range" aria-label="Avance del viaje Tierra–Luna" aria-valuetext={`${phase}. ${launch ? 'Ascenso ilustrativo' : sample.descent ? 'Descenso ilustrativo' : formatDuration(sample.seconds / 3600) + ' de transferencia'}.`}
           min={0} max={1} step={0.001} value={progress} onChange={e => seek(Number(e.target.value))} className="range mt-2 w-full" style={{ '--fill': `${progress * 100}%` } as CSSProperties} />
@@ -124,15 +124,16 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[linear-gradient(to_bottom,rgb(5_7_13/0.9),transparent)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 p-5 sm:p-6">
           <p className="text-sm text-ink-muted">
-            {cruising ? <><span className="hidden sm:inline">Salida · Viaje · Encuentro</span><span className="font-bold tabular-nums text-ink sm:hidden">T + {formatDuration(sample.seconds / 3600)} · 1 s = {scale} h · Luna {Math.round(moonDistanceKm).toLocaleString('es')} km</span></> : 'Salida · Viaje · Encuentro'}
+            {cruising ? <><span className="hidden sm:inline">Salida · Viaje · Encuentro</span><span className="font-bold tabular-nums text-ink sm:hidden">Tiempo de viaje {formatDuration(sample.seconds / 3600)} · 1 s = {scale} h · Luna {Math.round(moonDistanceKm).toLocaleString('es')} km</span></> : 'Salida · Viaje · Encuentro'}
           </p>
           <h2 aria-live="polite" className="mt-2 text-xl font-bold text-ink">{phase}</h2>
         </div>
         {/* Arriba a la derecha: en esta trayectoria la Luna pasa por la izquierda y la Tierra queda abajo. */}
         {/* En pantallas angostas el reloj va en la línea sobre el título: la trayectoria y la Luna pasan por aquí. */}
         {cruising && <div aria-hidden className="pointer-events-none absolute right-6 top-24 hidden text-right sm:block">
-          <p className="text-4xl font-bold tabular-nums text-ink">T + {formatDuration(sample.seconds / 3600)}</p>
-          <p className="mt-1 text-xs text-ink-muted">desde la salida · 1 s = {scale} h</p>
+          <p className="text-xs text-ink-muted">Tiempo de viaje</p>
+          <p className="text-4xl font-bold tabular-nums text-ink">{formatDuration(sample.seconds / 3600)}</p>
+          <p className="mt-1 text-xs text-ink-muted">desde que sale de la órbita terrestre · 1 s = {scale} h</p>
           <dl className="mt-3 space-y-1 text-xs tabular-nums">
             <div className="flex justify-end gap-2"><dt className="text-ink-muted">Tierra</dt><dd className="text-earth">{Math.round(sample.radiusKm).toLocaleString('es')} km</dd></div>
             <div className="flex justify-end gap-2"><dt className="text-ink-muted">Luna</dt><dd className="text-ink">{Math.round(moonDistanceKm).toLocaleString('es')} km</dd></div>

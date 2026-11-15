@@ -215,7 +215,7 @@ export default function TransferViewer({ orbit, sample, reduced, onReady, active
       camera={{ position: [0.14, 0, 0.42], fov: 42, near: 0.000001, far: 100 }} aria-hidden>
       <Suspense fallback={null}><TransferScene orbit={orbit} sample={sample} reduced={reduced} onReady={onReady} /></Suspense>
     </Canvas>
-    {!sample.launch && !sample.descent && <div aria-hidden className="pointer-events-none absolute bottom-16 left-4 rounded-hw bg-void/60 p-2 backdrop-blur-sm sm:bottom-14 sm:left-6">
+    {!sample.launch && !sample.descent && <div aria-hidden className="pointer-events-none absolute bottom-20 left-3 origin-bottom-left scale-[0.62] rounded-hw bg-void/60 p-2 backdrop-blur-sm sm:bottom-14 sm:left-6 sm:scale-100">
       <TrajectoryMap orbit={orbit} sample={sample} />
     </div>}
   </>
