@@ -126,3 +126,32 @@ export function fromInputValue(value: string): Date | null {
   const t = Date.parse(`${value}:00Z`)
   return Number.isNaN(t) ? null : new Date(t)
 }
+
+/**
+ * Marcas de fecha para una barra de `n` muestras: una por semana en periodos cortos y una por mes (el día 1, en
+ * UTC) cuando el periodo pasa de 70 días, para que no se amontonen.
+ */
+export function timeTicks(start: string, stepHours: number, n: number): Array<{ index: number; label: string }> {
+  const t0 = Date.parse(start)
+  const hours = (n - 1) * stepHours
+  if (hours <= 70 * 24) {
+    const perWeek = (7 * 24) / stepHours
+    return Array.from({ length: Math.floor((n - 1) / perWeek) + 1 }, (_, k) => k * perWeek).map((i) => ({
+      index: i,
+      label: formatShortDate(sampleTime({ start, stepHours }, i)),
+    }))
+  }
+  const out: Array<{ index: number; label: string }> = []
+  const d = new Date(t0)
+  const atMonthStart = d.getUTCDate() === 1 && d.getUTCHours() === 0 && d.getUTCMinutes() === 0
+  let year = d.getUTCFullYear()
+  let month = d.getUTCMonth() + (atMonthStart ? 0 : 1)
+  for (;;) {
+    const t = Date.UTC(year, month, 1)
+    if (t > t0 + hours * HOUR_MS) break
+    const m = new Date(t)
+    out.push({ index: Math.round((t - t0) / (stepHours * HOUR_MS)), label: MONTHS[m.getUTCMonth()] })
+    month++
+  }
+  return out
+}

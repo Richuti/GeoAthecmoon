@@ -89,6 +89,13 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Aviso para el backend:** `backend/build.py` no escribe los campos nuevos (`distKm`, `distanceKm`, `dsn`, `reference`); si se regenera con él, se pierden.
 - **Commit sugerido:** `Tarea D1: un año de datos con coordenadas verificadas, eclipses, crestas, DSN y validación con NASA`
 
+### D2. Datos de D1 en la interfaz · [ ] · Implementado, pendiente de revisión de Richard
+- **Registro de la misión** (`src/sim/simulate.ts`): cada puesta y salida del Sol dice por dónde ocurre. Si una cresta tapa el Sol: «el Sol se oculta tras el relieve, a 8.0 km hacia el suroeste». Si no: «el Sol se pone por el suroeste». Evento nuevo `eclipse`: «La Tierra tapa hasta el 43 % del Sol durante 3 h».
+- **Línea de tiempo del modo explorar:** fila nueva **DSN**, con las horas de enlace real (la Tierra a la vista y alguna antena con la Luna sobre 10°). Los eclipses aparecen como cortes en la franja de luz, con una nota que explica las dos cosas. Con 365 días, las fechas bajo la barra van una por mes en lugar de una por semana (`timeTicks` en `src/lib/time.ts`), porque se amontonaban.
+- **Panel «Ahora»:** «Relieve hacia el Sol» (altura del relieve en esa dirección y distancia a la cresta), «Antenas DSN» (cuáles ven la Luna en este momento) y, durante un eclipse, «Eclipse» con el % del Sol tapado.
+- **El simulador sigue sin usar la DSN:** mantiene el supuesto de que siempre hay una estación disponible, hasta que Richard decida.
+- **Probado:** 262 pruebas (las nuevas: rumbos, frase de la cresta, evento de eclipse, puesta tras una cresta y marcas por mes) y `npm run build`. En navegador: Malapert el 17 ago 2027 muestra el eclipse del 43 %, la fila DSN y las etiquetas por mes. En móvil no hay desborde ni textos cortados, y no hay errores de JavaScript. El flujo del imprevisto (SU7) sigue pasando.
+
 ---
 
 ## Fase B · Carga de datos y cálculos
@@ -342,6 +349,7 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ### 7.3 Trayectorias y posición actual · MVP
 - Trayectorias del Sol (ámbar) y de la Tierra (azul) en el periodo, con el punto actual de cada uno. El punto se ve hueco cuando está tapado por el relieve.
+- **Implementado, pendiente de revisión de Richard:** `src/components/SkyPlot.tsx`, montado en el modo explorar, antes del panel «Ahora».
 - **Commit:** `Tarea 7: gráfico polar del cielo`
 
 ### 8.1 Tarjetas de métricas · MVP

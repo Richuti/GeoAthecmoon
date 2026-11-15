@@ -5,7 +5,9 @@ import { describe, test } from 'node:test'
 import {
   angularRadiusDeg,
   blockerAt,
+  blockerPhrase,
   compareWithReference,
+  compassName,
   compassPoint,
   discAboveHorizon,
   discCoverage,
@@ -21,7 +23,8 @@ import {
   sunRadiusDeg,
   SUN_RADIUS_KM,
 } from '../src/lib/sky.ts'
-import { sunFraction, SUN_RADIUS_DEG } from '../src/sim/simulate.ts'
+import { PRESETS } from '../src/sim/lander.ts'
+import { simulate, sunFraction, SUN_RADIUS_DEG } from '../src/sim/simulate.ts'
 import type { SiteData } from '../src/types.ts'
 
 const near = (a: number, b: number, tol: number) => assert.ok(Math.abs(a - b) <= tol, `${a} y ${b} difieren más de ${tol}`)
@@ -108,6 +111,32 @@ describe('relieve que tapa', () => {
   test('da la vuelta en 359.6°', () => assert.equal(blockerAt(d.horizon, 359.6).azimuthDeg, 0))
   test('sin distancias devuelve null', () => assert.equal(blockerAt({ azimuthStepDeg: 1, elevationDeg: [1, 2] }, 0).distanceKm, null))
   test('rumbos', () => assert.deepEqual([0, 44, 46, 180, 225, 315, 359].map(compassPoint), ['N', 'NE', 'NE', 'S', 'SO', 'NO', 'N']))
+  test('rumbos con su nombre', () => assert.deepEqual([0, 90, 135, 225, 270].map(compassName), ['norte', 'este', 'sureste', 'suroeste', 'oeste']))
+  test('frase: una cresta sobre el horizonte plano', () => {
+    assert.equal(blockerPhrase({ azimuthDeg: 225, elevationDeg: 1.2, distanceKm: 12.46, heightM: 400 }), 'tras el relieve, a 12.5 km hacia el suroeste')
+  })
+  test('frase: el terreno queda por debajo, el cuerpo se pone', () => {
+    assert.equal(blockerPhrase({ azimuthDeg: 270, elevationDeg: -0.8, distanceKm: 3, heightM: -50 }), 'por el oeste')
+    assert.equal(blockerPhrase({ azimuthDeg: 90, elevationDeg: 2, distanceKm: null, heightM: null }), 'por el este')
+  })
+})
+
+describe('eventos del simulador con los datos del cielo', () => {
+  test('eclipse: un evento al empezar, con la mayor fracción tapada', () => {
+    const d = fakeSite({ az: [0, 0, 0, 0, 0, 0], el: [10, 10, 10, 10, 10, 10] }, { az: [0, 0, 0, 0, 0, 0], el: [13, 11, 10.5, 11, 13, 13] })
+    const r = simulate(d, PRESETS.explorer.config, { startIndex: 0, missionDays: 6 / 24 })
+    const e = r.events.filter((x) => x.type === 'eclipse')
+    assert.equal(e.length, 1)
+    assert.equal(e[0].index, 1)
+    assert.match(e[0].message, /tapa hasta el 100 % del Sol durante 3 h/)
+  })
+  test('la puesta de Sol nombra la cresta que lo tapa', () => {
+    const d = fakeSite({ az: [225, 225, 225], el: [2, 2, 0.5] }, { az: [0, 0, 0], el: [5, 5, 5] }, 1)
+    d.horizon.distanceKm = Array.from({ length: 360 }, () => 8.04)
+    const r = simulate(d, PRESETS.explorer.config, { startIndex: 0, missionDays: 3 / 24 })
+    const set = r.events.find((x) => x.type === 'sun-set')!
+    assert.match(set.message, /el Sol se oculta tras el relieve, a 8\.0 km hacia el suroeste\.$/)
+  })
 })
 
 describe('DSN', () => {

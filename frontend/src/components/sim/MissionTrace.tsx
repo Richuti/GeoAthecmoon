@@ -19,6 +19,7 @@ const EVENT_COLOR: Record<EventType, string> = {
   recovered: 'bg-ok',
   failure: 'bg-critical',
   complete: 'bg-ok',
+  eclipse: 'bg-sun/70',
 }
 
 export function MissionTrace({

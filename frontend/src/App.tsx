@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
+import { SkyPlot } from './components/SkyPlot'
 import { Sources } from './components/Sources'
 import { SimulatorWorkspace } from './components/sim/SimulatorWorkspace'
 import { Story } from './components/Story'
@@ -12,6 +13,7 @@ import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate,
 import { missionWindow, recommend, type Recommendation } from './lib/recommend'
 import { storyFacts } from './lib/storyFacts'
 import { DEFAULT_WEIGHTS, VERDICT_LABEL, siteViability, type Verdict, type ViabilityResult } from './lib/viability'
+import { compassPoint, dsnLinkSeries, dsnStationsAt, eclipseFraction, eclipses, sunBlocker } from './lib/sky'
 import { nextChange, visibility } from './lib/visibility'
 import { DEFAULT_PRESET, PRESETS, type LanderConfig, type PresetId } from './sim/lander'
 import { bestViableStart, delayTolerance, scanStarts } from './sim/search'
@@ -228,6 +230,12 @@ function Planner() {
               </div>
               <div className="flex min-h-0 min-w-0 flex-col gap-5 *:shrink-0 lg:overflow-y-auto lg:pt-2 lg:pr-0.5">
                 {rec && <Viability p={p} rec={rec} missionDays={missionDays} onMissionDays={actions.setMissionDays} onSelect={actions.select} onSeek={actions.setIndex} />}
+                <SkyPlot
+                  horizon={p.data.horizon.elevationDeg}
+                  sun={{ az: p.data.sun.az[i], el: p.data.sun.el[i], visible: p.lit[i] }}
+                  earth={{ az: p.data.earth.az[i], el: p.data.earth.el[i], visible: p.contact[i] }}
+                  sunTrack={p.data.sun} earthTrack={p.data.earth}
+                />
                 <Now p={p} index={i} />
               </div>
             </main>
@@ -324,6 +332,9 @@ function Timeline({
   const min = mission?.from ?? 0
   const max = mission ? mission.to - 1 : n - 1
   const fill = max > min ? ((index - min) / (max - min)) * 100 : 0
+  // Datos de D1: enlace real con la DSN (Tierra visible y alguna antena con la Luna sobre 10°) y eclipses.
+  const dsn = useMemo(() => dsnLinkSeries(p.data, p.contact), [p.data, p.contact])
+  const sunEclipses = useMemo(() => eclipses(p.data).filter((e) => p.lit.slice(e.start, e.end).some(Boolean)), [p.data, p.lit])
 
   return (
     <Panel label={mission ? 'Reproducir misión' : 'Línea de tiempo'}>
@@ -373,8 +384,16 @@ function Timeline({
           stepHours={p.data.stepHours}
           onSeek={(index) => onIndex(Math.max(min, Math.min(max, index)))}
           highlight={mission}
+          dsn={dsn}
+          eclipses={sunEclipses}
         />
       </div>
+      {(dsn || sunEclipses.length > 0) && (
+        <p className="mt-2 text-xs leading-relaxed text-ink-faint">
+          {dsn && 'DSN: horas con la Tierra a la vista y alguna antena de Goldstone, Madrid o Canberra con la Luna sobre 10°. '}
+          {sunEclipses.length > 0 && `Cortes en la luz: ${sunEclipses.length === 1 ? 'un eclipse' : `${sunEclipses.length} eclipses`} de Sol por la Tierra.`}
+        </p>
+      )}
     </Panel>
   )
 }
@@ -578,6 +597,12 @@ function Now({ p, index }: { p: SiteView; index: number }) {
   const toContact = nextChange(p.contact, index)
   const date = sampleTime(d, index)
   const maxSlope = d.slope.max100mDeg
+  // Relieve en la dirección del Sol (LOLA), antenas de la DSN que ven la Luna y eclipse en curso (datos de D1).
+  const ridge = sunBlocker(d, index)
+  const ridgeIsCrest = ridge.elevationDeg > 0 && ridge.distanceKm !== null
+  const stationIds = dsnStationsAt(d, index)
+  const stationNames = d.dsn?.stations.filter((s) => stationIds.includes(s.id)).map((s) => s.name.split(' (')[0]) ?? []
+  const eclipsePct = lit ? Math.round(eclipseFraction(d, index) * 100) : 0
 
   return (
     <Panel label={`Ahora · ${formatDateTime(date)}`}>
@@ -596,6 +621,30 @@ function Now({ p, index }: { p: SiteView; index: number }) {
           detail={contact ? 'Con contacto' : 'Sin contacto directo'}
           hint="Altura de la Tierra sobre el horizonte. Si el relieve la tapa, no hay comunicación directa."
         />
+        <Stat
+          label="Relieve hacia el Sol"
+          value={`${ridge.elevationDeg.toFixed(2)}°`}
+          detail={ridgeIsCrest ? `Cresta a ${ridge.distanceKm!.toFixed(1)} km · ${compassPoint(ridge.azimuthDeg)}` : `Terreno bajo · ${compassPoint(ridge.azimuthDeg)}`}
+          hint="Altura del relieve en la dirección del Sol y distancia a la cresta que limita la vista, calculadas con el relieve LOLA. Si el Sol está por debajo de este valor, no hay luz."
+        />
+        {d.dsn && (
+          <Stat
+            label="Antenas DSN"
+            value={`${stationIds.length} de ${d.dsn.stations.length}`}
+            tone={contact && stationIds.length > 0 ? 'earth' : 'neutral'}
+            detail={stationNames.length ? stationNames.join(', ') : 'Ninguna ve la Luna'}
+            hint={`Antenas de 70 m de la Red de Espacio Profundo de NASA que ven la Luna a más de ${d.dsn.minElevationDeg}° sobre su horizonte (JPL Horizons). El simulador todavía supone que siempre hay una disponible.`}
+          />
+        )}
+        {eclipsePct > 0 && (
+          <Stat
+            label="Eclipse"
+            value={`${eclipsePct} %`}
+            tone="sun"
+            detail="La Tierra tapa el Sol"
+            hint="Vista desde la Luna, la Tierra pasa delante del Sol (en la Tierra se ve un eclipse de Luna). Durante el eclipse, el panel genera menos energía."
+          />
+        )}
         <Stat
           label={lit ? 'Sombra en' : 'Luz en'}
           value={toLight === null ? '—' : formatDuration(toLight * d.stepHours)}

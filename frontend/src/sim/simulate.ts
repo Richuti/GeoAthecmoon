@@ -4,7 +4,7 @@
 // sitio) y los envíos, de las ventanas de contacto con la Tierra. Todo lo demás son los parámetros del módulo.
 
 import { missionWindow } from '../lib/recommend.ts'
-import { solarFraction } from '../lib/sky.ts'
+import { blockerPhrase, eclipseFraction, solarFraction, sunBlocker } from '../lib/sky.ts'
 import { formatDurationLong, formatMissionClock, hoursBetween } from '../lib/time.ts'
 import { contactSeries, litSeries, windowAt } from '../lib/visibility.ts'
 import type { SiteData } from '../types'
@@ -45,6 +45,7 @@ export type EventType =
   | 'recovered'
   | 'failure'
   | 'complete'
+  | 'eclipse'
 
 export interface SimEvent {
   /** Muestra del periodo en la que ocurre */
@@ -132,7 +133,12 @@ export function simulate(data: SiteData, cfg: LanderConfig, plan: MissionPlan, p
     // Cambios de luz y de contacto respecto de la muestra anterior.
     if (i > from) {
       if (lit[i] !== lit[i - 1]) {
-        event(i, lit[i] ? 'sun-rise' : 'sun-set', `${clock(i)}: ${lit[i] ? 'vuelve el Sol' : 'el Sol se oculta tras el relieve'}.`)
+        // Dirección del Sol en la muestra con luz: ahí está el relieve que lo tapa o por donde se pone.
+        const b = sunBlocker(data, lit[i] ? i : i - 1)
+        const where = blockerPhrase(b)
+        const ridge = b.elevationDeg > 0 && b.distanceKm !== null
+        const text = lit[i] ? (ridge ? `vuelve el Sol: asoma ${where}` : `vuelve el Sol ${where}`) : ridge ? `el Sol se oculta ${where}` : `el Sol se pone ${where}`
+        event(i, lit[i] ? 'sun-rise' : 'sun-set', `${clock(i)}: ${text}.`)
       }
       if (contact[i] !== contact[i - 1]) {
         if (contact[i]) {
@@ -143,6 +149,15 @@ export function simulate(data: SiteData, cfg: LanderConfig, plan: MissionPlan, p
           event(i, 'contact-close', `${clock(i)}: se pierde el contacto con la Tierra.`)
         }
       }
+    }
+
+    // Eclipse: la Tierra empieza a tapar el Sol (solo importa si el Sol está a la vista).
+    const ecl = lit[i] ? eclipseFraction(data, i) : 0
+    if (ecl > 0 && (i === from || !lit[i - 1] || eclipseFraction(data, i - 1) === 0)) {
+      let end = i
+      let maxCover = ecl
+      while (end < to && lit[end] && eclipseFraction(data, end) > 0) maxCover = Math.max(maxCover, eclipseFraction(data, end++))
+      event(i, 'eclipse', `${clock(i)}: eclipse. La Tierra tapa hasta el ${Math.round(maxCover * 100)} % del Sol durante ${formatDurationLong(hoursBetween(data, i, end))}.`)
     }
 
     // Energía: parte del disco solar sobre el relieve, con su tamaño real y menos lo que tapa la Tierra en un eclipse.

@@ -150,6 +150,22 @@ export function compassPoint(azDeg: number): string {
   return names[Math.round(normalizeAz(azDeg) / 45) % 8]
 }
 
+/** Nombre completo en español de un azimut (norte, noreste, ...), para frases. */
+export function compassName(azDeg: number): string {
+  const names = ['norte', 'noreste', 'este', 'sureste', 'sur', 'suroeste', 'oeste', 'noroeste']
+  return names[Math.round(normalizeAz(azDeg) / 45) % 8]
+}
+
+/**
+ * Frase corta sobre lo que limita la vista en una dirección: "tras el relieve, a 12.5 km hacia el suroeste" si una
+ * cresta sobresale del horizonte plano, o "por el suroeste" si el terreno queda por debajo (el cuerpo se pone).
+ */
+export function blockerPhrase(b: Blocker): string {
+  const toward = compassName(b.azimuthDeg)
+  if (b.elevationDeg > 0 && b.distanceKm !== null) return `tras el relieve, a ${b.distanceKm.toFixed(1)} km hacia el ${toward}`
+  return `por el ${toward}`
+}
+
 // ---------------------------------------------------------------------------
 // Red de Espacio Profundo (DSN)
 // ---------------------------------------------------------------------------

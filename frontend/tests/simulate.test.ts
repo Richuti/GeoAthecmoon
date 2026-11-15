@@ -78,7 +78,7 @@ describe('modos y eventos', () => {
   test('avisa cuando vuelve el Sol', () => assert.ok(r.events.some((e) => e.type === 'sun-rise' && e.index === 15)))
   test('mensajes en español con día y hora de la misión', () => {
     const rise = r.events.find((e) => e.type === 'sun-rise')!
-    assert.equal(rise.message, 'Día 1 · 1 ene, 15:00 UTC: vuelve el Sol.')
+    assert.equal(rise.message, 'Día 1 · 1 ene, 15:00 UTC: vuelve el Sol por el norte.')
     assert.match(r.events[0].message, /^Día 1 · 1 ene, 00:00 UTC: alunizaje\./)
   })
   test('las ventanas de comunicación dicen cuánto duran', () => {
