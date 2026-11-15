@@ -1,22 +1,23 @@
-﻿/* El logo y su fondo se abren juntos en dos mitades horizontales. */
+﻿/* Apertura breve → nombre → cierre y cambio de contraste → salida a la portada. */
 .brand-intro {
+  --intro-gap: clamp(38px, 5vw, 62px);
   position: fixed;
   z-index: 1000;
   inset: 0;
   overflow: hidden;
-  color: #fff;
-  animation: brand-intro-lifetime 2400ms linear both;
+  color: #e8ebf1;
+  animation: brand-intro-lifetime 2800ms linear both;
 }
 .brand-intro__half {
   position: absolute;
   inset: 0;
-  background: #0c0e42;
-  animation-duration: 2400ms;
-  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+  background: #05070d;
+  animation-duration: 2800ms;
+  animation-timing-function: linear;
   animation-fill-mode: both;
 }
-.brand-intro__half--top { clip-path: inset(0 0 50%); animation-name: brand-open-top; }
-.brand-intro__half--bottom { clip-path: inset(50% 0 0); animation-name: brand-open-bottom; }
+.brand-intro__half--top { clip-path: inset(0 0 calc(50% - 0.5px)); animation-name: brand-open-top, brand-surface; }
+.brand-intro__half--bottom { clip-path: inset(50% 0 0); animation-name: brand-open-bottom, brand-surface; }
 .brand-intro__identity {
   position: absolute;
   top: 50%;
@@ -25,28 +26,79 @@
   max-width: calc(100vw - 48px);
   aspect-ratio: 510 / 355;
   transform: translate(-50%, -50%);
+  mix-blend-mode: screen;
+  animation: brand-logo-blend 2800ms linear both;
 }
-.brand-intro__emblem { display: block; width: 100%; height: 100%; }
-.brand-intro__signature { position: absolute; top: 100%; inset-inline: -12px; padding-top: 24px; text-align: center; }
-.brand-intro__name { font-size: clamp(14px, 1.5vw, 20px); font-weight: 700; line-height: 1.3; letter-spacing: 0.18em; }
-.brand-intro__caption { margin-top: 8px; font-size: 11px; line-height: 1.5; letter-spacing: 0.12em; text-transform: uppercase; color: #c4c7e6; }
-.brand-intro__skip { position: absolute; right: 32px; bottom: 28px; min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.3); color: #e8ebf1; font-size: 12px; cursor: pointer; background: #0c0e42; }
+.brand-intro__emblem {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* La mezcla elimina el fondo azul del PNG sin modificar el archivo original. */
+  filter: grayscale(1) contrast(1.25);
+  animation: brand-emblem 2800ms linear both;
+}
+.brand-intro__strip {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: calc(var(--intro-gap) * 2 + 2px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #05070d;
+  transform: translateY(-50%);
+  animation: brand-strip 2800ms linear both;
+}
+.brand-intro__name { font-family: var(--font-display); font-size: clamp(25px, 3.8vw, 48px); font-weight: 900; line-height: 1; }
+.brand-intro__caption { font-size: 10px; line-height: 1.5; letter-spacing: 0.12em; text-transform: uppercase; color: #b7becb; }
+.brand-intro__skip { position: absolute; right: 32px; bottom: 28px; min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.3); color: #e8ebf1; font-size: 12px; cursor: pointer; background: #05070d; }
 .brand-intro__skip:hover { border-color: rgb(255 255 255 / 0.7); }
 .brand-intro__skip:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 @keyframes brand-open-top {
-  0%, 38% { transform: translateY(0); }
+  0%, 25% { transform: translateY(0); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  40% { transform: translateY(calc(-1 * var(--intro-gap))); }
+  58% { transform: translateY(calc(-1 * var(--intro-gap))); animation-timing-function: cubic-bezier(0.64, 0, 0.96, 0.52); }
+  64% { transform: translateY(0); }
+  76% { transform: translateY(0); animation-timing-function: cubic-bezier(0.83, 0, 0.17, 1); }
   100% { transform: translateY(-51%); }
 }
 @keyframes brand-open-bottom {
-  0%, 38% { transform: translateY(0); }
+  0%, 25% { transform: translateY(0); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  40% { transform: translateY(var(--intro-gap)); }
+  58% { transform: translateY(var(--intro-gap)); animation-timing-function: cubic-bezier(0.64, 0, 0.96, 0.52); }
+  64% { transform: translateY(0); }
+  76% { transform: translateY(0); animation-timing-function: cubic-bezier(0.83, 0, 0.17, 1); }
   100% { transform: translateY(51%); }
 }
-/* El evento de la raíz desmonta la entrada tras salir ambas mitades. */
+@keyframes brand-surface {
+  0%, 64% { background-color: #05070d; }
+  64.01%, 100% { background-color: #e8ebf1; }
+}
+@keyframes brand-emblem {
+  0% { opacity: 0; transform: scale(0.96); filter: grayscale(1) contrast(1.25); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  10%, 64% { opacity: 1; transform: scale(1); filter: grayscale(1) contrast(1.25); }
+  64.01%, 100% { opacity: 1; transform: scale(1); filter: grayscale(1) contrast(1.25) invert(1); }
+}
+@keyframes brand-logo-blend { 0%, 64% { mix-blend-mode: screen; } 64.01%, 100% { mix-blend-mode: multiply; } }
+@keyframes brand-strip { 0%, 64% { opacity: 1; } 64.01%, 100% { opacity: 0; } }
+/* La primera escena acompaña la apertura final; el documento no cambia de escala. */
+.brand-intro-active section[aria-label='Viaje al polo sur lunar'] > .sticky {
+  animation: brand-landing-arrive 2800ms linear both;
+  transform-origin: center;
+}
+@keyframes brand-landing-arrive {
+  0%, 76% { transform: scale(0.95); animation-timing-function: cubic-bezier(0.83, 0, 0.17, 1); }
+  100% { transform: scale(1); }
+}
+/* Solo este evento desmonta la entrada; las animaciones hijas no la interrumpen. */
 @keyframes brand-intro-lifetime { from { visibility: visible; } to { visibility: visible; } }
 @media (max-width: 639px) {
   .brand-intro__identity { width: min(76vw, 360px); }
-  .brand-intro__name { font-size: 13px; letter-spacing: 0.14em; }
-  .brand-intro__caption { font-size: 10px; }
   .brand-intro__skip { right: 20px; bottom: 20px; }
 }
-@media (prefers-reduced-motion: reduce) { .brand-intro { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .brand-intro { display: none; }
+  .brand-intro-active section[aria-label='Viaje al polo sur lunar'] > .sticky { animation: none; }
+}

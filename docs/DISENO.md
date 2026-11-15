@@ -8,7 +8,9 @@ Los tokens están en `frontend/src/index.css` (`@theme`), el material en `fronte
 
 ## Entrada de marca de la portada
 
-Richard pidió corregir la entrada para que el logo se corte horizontalmente en dos mitades. `BrandIntro.tsx` y `brand-intro.css` muestran primero el logo GA original completo sobre su fondo #0c0e42; después la mitad superior del logo y del fondo sube y la inferior baja, abriendo la portada desde el centro. Dos capas coincidentes, recortadas al 50 %, mantienen un único logo antes de separarse. La secuencia dura 2.4 segundos. Permite saltar con botón, Escape o Tab, omite la animación con movimiento reducido y no se repite al regresar del planificador durante la misma carga. No aparece al entrar directamente a `#planificador`. El relato y las transiciones con el horizonte de Shackleton se conservan.
+Richard pidió volver a revisar la entrada de MXL Parts (https://mxlparts.us/) y corregir el color. Se verificaron visualmente las fases y su secuencia: apertura corta para descubrir una banda central, cierre, cambio de contraste y apertura final con acercamiento del contenido. `BrandIntro.tsx` y `brand-intro.css` adaptan ese ritmo al logo original GA: empieza blanco y gris sobre #05070d, abre unos 38–62 px por mitad para mostrar GEOATHECMOON y «Planificador lunar», vuelve a cerrar, cambia a logo oscuro sobre blanco lunar #e8ebf1 y abre las dos mitades por completo. La primera escena pasa de escala 0.95 a 1 durante la salida, sin escalar el documento. Dura 2.8 segundos. El PNG original no se modifica: filtros y mezcla CSS eliminan el fondo azul en la presentación.
+
+Permite saltar con botón, Escape o Tab, se omite con movimiento reducido y no se repite al regresar del planificador durante la misma carga. No aparece al entrar directamente a `#planificador`. Al terminar o saltar se restaura el scroll y se retira la animación de acercamiento. El relato y las transiciones con el horizonte de Shackleton se conservan.
 
 ### Ritmo de lectura de la landing
 

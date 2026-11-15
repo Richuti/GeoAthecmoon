@@ -4,6 +4,8 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 - **Corrección de la entrada (14 nov), implementada; pendiente de revisión y subida de Richard:** sustituye las tres franjas y la inversión de contraste por un corte horizontal en dos mitades. Logo y fondo se abren hacia arriba y abajo para descubrir la landing desde el centro. Verificado: 278 pruebas, build, capturas de la apertura a 1440/390 px, ajuste a 320 px, salto con botón/Escape, movimiento reducido y regreso sin repetir la intro.
 
+- **Entrada completa y color lunar (14 nov), implementada; pendiente de revisión y subida:** se volvió a observar MXL Parts y se adaptó su secuencia completa: apertura corta con el nombre, cierre, cambio de contraste neutro y apertura final con acercamiento de la portada. Se elimina el azul de la presentación sin modificar el PNG original. Verificado: 278 pruebas, build, capturas por fase a 1440/390 px y ajuste a 320 px; finalización, salto, Escape, movimiento reducido y regreso al inicio sin repetición.
+
 ## Cómo trabajamos
 
 1. Se hace **un solo paso a la vez** (por ejemplo, 4.2).
