@@ -1,7 +1,7 @@
 # Plan de la hackatón · GeoAthectum
 
 **Entrega (H):** domingo 15 nov, **13:00** (meta interna: no hay hora oficial todavía; si la anuncian, se ajusta)
-**Checkpoint dom 05:55:** 🟢 con un riesgo nuevo. Bugs corregidos (el tope del 40 % y "La siguiente opción"), `VITE_API_URL` puesta y la API respondiendo (0.8 s). Entraron la IA (copiloto de rescate con OpenAI en una función de Vercel; la clave no llega al navegador) y el mapa de supervivencia. **Riesgo:** el momento wow ahora depende de OpenAI y del wifi de la sede. La demo tiene que poder terminar sin la IA (las 3 salidas simuladas) y el video de respaldo tiene que mostrarla funcionando. **Feature freeze a las 07:00, sin excepciones.**
+**Checkpoint dom 07:05 (quedan 6 h):** 🟢. **Feature freeze activo: desde ahora solo bugs.** Producción responde (Vercel 200; la API despierta en 23 s y la cubre el respaldo de 6 s). La versión en inglés (requisito de NASA) y el README en inglés están en el PR #2 (`ingles` → `main`, sin conflictos, 347/347 pruebas y build correcto). La preview de Vercel del PR falla solo porque la cuenta de Rafael no es miembro del proyecto de Vercel; al fusionar Richard, se despliega normal. El doc de identidad no cambió (sigue diciendo "Simulador"). **Camino crítico:** merge del PR #2 → deploy final 08:00 → QA del guion A en inglés → video de respaldo → ensayos 10:00.
 **Checkpoint dom 05:55:** 🟢 con un riesgo nuevo. Bugs corregidos (el tope del 40 % y "La siguiente opción"), `VITE_API_URL` puesta y la API respondiendo (0.8 s). Entraron la IA (copiloto de rescate con OpenAI en una función de Vercel; la clave no llega al navegador) y el mapa de supervivencia. **Riesgo:** el momento wow ahora depende de OpenAI y del wifi de la sede. La demo tiene que poder terminar sin la IA (las 3 salidas simuladas) y el video de respaldo tiene que mostrarla funcionando. **Feature freeze a las 07:00, sin excepciones.**
 **Checkpoint dom 00:55:** 🟢. El PR #1 ya está en `main`. La API está en Render (`geoathecmoon-api.onrender.com`, arranque en frío de 22 s, cubierto por el respaldo de 6 s). Richard hizo el comparador (10) y la animación del despegue y la trayectoria. **Riesgo:** sigue agregando animaciones grandes; freeze a las 07:00 sin excepción. Pendientes: el bug del tope del 40 % (`delay.ts`), `VITE_API_URL` en Vercel y el QA del guion A.
 **Checkpoint sáb 23:35:** 🟢. La rama `frontend` ya está en `main` y desplegada en `https://geoathectum.vercel.app` (prueba de humo: 200 y datos con las coordenadas nuevas). El caso de la demo sigue igual con los datos nuevos (réplica en Python: falla el 2 feb a las 10:00 y viabilidad del 40 % el 20 ene). Falta: merge del PR #1 (sin conflictos con `main`), revisión de D2, SU7 y 12, y el congelamiento del pulido visual. IA1 queda fuera de esta entrega.
@@ -31,8 +31,6 @@
 | Integrar en `main` la rama `frontend` | Richard | ✅ | — |
 | Merge del PR #1 (`backend` → `main`) | Richard | ✅ sáb 23:59 | — |
 <<<<<<< HEAD
-| Servicio de Render apuntando a la rama `main` | Rafael | ⏳ | dom 01:00 |
-| Corregir el tope del 40 % en «¿Y si la misión se atrasa?» (`src/sim/delay.ts:31`, `missionSurvives`) | Richard | ⏳ | dom 03:30 |
 =======
 | Servicio de Render apuntando a la rama `main` (`backend/api/` ya está en `main` desde el 15 nov) | Rafael | ⏳ | — |
 | Corregir el tope del 40 % en «¿Y si la misión se atrasa?» (`src/sim/delay.ts`, `missionSurvives`) | Richard | ✅ `28a0fb3` | — |
@@ -49,14 +47,14 @@
 | Primer deploy en Vercel (aunque esté incompleto) | Richard y Rafael | ✅ `geoathectum.vercel.app` | — |
 | API en vivo en Render (`/health`, `/sites`, `/sites/{id}`): mismos JSON que Vercel | Rafael | ✅ `geoathecmoon-api.onrender.com` (dom 00:40) | — |
 <<<<<<< HEAD
-| Poner `VITE_API_URL` en Vercel y probar el respaldo | Richard | ⏳ | dom 03:30 |
 =======
 | Poner `VITE_API_URL` y `OPENAI_API_KEY` en Vercel y probar el respaldo | Richard | ✅ dom 15 nov | — |
 >>>>>>> origin/main
 | QA del guion de la demo en producción (celular y laptop), con los clics de `docs/CASO_DEMO.md` | Dilan | ⏳ | dom 01:00 |
 | Cambiar "Simulador" por GEOATHECMOON en el doc de identidad | Odelmy | ⏳ | dom 01:00 |
 | Guion del pitch en borrador | Odelmy y Joshua | ⏳ | dom 05:00 |
-| Feature freeze | todos | ⏳ | dom 07:00 |
+| Merge del PR #2 (versión en inglés, `ingles` → `main`) y revisar el deploy | Richard | ⏳ | dom 07:30 |
+| Feature freeze | todos | ✅ activo | dom 07:00 |
 | Deploy final y video de respaldo | Richard y Odelmy | ⏳ | dom 08:00 |
 | Ensayos del pitch (3 completos) | Joshua y todos | ⏳ | dom 10:00–12:30 |
 
