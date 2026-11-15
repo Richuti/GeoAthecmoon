@@ -7,6 +7,7 @@ import { dataNotice } from './api'
 import { Sources } from './components/Sources'
 import { SimulatorWorkspace } from './components/sim/SimulatorWorkspace'
 import { Story } from './components/Story'
+import { PlannerGuide } from './components/PlannerGuide'
 import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
 import { SiteConditions } from './components/SiteConditions'
@@ -26,7 +27,7 @@ import { useAppState, type Speed } from './state'
 import type { SiteData } from './types'
 
 const MODES = [
-  { value: 'explore', label: 'Explorar sitio' },
+  { value: 'explore', label: 'Planificador' },
   { value: 'simulate', label: 'Simulador' },
 ] as const
 
@@ -97,6 +98,7 @@ function Planner() {
   const { missionDays } = state
 
   const [preset, setPreset] = useState<PresetId | null>(DEFAULT_PRESET)
+  const [plannerStep, setPlannerStep] = useState(0)
   const [cfg, setCfg] = useState<LanderConfig>(PRESETS[DEFAULT_PRESET].config)
   const [landing, setLanding] = useState<number | null>(null)
   const [draftStart, setDraftStart] = useState<number | null>(null)
@@ -231,15 +233,9 @@ function Planner() {
                 onTrySite: actions.select,
               } : null}
             />
-          ) : <main className="mx-auto w-full max-w-[1600px] px-5 pb-14 pt-8 sm:px-8 lg:pt-10">
-            <header className="mb-8 max-w-3xl">
-              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Planificador · Polo sur lunar</p>
-              <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">Encuentra dónde alunizar.</h1>
-              <p className="mt-3 text-base leading-relaxed text-ink-muted">Elige un sitio y una fecha. Descubre cuánta luz tendrá tu misión, cuándo podrá comunicarse con la Tierra y cómo es el terreno.</p>
-            </header>
-            <div className="grid items-start gap-8 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
-              <SiteSelector sites={sites} selectedId={p.data.site.id} summaries={views} errors={state.dataErrors} onSelect={actions.select} />
-              <div className="min-w-0 space-y-7">
+          ) : <PlannerGuide sites={sites} selectedId={p.data.site.id} errors={state.dataErrors} onSelect={actions.select}
+            step={plannerStep} onStep={setPlannerStep}
+            date={sampleTime(p.data, i)} missionDays={missionDays} schedule={
                 <section aria-label="Fecha y duración del plan" className="glass-surface grid grid-cols-1 items-end gap-5 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">
                   <div className="min-w-0">
                     <label htmlFor="explore-date" className="mb-2 block text-sm text-ink-muted">Fecha de alunizaje · UTC</label>
@@ -252,6 +248,10 @@ function Planner() {
                     <Segmented label="Duración de la misión" options={MISSION_LENGTHS.some(o => o.value === String(missionDays)) ? MISSION_LENGTHS : [...MISSION_LENGTHS, { value: String(missionDays), label: `${missionDays} d` }]} value={String(missionDays)} onChange={v => actions.setMissionDays(Number(v))} className="min-h-12 w-full items-center [&_button]:min-h-10" />
                   </div>
                 </section>
+            }>
+            <div className="grid items-start gap-8 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
+              <div className="hidden lg:contents"><SiteSelector sites={sites} selectedId={p.data.site.id} summaries={views} errors={state.dataErrors} onSelect={actions.select} /></div>
+              <div className="min-w-0 space-y-7">
                 <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
                   <div className="min-w-0">
                     <div className="h-[27rem] min-w-0 sm:h-[31rem]"><ViewerPanel data={p.data} index={i} contact={p.contact[i]} immersive /></div>
@@ -259,9 +259,11 @@ function Planner() {
                   </div>
                   {rec && <Viability p={p} rec={rec} onSimulate={() => { actions.setPlaying(false); setDraftStart(rec.window.from); actions.setMode('simulate') }} />}
                 </div>
-                <SiteConditions data={p.data} index={i} lit={p.lit} contact={p.contact} />
-                <Timeline p={p} index={i} playing={state.playing} speed={state.speed} onIndex={seek} onTogglePlay={actions.togglePlay} onSpeed={actions.setSpeed} />
                 {rec && <PlanAlternatives p={p} rec={rec} onSelect={actions.select} onSeek={seek} />}
+                <Disclosure title="Ver luz, comunicación y calendario" description="Explora el entorno del módulo y busca otros días para alunizar.">
+                  <SiteConditions data={p.data} index={i} lit={p.lit} contact={p.contact} />
+                  <div className="mt-7"><Timeline p={p} index={i} playing={state.playing} speed={state.speed} onIndex={seek} onTogglePlay={actions.togglePlay} onSpeed={actions.setSpeed} /></div>
+                </Disclosure>
                 <Disclosure title="Gráficos técnicos del cielo y el relieve" description="Consulta los ángulos, el horizonte y los recorridos del Sol y la Tierra.">
                   <HorizonStrip title={`${p.data.site.name} · ${formatLat(p.data.site.lat)}, ${formatLon(p.data.site.lon)}`}
                     horizon={p.data.horizon.elevationDeg} sun={{ az: p.data.sun.az[i], el: p.data.sun.el[i], visible: p.lit[i] }}
@@ -274,7 +276,7 @@ function Planner() {
                 </Disclosure>
               </div>
             </div>
-          </main>}
+          </PlannerGuide>}
 
         </>
       )}
@@ -464,7 +466,7 @@ function Viability({
   const to = sampleTime(p.data, rec.window.to)
 
   return (
-    <section aria-label="Viabilidad del plan" className="glass-surface min-w-0 p-5 sm:p-6">
+    <section aria-label="Viabilidad del plan" className="glass-surface order-first min-w-0 p-5 sm:p-6 xl:order-none">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-bold text-ink">¿Conviene alunizar aquí?</h2>
         <InfoTip label="Viabilidad" align="end">

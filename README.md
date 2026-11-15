@@ -15,7 +15,7 @@ En el polo sur de la Luna el Sol nunca sube más de un par de grados: una cresta
 3. **Evalúa.** Ves la viabilidad, las horas de luz y de contacto, la pendiente, si la batería aguanta y cuántos días de atraso tolera la misión.
 4. **Simula un imprevisto.** Una corrección de trayectoria atrasa la llegada justo lo suficiente para que la misión falle. La app explica por qué y propone salidas comprobadas: esperar en órbita, cambiar de sitio o encender menos instrumentos.
 
-El modo **Explorar sitio** muestra el horizonte de 360°, el cielo, la vista 3D del terreno, la línea de tiempo con las ventanas de luz, contacto y antenas DSN, y la recomendación de fecha o sitio.
+El **Planificador** guía la elección en tres pasos: sitio, fecha y resultado. Primero se elige un destino con fotografías regionales y después la fecha UTC y la duración. El resultado compara luz, contacto y pendiente y muestra el terreno 3D. El calendario, las ventanas de luz/contacto/DSN y los gráficos del cielo quedan como detalles opcionales. El mismo plan se puede abrir en el simulador para comprobar la energía del módulo.
 
 ## Qué se calcula
 

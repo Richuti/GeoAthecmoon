@@ -14,6 +14,8 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 - **Landing con recorrido más ágil (14 nov), implementada; pendiente de revisión y subida:** por petición de Richard, cada imagen pasa de 220 a 180 svh de scroll efectivo (18 % menos). Se conservan la aparición temprana de los textos, su tramo de lectura, los capítulos y el recorte del horizonte. Verificado: 278 pruebas, build y capturas a 1440/390 px; lectura de las cinco escenas, recorrido hacia atrás, capítulos, transición y movimiento reducido.
 
+- **Planificador guiado (14 nov), implementado; pendiente de revisión y subida de Richard:** Richard eligió un recorrido de sitio → fecha → resultado. Nuevo `PlannerGuide.tsx`: destinos con fotografías reales, una decisión por pantalla, pasos accesibles y retorno conservando las elecciones. El modo inicial pasa a Planificador; el simulador sigue disponible. Calendario, entorno y gráficos quedan como detalles opcionales; en móvil el resultado aparece antes del 3D. La lista de comparación sigue fija en escritorio. Se conserva el plan y el paso al cambiar de modo. Verificado: 278 pruebas, build, capturas a 1440/390 px y revisión a 320 px, teclado y WebKit móvil, regreso entre pasos, navegación/recarga y transferencia al simulador; Malapert el 15 ene conserva supervivencia de 14 días y tolerancia de 4 días y 6 horas.
+
 ## Cómo trabajamos
 
 1. Se hace **un solo paso a la vez** (por ejemplo, 4.2).
