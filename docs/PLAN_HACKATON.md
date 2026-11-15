@@ -31,7 +31,7 @@
 | Explicar en 30 s el panorama del horizonte (`docs/validacion/malapert-massif_horizonte.png`) y el caso de la demo (`docs/CASO_DEMO.md`) | Joshua | ⏳ | sáb 21:00 |
 | Storyboard del video de respaldo de 60 s con los clics de `docs/CASO_DEMO.md` | Odelmy | ⏳ | sáb 20:00 |
 | Esqueleto de las diapositivas (problema, demo, validación, limitaciones, equipo) | Odelmy | ⏳ | sáb 22:00 |
-| Decidir el nombre público: "GeoAthectum" o "Simulador" (hoy no coinciden el doc de identidad y la app) | Odelmy y equipo | ⏳ | sáb 18:00 |
+| Nombre: app **GEOATHECMOON**, equipo **GeoAthectum** | Equipo | ✅ (falta cambiar "Simulador" en el doc de identidad) | sáb 18:00 |
 | Primer deploy en Vercel (aunque esté incompleto) | Richard y Rafael | ⏳ | **sáb 20:00** (se adelanta) |
 | Guion del pitch en borrador | Odelmy y Joshua | ⏳ | dom 05:00 |
 | Feature freeze | todos | ⏳ | dom 07:00 |

@@ -25,12 +25,12 @@ Todos los números salen de `docs/CASO_DEMO.md`. Si la app muestra otros número
 > "Esto sirve a quienes planifican misiones CLPS y Artemis, que necesitan replanificar rápido cuando hay retrasos. También sirve a docentes y al público, para entender por qué el polo sur es tan difícil. Los próximos pasos son coordenadas libres, más sitios y satélites de relevo."
 
 ### 2:50–3:00 · Cierre (diapositiva 5: nombre, lema y equipo)
-> "En 10 segundos sabes si un sitio y una fecha sirven en el polo sur lunar, y qué pasa si tu misión se retrasa. Somos GeoAthectum. Gracias."
+> "En 10 segundos sabes si un sitio y una fecha sirven en el polo sur lunar, y qué pasa si tu misión se retrasa. Esto es GEOATHECMOON. Somos el equipo GeoAthectum. Gracias."
 
 ---
 
 ## Pendientes para pulir (Odelmi y Joshua)
-- [ ] Confirmar el nombre público. La propuesta es "GeoAthectum · Simulador de misión lunar".
+- [x] Nombre: la app se llama **GEOATHECMOON** y el equipo, **GeoAthectum**.
 - [ ] Agregar en la diapositiva 3 las capturas de Quickmap y Moon Trek (B4) y las fuentes publicadas que encuentre Joshua.
 - [ ] Cronometrar y ajustar a 3:00 exactos. Ensayar 3 veces completas.
 - [ ] Respuestas a preguntas del jurado: sección 4C de `docs/GUIAS_EQUIPO.docx`.
