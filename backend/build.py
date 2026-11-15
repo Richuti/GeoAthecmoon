@@ -21,8 +21,7 @@ SITES_VERIFIED = Path(__file__).parent / "sites_verified.json"
 SITES = SITES_VERIFIED if SITES_VERIFIED.exists() else SITES_FRONT
 HORIZONS = ROOT / "frontend" / "public" / "data" / "horizons"
 OUT = Path(__file__).parent / "out"
-
-N_SAMPLES = 1440
+# El largo lo da la caché de Horizons de Richard: todo 2027 cada hora (8760 muestras). Sin `terrain`: el 3D usa los .glb.
 
 
 def r3(a):
@@ -34,7 +33,7 @@ def main():
     sites = [s for s in json.loads(SITES.read_text(encoding="utf-8"))["sites"]]
     (OUT / "sites").mkdir(parents=True, exist_ok=True)
 
-    print(f"{'sitio':20s} {'altura':>8s} {'horiz max':>9s} {'horiz min':>9s} {'pend':>5s} {'pend100':>7s} {'luz%':>5s} {'com%':>5s}")
+    print(f"{'sitio':20s} {'n':>5s} {'altura':>8s} {'horiz max':>9s} {'horiz min':>9s} {'pend':>5s} {'pend100':>7s} {'luz%':>5s} {'com%':>5s}")
     for s in sites:
         hz = H.horizon_deg(dem, s["lat"], s["lon"])
         at, mx = H.slope_deg(dem, s["lat"], s["lon"])
@@ -53,7 +52,6 @@ def main():
             "slope": {"atSiteDeg": round(at, 2), "max100mDeg": round(mx, 2)},
             "sun": {"az": eph["sun"]["az"], "el": eph["sun"]["el"]} if eph else {"az": [], "el": []},
             "earth": {"az": eph["earth"]["az"], "el": eph["earth"]["el"]} if eph else {"az": [], "el": []},
-            "terrain": {"size": 96, "extentKm": 20, "heightsM": [round(float(v), 1) for v in ter.ravel()]},
             "sources": {"ephemeris": "jpl-horizons" if eph else "model", "terrain": "lola"},
         }
         (OUT / "sites" / f"{s['id']}.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
@@ -67,7 +65,7 @@ def main():
             lit = visible(eph["sun"]).mean() * 100
             com = visible(eph["earth"]).mean() * 100
         h_site = ter[48, 48]
-        print(f"{s['id']:20s} {h_site:8.0f} {hz.max():9.2f} {hz.min():9.2f} {at:5.1f} {mx:7.1f} {lit:5.0f} {com:5.0f}")
+        print(f"{s['id']:20s} {len(eph['sun']['el']) if eph else 0:5d} {h_site:8.0f} {hz.max():9.2f} {hz.min():9.2f} {at:5.1f} {mx:7.1f} {lit:5.0f} {com:5.0f}")
 
     (OUT / "sites.json").write_text(json.dumps({"sites": sites}, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nListo: {OUT}")

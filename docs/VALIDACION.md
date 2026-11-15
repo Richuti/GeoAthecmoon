@@ -10,7 +10,7 @@ Nuestros valores ya están calculados en **`docs/validacion/valores.md`**. Las c
 |---|---|---|---|
 | **Altura** | Pon el cursor sobre el sitio: la altura aparece en la barra de coordenadas, o activa la capa de elevación LOLA. | Diferencia de menos de **±50 m** | Usamos el mismo DEM LOLA. Una diferencia grande indica que la coordenada está mal. |
 | **Pendiente** | Capa de pendiente LOLA (*slope*). Lee el color o valor en el punto. | Diferencia de menos de **±2°** | La resolución cambia el número. Lo importante es que no aparezca una pendiente de más de 10° donde nosotros decimos 1°. |
-| **Iluminación** | Capa de iluminación promedio del polo (*illumination* / *average illumination*, de Mazarico et al.). | **El mismo orden** de sitio más a menos iluminado | Su mapa promedia años, y nosotros calculamos solo 60 días (ene y feb de 2027). Los porcentajes no van a ser iguales, pero el orden sí debería serlo. |
+| **Iluminación** | Capa de iluminación promedio del polo (*illumination* / *average illumination*, de Mazarico et al.). | **El mismo orden** de sitio más a menos iluminado | Su mapa promedia años, y nosotros calculamos todo 2027 (8760 horas), que cubre un ciclo completo de estaciones. El orden debería coincidir, y los porcentajes, acercarse. |
 
 **Orden que esperamos (nuestro cálculo):** Connecting Ridge (98 %) > de Gerlache (94 %) > Malapert (78 %) > Shackleton (69 %) > Mons Mouton (47 %) > Nobile (25 %).
 
@@ -24,7 +24,7 @@ Si algo **no coincide**, no lo corrijan: anótenlo y avísenle a Rafael. Puede s
 Súbanlas a la carpeta compartida. Rafael las pasa a `docs/validacion/`.
 
 ## Nuestro lado de la comparación (ya está hecho)
-- `docs/validacion/{sitio}_horizonte.png`: panorama de 360° con el relieve LOLA (gris), el Sol (ámbar) y la Tierra (azul) durante 60 días. Cuando un punto ámbar cae dentro del gris, ese sitio está en sombra. **Joshua: aprende a leer este gráfico, porque es la mejor explicación visual del proyecto.**
+- `docs/validacion/{sitio}_horizonte.png`: panorama de 360° con el relieve LOLA (gris), el Sol (ámbar) y la Tierra (azul) durante todo 2027. Cuando un punto ámbar cae dentro del gris, ese sitio está en sombra. **Joshua: aprende a leer este gráfico, porque es la mejor explicación visual del proyecto.**
 - Se regenera con `python backend/validate.py`.
 
 ## Qué entregar (copiar y llenar)
@@ -63,18 +63,20 @@ Nobile         |               |                  |                |            
 ## Fuentes publicadas: resultado (Joshua, sáb 16:30)
 Informe completo: `docs/validacion/informe_iluminacion_joshua.pdf`, con Mazarico 2011, Gläser 2014 y 2018, Speyerer y Robinson 2013, y un estudio regional de Artemis III de 2025.
 
-| Sitio | Publicado | Periodo y altura | Nuestro % de luz (ene–feb 2027, 2 m) | Lectura |
+| Sitio | Publicado | Periodo y altura | Nuestro % de luz (todo 2027, 2 m; la app) | Lectura |
 |---|---|---|---|---|
-| Connecting Ridge | 89.0 % (Mazarico, punto CR1 en -89.45, 222.69) y 88.0 % (Gläser 2018) | 18.6 años a 0 m; 2017–2037 a 2 m | **98 %** | ✅ Mismo punto. El nuestro sale más alto porque el periodo es favorable (ver abajo) |
-| Mons Mouton | 48 % ± 10 % de visibilidad solar (promedio de la región) | 18.6 años, 0 m | **47 %** | ✅ Coincide |
-| Nobile | 38 % ± 21 % (región) | 18.6 años, 0 m | **25 %** | ✅ Dentro del rango |
-| Malapert | 31 % ± 25 % (región, incluye laderas de más de 20°) | 18.6 años, 0 m | **78 %** | 🟡 Por encima: nuestro punto es la cumbre, la parte mejor iluminada de una región muy variable (±25) |
-| Shackleton | 85.5 % (Gläser 2018, mejor punto cerca de -89.6866, 197.19) | 2017–2037, 2 m | **69 %** | 🟡 Por debajo. Causas probables: el 85.5 % es el **píxel máximo** de un DEM de 20 m, y nuestro DEM de 80 m suaviza el borde, que es angosto, así que el horizonte nos queda relativamente más alto (hasta 7.1°). Además, en 60 días cerca del equinoccio, el Sol rasante pasa justo por esos azimuts bloqueados |
-| de Gerlache | No hay dato publicado para el punto | — | 94 % | Sin comparación |
+| Connecting Ridge | 89.0 % (Mazarico, punto CR1 en -89.45, 222.69) y 88.0 % (Gläser 2018) | 18.6 años a 0 m; 2017–2037 a 2 m | **89.5 %** | ✅ Mismo punto y mismo valor (con 60 días daba 98 %: el año completo quita el sesgo del verano) |
+| Mons Mouton | 48 % ± 10 % de visibilidad solar (promedio de la región) | 18.6 años, 0 m | **45.8 %** | ✅ Coincide |
+| Nobile | 38 % ± 21 % (región) | 18.6 años, 0 m | **24.7 %** | ✅ Dentro del rango |
+| Malapert | 31 % ± 25 % (región, incluye laderas de más de 20°) | 18.6 años, 0 m | **70.5 %** | 🟡 Por encima: nuestro punto es la cumbre, la parte mejor iluminada de una región muy variable (±25) |
+| Shackleton | 85.5 % (Gläser 2018, mejor punto cerca de -89.6866, 197.19) | 2017–2037, 2 m | **64.0 %** | 🟡 Por debajo. Causa probable: el 85.5 % es el **píxel máximo** de un DEM de 20 m, y nuestro DEM de 80 m suaviza el borde, que es angosto, así que el horizonte nos queda relativamente más alto (hasta 7.1°) |
+| de Gerlache | No hay dato publicado para el punto | — | 79.5 % | Sin comparación |
 
 **Estación (comprobado con nuestra efeméride de JPL Horizons):** promediando el ciclo de unos 29.5 días, la elevación del Sol en el polo baja de unos +0.7° (mediados de enero) a unos −0.1° (alrededor del 10 de febrero de 2027). **Enero y febrero de 2027 son la segunda mitad del verano austral, que termina en el equinoccio de alrededor del 10 feb 2027.** La tabla del informe de Joshua lo confirma: si el pleno verano de 2027 es del 15 oct al 14 nov y el ciclo estacional dura 346.6 días, el anterior cayó en noviembre de 2026.
 
 **Matiz que hay que decir:** nuestro "% de luz" es el tiempo con el **centro** del Sol sobre el horizonte. Se parece más a la "visibilidad solar" que a la "iluminación promedio", y ninguna de las dos es idéntica.
 
-**Respuesta para el jurado:**
-> "Comparamos con Mazarico, Gläser y los estudios de Artemis III. En Connecting Ridge, Mons Mouton y Nobile coincidimos. Las diferencias tienen explicación: los artículos promedian 18 años, y nosotros calculamos las fechas exactas de la misión, que caen al final del verano austral. Por eso Connecting Ridge nos da más. Y en el borde de Shackleton, nuestro DEM de 80 m suaviza un borde muy angosto. Por eso la herramienta calcula por fecha: la luz depende de cuándo llegas, no solo de dónde."
+**Respuesta para el jurado (año completo, actualizado dom 00:30):**
+> "Comparamos con Mazarico, Gläser y los estudios de Artemis III. En Connecting Ridge, el sitio más estudiado, nos da 89.5 % de luz en todo 2027, y Mazarico publica 89 % en el mismo punto. Mons Mouton y Nobile también coinciden. La única diferencia grande es el borde de Shackleton, y tiene explicación: nuestro DEM de 80 m suaviza un borde muy angosto. Además, la herramienta calcula por fecha: en enero y febrero, Connecting Ridge tiene 98 %, porque la luz depende de cuándo llegas, no solo de dónde."
+
+La tabla del año completo y la validación cruzada entre Python y la app (diferencias menores de 0.5 puntos en 5 de los 6 sitios) están en `docs/validacion/valores.md`.
