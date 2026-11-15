@@ -13,7 +13,7 @@ import type { StoryFacts } from '../lib/storyFacts'
 import { storyCues, storyVideoProgress } from '../lib/storyTiming'
 import { formatDate, formatDateTime, sampleTime } from '../lib/time'
 import type { SiteData } from '../types'
-import { cx } from './ui'
+import { cx, SiMark } from './ui'
 import { BrandIntro } from './BrandIntro'
 import { LangToggle } from '../i18n/LangToggle'
 
@@ -286,6 +286,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
         scenes.map((sc, k) => (
           <section key={sc.id} aria-labelledby={`escena-${sc.id}`} className="relative min-h-dvh overflow-hidden">
             <img src={`${MEDIA}/${sc.image}`} alt="" className="absolute inset-0 size-full object-cover" style={{ objectPosition: sc.focus }} />
+            <SiMark place="absolute bottom-4 right-4 z-10" />
             <SceneText scene={sc} index={k} still />
           </section>
         ))
@@ -308,6 +309,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
                 <polyline ref={edge} fill="none" stroke="var(--color-relief-edge)" strokeWidth={1.25} vectorEffect="non-scaling-stroke"
                   style={{ opacity: 0, transition: 'opacity 120ms' }} />
               </svg>
+              <SiMark place="absolute bottom-4 right-4 z-10" />
               {scenes.map((sc, k) => (
                 <article key={sc.id} ref={(el) => { texts.current[k] = el }} aria-hidden={active !== k}
                   className="pointer-events-none absolute inset-0"

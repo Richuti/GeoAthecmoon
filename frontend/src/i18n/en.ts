@@ -399,7 +399,9 @@ export const EN: Record<string, string> = {
   'Vuelve el contacto': 'Contact returns',
   '¿Qué ve tu módulo ahora?': 'What does your lander see now?',
   'Así afectan el Sol y la Tierra al instante que elegiste.': 'How the Sun and Earth affect the moment you chose.',
-  'Imágenes ilustrativas. El estado y los próximos cambios se calculan con JPL Horizons y el relieve LOLA de': 'Illustrative images. The state and upcoming changes are computed with JPL Horizons and the LOLA topography of',
+  'Ilustración generada con IA · ChatGPT': 'AI-generated illustration · ChatGPT',
+  'Ilustraciones de la portada y del fondo, generadas con IA y marcadas en pantalla. Ningún dato sale de ellas.': 'Home page and background illustrations, AI-generated and marked on screen. No data comes from them.',
+  'Imágenes ilustrativas. El estado y los próximos cambios se calculan con JPL Horizons y el relieve LOLA de':'Illustrative images. The state and upcoming changes are computed with JPL Horizons and the LOLA topography of',
 
   // --- Selector de sitios ---
   'Elegir sitio de alunizaje': 'Choose landing site',

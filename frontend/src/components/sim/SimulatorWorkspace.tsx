@@ -5,7 +5,7 @@ import { formatDate, formatDateTime, sampleTime } from '../../lib/time'
 import { PRESETS, type LanderConfig } from '../../sim/lander'
 import { useAppState } from '../../state'
 import type { SiteData } from '../../types'
-import { Button, cx, Disclosure, Select } from '../ui'
+import { Button, cx, Disclosure, Select, SiMark } from '../ui'
 import { ViewerPanel } from '../ViewerPanel'
 import { MissionSetup } from './MissionSetup'
 import { MissionOptions, MissionResult, type MissionResultProps } from './MissionResult'
@@ -148,7 +148,10 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       } />
       </div>
       <aside aria-label="Resumen de tu plan" className="min-w-0 lg:border-l lg:border-seam lg:pl-10">
-        <img src="/media/i2-borde-crater.jpg" alt="" className="mb-6 aspect-16/7 w-full object-cover" />
+        <div className="relative mb-6">
+          <img src="/media/i2-borde-crater.jpg" alt="" className="aspect-16/7 w-full object-cover" />
+          <SiMark />
+        </div>
         <p className="text-sm text-ink-muted">Tu destino · Polo sur lunar</p>
         <h3 className="mt-2 font-display text-4xl font-bold uppercase leading-tight text-ink">{data.site.name}</h3>
         <dl className="mt-5 divide-y divide-seam text-sm">

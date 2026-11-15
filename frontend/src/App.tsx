@@ -17,7 +17,7 @@ import { DelayCheck } from './components/DelayCheck'
 import { PlanCompare, type SavedPlan } from './components/PlanCompare'
 import { SiteConditions } from './components/SiteConditions'
 import { VisibilityCalendar } from './components/VisibilityCalendar'
-import { Badge, Button, DateTimeField, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, transition, type Tone } from './components/ui'
+import { Badge, Button, DateTimeField, Disclosure, InfoTip, Panel, Segmented, SiMark, Stat, StatGrid, cx, transition, type Tone } from './components/ui'
 import { formatLat, formatLon } from './lib/format'
 import { dayNumber, formatDate, formatDateTime, formatDuration, formatDurationLong, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, totalDays } from './lib/time'
 import { missionWindow, recommend, type Recommendation } from './lib/recommend'
@@ -187,6 +187,8 @@ function Planner() {
 
   return (
     <div className="flight-console flex min-h-dvh flex-col">
+      {/* El fondo de la consola es una ilustración hecha con IA: lleva su marca visible. */}
+      <SiMark place="fixed bottom-3 right-3 z-0 opacity-70" />
       <header className="flight-header flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3.5 sm:px-8 sm:py-4">
         <Brand />
         <Segmented label="Modo" options={MODES} value={mode} onChange={changeMode} className="w-full sm:w-auto" />

@@ -34,6 +34,7 @@ const MODELS: Source[] = [
   { name: 'NASA 3D Resources · dominio público', href: 'https://github.com/nasa/NASA-3D-Resources', use: 'Cohete Saturn V (la nave del despegue, el viaje y el alunizaje), rover, astronauta, LRO, Gateway, antena DSN de 34 m y mapa de estrellas Tycho.' },
   { name: 'NASA GIBS · Blue Marble Next Generation y Landsat WELD', href: 'https://nasa-gibs.github.io/gibs-api-docs/', use: 'Imágenes de Florida, el Golfo y el Caribe que se ven durante el despegue. Ilustración: ningún dato sale de ellas.' },
   { name: 'NASA Visible Earth y Earth Observatory · dominio público', use: 'Tierra de día (Blue Marble Next Generation) y de noche (Black Marble).' },
+  { name: 'ChatGPT · OpenAI', href: 'https://chatgpt.com/', use: 'Ilustraciones de la portada y del fondo, generadas con IA y marcadas en pantalla. Ningún dato sale de ellas.' },
 ]
 
 function Section({ title, children }: { title: string; children: ReactNode }) {

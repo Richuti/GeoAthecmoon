@@ -63,9 +63,11 @@ La reproducción dice su escala de tiempo (por ejemplo, «1 segundo en pantalla 
 ## Validación
 
 - **Contra los mapas de iluminación oficiales del equipo LOLA** (`AVGVISIB_75S_120M_201608`, NASA/GSFC, Mazarico et al. 2011): con el observador a ras de suelo, como en el mapa, nuestro % de luz queda a menos de 5 puntos en los 6 sitios (mediana de 2.6). Ejemplos: Connecting Ridge 72.3 % frente a 72.6 %, Malapert 62.6 % frente a 61.3 %.
-- **Contra el backend del equipo** (Python, independiente): en los primeros 60 días, la luz y el contacto coinciden a menos de 0.5 puntos en los 6 sitios.
+- **Contra valores publicados:** en todo 2027, Connecting Ridge recibe **89.5 %** de luz a 2 m; Mazarico et al. (2011) reportan **89 %** en el mismo punto.
+- **Contra el backend independiente del equipo** (Python): en el año completo (8760 horas), la luz y el contacto coinciden a menos de 0.5 puntos en 5 de los 6 sitios; de Gerlache difiere en 1.0 punto por un solo obstáculo, más pequeño que un píxel, a 120 m del sitio ([`docs/validacion/valores.md`](docs/validacion/valores.md)).
 - **Eclipse real:** el cálculo detecta el eclipse penumbral de Luna del 17 de agosto de 2027 como un eclipse parcial de Sol visto desde Malapert (hasta el 43 % del disco).
-- **Pruebas automáticas:** `npm test` verifica los cálculos, el simulador, los datos y la configuración de la URL pública.
+- **Coordenadas:** los 6 sitios se comprobaron en LRO QuickMap con un marcador visible.
+- **Pruebas automáticas:** `npm test` verifica los cálculos, el simulador, los datos y la traducción.
 
 Tabla completa sitio por sitio en [`docs/VALIDACION_NASA.md`](docs/VALIDACION_NASA.md).
 
