@@ -69,6 +69,16 @@
 .flight-console .site-choice { border-radius: 16px; border-color: transparent; background: transparent; }
 .flight-console .site-choice:hover { background: rgb(255 255 255 / 0.06); }
 .flight-console .site-choice[aria-current='true'] { border-color: rgb(255 255 255 / 0.28); background: rgb(255 255 255 / 0.1); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12); }
+.flight-console .site-choice--photo { min-height: 132px; border-color: rgb(255 255 255 / 0.18); background: #0b1019; }
+.site-choice--photo .site-backdrop img { opacity: 0.85; }
+.site-backdrop__shade { background: linear-gradient(180deg, rgb(3 7 14 / 0.04) 10%, rgb(3 7 14 / 0.2) 45%, rgb(3 7 14 / 0.7)); }
+.site-choice__content { border: 1px solid rgb(255 255 255 / 0.12); border-radius: 11px; background: rgb(5 9 16 / 0.88); padding: 9px; }
+@supports (backdrop-filter: blur(8px)) {
+  .site-choice__content { background: rgb(5 9 16 / 0.72); backdrop-filter: blur(8px); }
+}
+.flight-console .site-choice--photo[aria-current='true'] { border-color: rgb(255 255 255 / 0.78); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25), 0 4px 14px rgb(0 0 0 / 0.25); }
+.flight-console .site-choice--photo:hover { border-color: rgb(255 255 255 / 0.6); }
+.site-current .site-backdrop__shade { background: rgb(3 7 14 / 0.7); }
 .flight-console .flight-field,
 .flight-console input[type='datetime-local'],
 .flight-console input[type='number'],
@@ -97,4 +107,5 @@
   .flight-console .glass-surface, .flight-console .flight-header, .flight-menu { background: #101620; -webkit-backdrop-filter: none; backdrop-filter: none; border-color: #657086; }
   .flight-console .flight-button { background: #202938; }
   .flight-console .flight-button[data-variant='primary'] { background: #edf1f8; }
+  .site-choice__content { background: #070b13; backdrop-filter: none; }
 }

@@ -14,6 +14,7 @@ import { storyCues, storyVideoProgress } from '../lib/storyTiming'
 import { formatDate, formatDateTime, sampleTime } from '../lib/time'
 import type { SiteData } from '../types'
 import { cx } from './ui'
+import { BrandIntro } from './BrandIntro'
 
 interface Readout {
   value: number
@@ -266,6 +267,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
 
   return (
     <div className="relative bg-void">
+      <BrandIntro />
       <a
         href="#planificador"
         onClick={(e) => {

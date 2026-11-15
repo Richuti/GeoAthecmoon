@@ -6,6 +6,7 @@ import { formatLat, formatLon } from '../lib/format'
 import { compareWithReference } from '../lib/sky'
 import type { SiteData } from '../types'
 import { Button } from './ui'
+import { SITE_IMAGERY, SITE_IMAGE_CREDIT } from '../content/siteImagery'
 
 interface Source {
   name: string
@@ -127,6 +128,11 @@ export function Sources({ data }: { data?: SiteData }) {
 
           <Section title="Para explorar el polo sur">
             <SourceList items={EXPLORE} />
+          </Section>
+
+          <Section title="Imágenes de los sitios · LROC">
+            <p className="mb-4 text-sm leading-relaxed text-ink-muted">Fotografías y mosaicos reales de las regiones. Crédito: {SITE_IMAGE_CREDIT}. Son contexto visual: no muestran la iluminación de la fecha elegida ni marcan el punto exacto de alunizaje.</p>
+            <SourceList items={Object.values(SITE_IMAGERY).map(image => ({ name: image.caption, href: image.source, use: 'Fondo de la selección de sitios; versión WebP optimizada del original.' }))} />
           </Section>
 
           <Section title="Modelos 3D y texturas">

@@ -1,6 +1,7 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react'
 import { formatCoords } from '../lib/format'
 import { CATEGORY_HINT, CATEGORY_LABEL, groupByCategory } from '../lib/sites'
+import { SITE_IMAGERY, SITE_IMAGE_CREDIT } from '../content/siteImagery'
 import type { Site } from '../types'
 import { InfoTip, cx } from './ui'
 
@@ -53,23 +54,24 @@ export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }:
   }
 
   return (
-    <aside aria-label="Elegir sitio de alunizaje" className="glass-surface min-w-0 p-4 lg:sticky lg:top-6">
+    <aside aria-label="Elegir sitio de alunizaje" className="glass-surface min-w-0 p-4">
       <div className="flex items-baseline justify-between gap-3"><h2 className="text-base font-bold text-ink">Sitios de alunizaje</h2><span className="text-xs text-ink-muted">{sites.length} sitios</span></div>
       <p className="mb-4 mt-2 text-xs leading-relaxed text-ink-muted">Las cifras comparan la fecha y los días de tu plan.</p>
       {/* Móvil: solo el sitio elegido y un botón para desplegar la lista */}
       <button
         ref={toggleRef}
         type="button"
-        className="flex min-h-16 w-full items-center justify-between gap-3 border border-seam-strong bg-hull px-4 py-3 text-left lg:hidden"
+        className="site-current relative flex min-h-24 w-full items-center justify-between gap-3 overflow-hidden border border-seam-strong bg-hull px-4 py-3 text-left lg:hidden"
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => setOpen((o) => !o)}
       >
-        <span className="min-w-0">
+        {selected && <SiteBackdrop id={selected.id} />}
+        <span className="relative z-10 min-w-0">
           <span className="block truncate text-base font-bold text-ink">{selected?.name ?? 'Elige un sitio'}</span>
           {selected && <span className="text-xs text-ink-muted">{formatCoords(selected)}</span>}
         </span>
-        <span className="shrink-0 text-xs font-bold text-ink">
+        <span className="relative z-10 shrink-0 text-xs font-bold text-ink">
           {open ? 'Cerrar ↑' : 'Cambiar ↓'}
         </span>
       </button>
@@ -89,7 +91,7 @@ export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }:
                 {CATEGORY_HINT[category]}
               </InfoTip>
             </h3>
-            <ul className="flex flex-col gap-0.5">
+            <ul className="flex flex-col gap-3">
               {list.map((s) => (
                 <li key={s.id}>
                   <SiteButton
@@ -109,6 +111,9 @@ export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }:
           </div>
         ))}
       </nav>
+      <p className="mt-4 text-xs leading-relaxed text-ink-muted">Imágenes de la región · LROC<br />{SITE_IMAGE_CREDIT}
+        {selected && SITE_IMAGERY[selected.id] && <a className="mt-1 block text-ink underline decoration-white/30 underline-offset-4 hover:decoration-white" href={SITE_IMAGERY[selected.id].source} target="_blank" rel="noreferrer">Fuente del sitio elegido ↗</a>}
+      </p>
     </aside>
   )
 }
@@ -136,12 +141,14 @@ function SiteButton({
       aria-current={active ? 'true' : undefined}
       onClick={onSelect}
       className={cx(
-        'site-choice flex w-full flex-col gap-2 border px-3 py-3.5 text-left transition-colors duration-150',
+        'site-choice site-choice--photo relative flex w-full flex-col justify-end overflow-hidden border p-2 text-left transition-colors duration-150',
         active ? 'border-ink-faint bg-hull-raised' : 'border-transparent hover:border-seam hover:bg-hull',
       )}
     >
+      <SiteBackdrop id={site.id} />
+      <span className="site-choice__content relative z-10 flex w-full flex-col gap-2">
       <span className="flex w-full items-baseline justify-between gap-2">
-        <span className={cx('text-sm font-bold', active ? 'text-ink' : 'text-ink-muted')}>{site.name}</span>
+        <span className="text-sm font-bold text-ink">{site.name}</span>
         {summary ? (
           <span className="font-mono text-xs text-ink">
             {Math.round(summary.viability)}<span className="text-ink-muted">/100</span><span className="sr-only"> de viabilidad</span>
@@ -167,6 +174,17 @@ function SiteButton({
           </span>
         </>
       )}
+      </span>
     </button>
   )
+}
+
+function SiteBackdrop({ id }: { id: string }) {
+  const image = SITE_IMAGERY[id]
+  if (!image) return null
+  return <span aria-hidden className="site-backdrop pointer-events-none absolute inset-0">
+    <img src={image.src} alt="" loading="lazy" decoding="async" className="size-full object-cover" style={{ objectPosition: image.position }}
+      onError={e => { e.currentTarget.style.display = 'none' }} />
+    <span className="site-backdrop__shade absolute inset-0" />
+  </span>
 }
