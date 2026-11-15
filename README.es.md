@@ -54,6 +54,12 @@ La reproducción dice su escala de tiempo (por ejemplo, «1 segundo en pantalla 
 
 **Regla del proyecto:** el simulador no inventa números. Todo sale de los datos de NASA y de los parámetros que elige el usuario.
 
+## Uso de IA
+
+- **En la app:** el copiloto de rescate y «Planéalo por mí» usan un modelo de OpenAI a través de una función de servidor (`frontend/api/copilot.ts`; la clave nunca llega al navegador). La IA solo **decide qué probar y explica su elección**: cada cifra que se muestra sale del simulador de la app con datos de JPL Horizons y LOLA. Si la IA no está disponible, el resto de la app funciona igual.
+- **En el desarrollo:** el equipo usó asistentes de IA para escribir y revisar código y documentación. Los datos, los métodos y la validación son responsabilidad del equipo y están documentados abajo.
+- **Imágenes:** las ilustraciones de la portada se generaron con ChatGPT (OpenAI). Son solo ilustraciones: ningún dato sale de ellas. Las fotos de los sitios son imágenes reales de LROC (NASA/GSFC/ASU).
+
 ## Validación
 
 - **Contra los mapas de iluminación oficiales del equipo LOLA** (`AVGVISIB_75S_120M_201608`, NASA/GSFC, Mazarico et al. 2011): con el observador a ras de suelo, como en el mapa, nuestro % de luz queda a menos de 5 puntos en los 6 sitios (mediana de 2.6). Ejemplos: Connecting Ridge 72.3 % frente a 72.6 %, Malapert 62.6 % frente a 61.3 %.
@@ -70,7 +76,7 @@ Tabla completa sitio por sitio en [`docs/VALIDACION_NASA.md`](docs/VALIDACION_NA
 - La pendiente es regional (DEM de 80 m): no ve rocas ni cráteres más pequeños que un píxel.
 - Viaje Tierra–Luna: transferencia de dos cuerpos hasta la distancia Tierra–Luna real del día de llegada (JPL Horizons), captura en órbita lunar con cónicas empalmadas y descenso propulsado integrado con la gravedad lunar, el empuje y el consumo (datos del módulo lunar del Apolo 11, NASA). Simplificaciones: Luna esférica sin mascones, sin la gravedad del Sol y frenados de captura y descenso instantáneos. El ascenso desde la Tierra es una animación.
 - Los presets de los módulos y el imprevisto son escenarios ilustrativos; las posiciones del Sol, la Tierra y el relieve son reales.
-- Las imágenes de la portada son ilustraciones: ningún dato sale de ellas.
+- Las imágenes de la portada son ilustraciones generadas con IA (ChatGPT): ningún dato sale de ellas.
 
 ## Datos y créditos
 
@@ -104,7 +110,7 @@ npm run mock       # arma public/data/sites/{id}.json
 
 **Deploy (Vercel):** Root Directory `frontend`, framework Vite, build `npm run build`, salida `dist`. El build también genera una versión estática de la portada para buscadores, `robots.txt` y `sitemap.xml` (`scripts/prerender.mjs`).
 
-La URL de las etiquetas Open Graph, la canónica y el sitemap se resuelve en `frontend/scripts/site-url.mjs`: primero `SITE_URL`, después `VERCEL_PROJECT_PRODUCTION_URL` y, si no hay variables, `https://geoathectum.vercel.app`. Si cambia el dominio, configurar `SITE_URL` con la URL pública completa. No se necesita una variable para compilar en local.
+La URL de las etiquetas Open Graph, la canónica y el sitemap se resuelve en `frontend/scripts/site-url.mjs`: primero `SITE_URL`, después `VERCEL_PROJECT_PRODUCTION_URL` y, si no hay variables, `https://geoathecmoon.vercel.app`. Si cambia el dominio, configurar `SITE_URL` con la URL pública completa. No se necesita una variable para compilar en local.
 
 **Datos:** sin `VITE_API_URL`, la app lee los archivos estáticos de `public/data`. Con `VITE_API_URL` usa el backend (`GET /sites` y `GET /sites/{id}`), y si no responde en 6 s o falla, vuelve sola a los archivos estáticos. En producción, `VITE_API_URL=https://geoathecmoon-api.onrender.com` (API de `backend/api/main.py`); la app la despierta al abrir la portada.
 

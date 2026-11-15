@@ -2,11 +2,11 @@
 
 > **Fuente de verdad: la app publicada** (`main`, todo 2027 cada hora, 8760 muestras, coordenadas verificadas). Números comprobados el **dom a las 00:30** corriendo las funciones de la app (`compareDelay()`, `delayTolerance()` y `simulate()`) sobre `frontend/public/data/sites/*.json`. La réplica en Python (`python backend/sim_demo.py`) da lo mismo, salvo detalles de una a seis horas en la hora exacta de la falla y en la tolerancia.
 >
-> **Dilan:** confirma estos clics en `https://geoathectum.vercel.app`, en el celular y en la laptop de la presentación. Si algún texto cambió, se usa el de la app.
+> **Dilan:** confirma estos clics en `https://geoathecmoon.vercel.app`, en el celular y en la laptop de la presentación. Si algún texto cambió, se usa el de la app.
 
 ## Guion A (recomendado): «¿Y si la misión se atrasa?» en el planificador
 Sitio **Macizo Malapert**, módulo **Explorador ligero** (el que viene por defecto), misión de **14 días**.
-1. Abrir `https://geoathectum.vercel.app/?sitio=malapert-massif#planificador`. La primera vez aparece la **guía rápida de 30 segundos** ("Planifica un alunizaje en tres pasos"): se puede usar como introducción, o cerrar con **Empezar →**.
+1. Abrir `https://geoathecmoon.vercel.app/?sitio=malapert-massif#planificador`. La primera vez aparece la **guía rápida de 30 segundos** ("Planifica un alunizaje en tres pasos"): se puede usar como introducción, o cerrar con **Empezar →**.
 2. Fecha **15 ene 2027, 00:00 UTC** y **14 d**. El resultado: viabilidad del **95 %**, con 100 % de luz y 85 % de Tierra visible. El módulo sobrevive.
 3. Bajar a **«¿Y si la misión se atrasa?»**. Por defecto está en **+3 días**: *"Sí. Con 3 días de atraso, la misión todavía funciona."* (viabilidad de 95 a 87 y la Tierra baja de 85 % a 64 %). Debajo dice: *"Tu plan tolera atrasos de hasta **4 días y 6 horas**."*
 4. **Momento wow:** elegir **+1 semana**. *"No. Con 7 días de atraso, la batería se agota."* La luz baja del 100 % al **73 %** y la batería pasa de "Aguanta" a **"Se agota"** (llega al 20 %).

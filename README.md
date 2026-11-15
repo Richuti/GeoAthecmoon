@@ -56,6 +56,7 @@ Our sunlight results are within 5 points of NASA's official LOLA illumination ma
 
 - **In the app:** the rescue copilot and "Plan it for me" use an OpenAI model through a server function (`frontend/api/copilot.ts`; the API key never reaches the browser). The AI only **decides what to try and explains its choice**: every figure shown comes from the app's simulator with JPL Horizons and LOLA data. If the AI is unavailable, the rest of the app works the same.
 - **In development:** the team used AI coding assistants to write and review code and documentation. The data, the methods and the validation are the team's responsibility and are documented below.
+- **Images:** the home page illustrations were generated with ChatGPT (OpenAI). They are illustrations only: no data comes from them. Site photos are real LROC images (NASA/GSFC/ASU).
 
 ## Validation
 
@@ -75,7 +76,7 @@ Full site-by-site table in [`docs/VALIDACION_NASA.md`](docs/VALIDACION_NASA.md) 
 - Slope is regional (80 m DEM): it does not see rocks or craters smaller than a pixel.
 - Earth–Moon trip: a two-body transfer to the actual Earth–Moon distance on the arrival date (JPL Horizons), lunar orbit capture with patched conics, and a powered descent integrated with lunar gravity, thrust and propellant use (Apollo 11 lunar module data from NASA). Simplifications: spherical Moon without mascons, no solar gravity, instantaneous capture and descent burns. The ascent from Earth is an animation.
 - Lander presets and the setback are illustrative scenarios; Sun and Earth positions and the terrain are real.
-- Home page images are illustrations: no data comes from them.
+- Home page images are SI-generated illustrations (ChatGPT): no data comes from them.
 
 ## Data and credits
 
