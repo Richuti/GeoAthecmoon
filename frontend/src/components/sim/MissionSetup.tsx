@@ -73,7 +73,7 @@ export function MissionSetup({
             </div>
             <div>
               <label htmlFor="mission-days" className="mb-2 block text-sm text-ink-muted">Tiempo en la superficie</label>
-              <div className="flex min-h-14 items-center gap-2 border border-seam-strong bg-hull px-4">
+              <div className="flight-field flex min-h-14 items-center gap-2 border border-seam-strong bg-hull px-4">
                 <input id="mission-days" aria-label="Duración de la misión en días" type="number" min={1} max={maxDays} value={daysInput}
                   onChange={(e) => {
                     setDaysInput(e.target.value)

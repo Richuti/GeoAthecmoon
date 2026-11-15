@@ -40,7 +40,7 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
         <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">Tu misión a la Luna.</h1>
         <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-muted">Elige tu destino, recorre el viaje y descubre si tu módulo puede completar la misión.</p>
       </header>
-      <nav aria-label="Pasos de la simulación" className="mb-9 grid grid-cols-3 border-b border-seam">
+      <nav aria-label="Pasos de la simulación" className="mission-steps mb-9 grid grid-cols-3 border-b border-seam">
         {([
           ['plan', 'Preparar', 'Destino y módulo'],
           ['journey', 'Viajar', 'De la Tierra a la Luna'],
@@ -127,7 +127,7 @@ function MissionTransport({ data, report, onSeek }: { data: SiteData; report: Mi
   const fill = end > from ? ((state.index - from) / (end - from)) * 100 : 0
   const date = sampleTime(data, state.index)
   return (
-    <section aria-label="Reproducir misión" className="my-6 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-hw bg-hull px-4 py-3">
+    <section aria-label="Reproducir misión" className="glass-surface my-6 flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3">
       <Button size="sm" onClick={actions.togglePlay} aria-label={state.playing ? 'Pausar' : 'Reproducir'}>{state.playing ? 'Pausar' : 'Reproducir'}</Button>
       <p className="min-w-0 text-sm tabular-nums text-ink">{formatMissionClock(data, state.index, from)}</p>
       <input type="range" className="range min-w-28 flex-1" aria-label="Fecha y hora" aria-valuetext={formatDateTime(date)}

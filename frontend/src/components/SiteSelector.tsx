@@ -53,7 +53,7 @@ export function SiteSelector({ sites, selectedId, summaries, errors, onSelect }:
   }
 
   return (
-    <aside aria-label="Elegir sitio de alunizaje" className="min-w-0 lg:sticky lg:top-6">
+    <aside aria-label="Elegir sitio de alunizaje" className="glass-surface min-w-0 p-4 lg:sticky lg:top-6">
       <div className="flex items-baseline justify-between gap-3"><h2 className="text-base font-bold text-ink">Sitios de alunizaje</h2><span className="text-xs text-ink-muted">{sites.length} sitios</span></div>
       <p className="mb-4 mt-2 text-xs leading-relaxed text-ink-muted">Las cifras comparan la fecha y los días de tu plan.</p>
       {/* Móvil: solo el sitio elegido y un botón para desplegar la lista */}
@@ -136,7 +136,7 @@ function SiteButton({
       aria-current={active ? 'true' : undefined}
       onClick={onSelect}
       className={cx(
-        'flex w-full flex-col gap-2 border px-3 py-3.5 text-left transition-colors duration-150',
+        'site-choice flex w-full flex-col gap-2 border px-3 py-3.5 text-left transition-colors duration-150',
         active ? 'border-ink-faint bg-hull-raised' : 'border-transparent hover:border-seam hover:bg-hull',
       )}
     >
@@ -159,8 +159,8 @@ function SiteButton({
       {summary && (
         <>
           <span className="grid w-full grid-cols-2 gap-3 text-xs" aria-hidden>
-            <span className="text-sun">Luz {light} %<MiniBar pct={summary.lightPct} className="bg-sun" /></span>
-            <span className="text-earth">Tierra {contact} %<MiniBar pct={summary.contactPct} className="bg-earth" /></span>
+            <span className="text-sun">Luz {light} %</span>
+            <span className="text-earth">Tierra {contact} %</span>
           </span>
           <span className="sr-only">
             Luz {light} % del tiempo, contacto con la Tierra {contact} % del tiempo.
@@ -168,13 +168,5 @@ function SiteButton({
         </>
       )}
     </button>
-  )
-}
-
-function MiniBar({ pct, className }: { pct: number; className: string }) {
-  return (
-    <span className="mt-1.5 block h-0.5 overflow-hidden bg-seam">
-      <span className={cx('block h-full opacity-80', className)} style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
-    </span>
   )
 }

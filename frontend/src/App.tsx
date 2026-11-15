@@ -9,6 +9,8 @@ import { SimulatorWorkspace } from './components/sim/SimulatorWorkspace'
 import { Story } from './components/Story'
 import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
+import { SiteConditions } from './components/SiteConditions'
+import { VisibilityCalendar } from './components/VisibilityCalendar'
 import { Badge, Button, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
 import { formatLat, formatLon } from './lib/format'
 import { dayNumber, formatDate, formatDateTime, formatDuration, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, toInputValue, totalDays } from './lib/time'
@@ -166,8 +168,8 @@ function Planner() {
   const notice = p ? dataNotice(p.data) : null
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 border-b border-seam px-5 py-4 sm:px-8">
+    <div className="flight-console flex min-h-dvh flex-col">
+      <header className="flight-header flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4 sm:px-8">
         <Brand />
         <Segmented label="Modo" options={MODES} value={mode} onChange={actions.setMode} />
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
@@ -235,7 +237,7 @@ function Planner() {
             <div className="grid items-start gap-8 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
               <SiteSelector sites={sites} selectedId={p.data.site.id} summaries={views} errors={state.dataErrors} onSelect={actions.select} />
               <div className="min-w-0 space-y-7">
-                <section aria-label="Fecha y duración del plan" className="grid items-end gap-5 border-y border-seam bg-hull/30 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">
+                <section aria-label="Fecha y duración del plan" className="glass-surface grid items-end gap-5 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">
                   <div>
                     <label htmlFor="explore-date" className="mb-2 block text-sm text-ink-muted">Fecha de alunizaje · UTC</label>
                     <input id="explore-date" type="datetime-local" step={3600} value={toInputValue(sampleTime(p.data, i))}
@@ -254,9 +256,10 @@ function Planner() {
                   </div>
                   {rec && <Viability p={p} rec={rec} onSimulate={() => { actions.setPlaying(false); setDraftStart(rec.window.from); actions.setMode('simulate') }} />}
                 </div>
+                <SiteConditions data={p.data} index={i} lit={p.lit} contact={p.contact} />
                 <Timeline p={p} index={i} playing={state.playing} speed={state.speed} onIndex={seek} onTogglePlay={actions.togglePlay} onSpeed={actions.setSpeed} />
                 {rec && <PlanAlternatives p={p} rec={rec} onSelect={actions.select} onSeek={seek} />}
-                <Disclosure title="Entender el cielo y el relieve" description="Ve por qué una cresta puede cortar la luz o la comunicación con la Tierra.">
+                <Disclosure title="Gráficos técnicos del cielo y el relieve" description="Consulta los ángulos, el horizonte y los recorridos del Sol y la Tierra.">
                   <HorizonStrip title={`${p.data.site.name} · ${formatLat(p.data.site.lat)}, ${formatLon(p.data.site.lon)}`}
                     horizon={p.data.horizon.elevationDeg} sun={{ az: p.data.sun.az[i], el: p.data.sun.el[i], visible: p.lit[i] }}
                     earth={{ az: p.data.earth.az[i], el: p.data.earth.el[i], visible: p.contact[i] }} sunTrack={p.data.sun} earthTrack={p.data.earth} />
@@ -366,7 +369,7 @@ function Timeline({
   const sunEclipses = useMemo(() => eclipses(p.data).filter((e) => p.lit.slice(e.start, e.end).some(Boolean)), [p.data, p.lit])
 
   return (
-    <Panel label={mission ? 'Reproducir misión' : 'Línea de tiempo'}>
+    <Panel label={mission ? 'Reproducir misión' : 'Elige cuándo alunizar'}>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <Button
           variant="primary"
@@ -404,6 +407,8 @@ function Timeline({
         value={index}
         onChange={(e) => onIndex(Number(e.target.value))}
       />
+      <VisibilityCalendar data={p.data} index={index} lit={p.lit} contact={p.contact} onSeek={onIndex} />
+      <Disclosure className="mt-5" title="Líneas de tiempo del año y antenas DSN" description="Vista técnica: cada tramo de color indica cuándo hay luz o contacto.">
       <div className="mt-2">
         <WindowsBar
           lit={p.lit}
@@ -423,6 +428,7 @@ function Timeline({
           {sunEclipses.length > 0 && `Cortes en la luz: ${sunEclipses.length === 1 ? 'un eclipse' : `${sunEclipses.length} eclipses`} de Sol por la Tierra.`}
         </p>
       )}
+      </Disclosure>
     </Panel>
   )
 }
@@ -466,7 +472,7 @@ function Viability({
   const to = sampleTime(p.data, rec.window.to)
 
   return (
-    <section aria-label="Viabilidad del plan" className="min-w-0 bg-hull/40 p-5 sm:p-6">
+    <section aria-label="Viabilidad del plan" className="glass-surface min-w-0 p-5 sm:p-6">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-bold text-ink">¿Conviene alunizar aquí?</h2>
         <InfoTip label="Viabilidad" align="end">
@@ -496,24 +502,20 @@ function Viability({
           label="Luz solar"
           weight={r.factors.light.weight}
           value={`${Math.round(r.factors.light.score)} %`}
-          pct={r.factors.light.score}
-          bar="bg-sun"
+          valueTone="text-sun"
           limiting={limit === 'light'}
         />
         <Factor
           label="Contacto con la Tierra"
           weight={r.factors.contact.weight}
           value={`${Math.round(r.factors.contact.score)} %`}
-          pct={r.factors.contact.score}
-          bar="bg-earth"
+          valueTone="text-earth"
           limiting={limit === 'contact'}
         />
         <Factor
           label="Pendiente"
           weight={r.factors.slope.weight}
           value={`${p.data.slope.max100mDeg.toFixed(1)}° máx.`}
-          pct={r.factors.slope.score}
-          bar="bg-ink-muted"
           limiting={limit === 'slope'}
         />
         {r.factors.slope.score === 0 && <p className="text-xs leading-relaxed text-caution">Pendiente peligrosa para el alunizaje.</p>}
@@ -525,7 +527,7 @@ function Viability({
 }
 
 function PlanAlternatives({ p, rec, onSelect, onSeek }: { p: SiteView; rec: Recommendation; onSelect: (id: string) => void; onSeek: (index: number) => void }) {
-  return <section aria-label="Recomendaciones para el plan" className="py-2">
+  return <section aria-label="Recomendaciones para el plan" className="glass-surface p-5 sm:p-6">
         <h2 className="text-xl font-bold text-ink">Entiende tu resultado.</h2>
         <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-muted">{p.result.summary}</p>
         {p.result.warnings.length > 0 && <p className="mt-3 text-sm leading-relaxed text-caution">{p.result.warnings.join(' ')}</p>}
@@ -565,15 +567,13 @@ function Factor({
   label,
   weight,
   value,
-  pct,
-  bar,
+  valueTone,
   limiting,
 }: {
   label: string
   weight: number
   value: string
-  pct: number
-  bar: string
+  valueTone?: string
   /** Es el factor que más baja el puntaje (se marca solo si de verdad resta) */
   limiting?: boolean
 }) {
@@ -583,13 +583,10 @@ function Factor({
         <span className="text-sm text-ink-muted">
           {label}
         </span>
-        <span className="font-mono text-sm text-ink">{value}</span>
+        <span className={cx('font-mono text-sm text-ink', valueTone)}>{value}</span>
       </div>
       {limiting && <p className="mt-1 text-xs text-caution">Es lo que más limita este plan</p>}
       <span className="sr-only">Peso en el índice: {Math.round(weight * 100)} %.</span>
-      <div className="mt-1.5 h-1 overflow-hidden bg-hull-raised">
-        <div className={cx('h-full', bar)} style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
-      </div>
     </div>
   )
 }

@@ -16,7 +16,7 @@ export function Segmented<T extends string>({ label, options, value, onChange, s
     <div
       role="group"
       aria-label={label}
-      className={cx('inline-flex rounded-hw border border-seam-strong bg-void p-0.5', className)}
+      className={cx('flight-segmented inline-flex rounded-hw border border-seam-strong bg-void p-0.5', className)}
     >
       {options.map((o) => {
         const active = o.value === value

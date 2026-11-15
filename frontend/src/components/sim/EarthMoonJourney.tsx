@@ -68,7 +68,7 @@ export function EarthMoonJourney({ arrival, destination, onArrive }: { arrival: 
       <Button size="lg" onClick={() => seek(1)}>Ir a la llegada</Button>
     </div>
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
-      <div className="relative h-[25rem] min-w-0 overflow-hidden bg-black sm:h-[28rem]">
+      <div className="glass-viewport relative h-[25rem] min-w-0 overflow-hidden bg-black sm:h-[28rem]">
         <JourneyError onFail={onFail}>
           <Suspense fallback={null}><TransferViewer orbit={orbit} sample={sample} reduced={reduced} onReady={onReady} /></Suspense>
         </JourneyError>

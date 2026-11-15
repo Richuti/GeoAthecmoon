@@ -101,7 +101,7 @@ export function ViewerPanel({ data, index, contact, missionState, immersive = fa
       </div>
     </>
   )
-  return immersive ? <section aria-label={`Terreno lunar de ${s.name}`} className="relative h-full min-h-80 overflow-hidden bg-black">{content}</section> : (
+  return immersive ? <section aria-label={`Terreno lunar de ${s.name}`} className="glass-viewport relative h-full min-h-80 overflow-hidden bg-black">{content}</section> : (
     <Panel label={`Terreno 3D · LOLA · ${data.terrain?.extentKm ?? 20} × ${data.terrain?.extentKm ?? 20} km`}
       className="min-h-[26rem] flex-1 lg:min-h-[24rem]" bodyClassName="relative overflow-hidden p-0">{content}</Panel>
   )

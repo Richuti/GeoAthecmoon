@@ -5,7 +5,7 @@ import { cx } from './cx'
 export function Disclosure({ title, description, children, className, defaultOpen = false }: {
   title: string; description?: string; children: ReactNode; className?: string; defaultOpen?: boolean
 }) {
-  return <details open={defaultOpen || undefined} className={cx('border border-seam bg-hull/30 [&[open]>summary>svg]:rotate-180', className)}>
+  return <details open={defaultOpen || undefined} className={cx('glass-surface flight-disclosure border border-seam bg-hull/30 [&[open]>summary>svg]:rotate-180', className)}>
     <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-hull-raised/60 [&::-webkit-details-marker]:hidden">
       <span className="min-w-0">
         <span className="block text-sm font-bold text-ink sm:text-base">{title}</span>

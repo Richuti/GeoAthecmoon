@@ -1,10 +1,10 @@
 # Sistema de diseño · GEOATHECMOON
 
-**Dirección: "hardware de vuelo".** La app se ve como el panel de un instrumento: rótulos esténcil como los que se pintan sobre el hardware espacial, una tipografía de cabina para todo lo que se lee, y marcos finos en lugar de tarjetas.
+**Dirección actual: exploración lunar sobre cristal líquido (decisión de Richard, 14 nov).** El planificador y el simulador usan superficies translúcidas, bordes suaves y reflejos neutros sobre un fondo lunar. Se conservan la rotulación de hardware espacial para la marca, los sitios y la viabilidad, y B612 para la lectura.
 
-Nada de estética genérica de dashboard: ni tarjetas redondeadas con fondo azulado, ni etiquetas en mono espaciada, ni píldoras con punto, ni gradientes decorativos.
+El material de cristal pertenece a toda la herramienta: paneles, navegación, menús y controles. No se usan brillos de color decorativos; el ámbar sigue significando Sol y el azul, Tierra. Las imágenes explican, los datos calculan. Las reglas anteriores que prohibían esquinas redondeadas quedan reemplazadas por esta decisión.
 
-Los tokens están en `frontend/src/index.css` (`@theme`) y las fuentes en `frontend/src/fonts.css`.
+Los tokens están en `frontend/src/index.css` (`@theme`), el material en `frontend/src/flight-glass.css` y las fuentes en `frontend/src/fonts.css`.
 
 ---
 
@@ -71,9 +71,9 @@ La acción principal es **neutra** (fondo `ink`, texto `void`). El ámbar y el a
 
 ## Reglas de calidad
 
-- **Excepción pedida por Richard:** los botones de acceso al planificador de la landing usan cristal líquido neutro: silueta redondeada, transparencia, desenfoque del fondo y reflejos blancos. Esta excepción no se extiende a los controles del planificador o del simulador. Conservan foco visible y contraste; con transparencia reducida o contraste alto usan un fondo opaco. Sin movimiento continuo.
+- **Cristal líquido pedido por Richard:** se aplica a los accesos de la landing y a todo el planificador/simulador. Transparencia, desenfoque y reflejos blancos, con texto de alto contraste. Con transparencia reducida o contraste alto se usa fondo opaco. Sin movimiento continuo. Los menús y ayudas se montan en un portal para escapar de los contenedores con desenfoque.
 
-En **Explorar sitio**, la lectura sigue sitio → fecha y duración → terreno y viabilidad → evolución temporal → recomendaciones. La página usa un único scroll; la lista de sitios permanece a mano en escritorio y se pliega en móvil. Los porcentajes de luz y contacto llevan su etiqueta y corresponden al mismo plan, no al año completo. El horizonte y el gráfico polar se abren en «Entender el cielo y el relieve». «Simular este plan» conserva sitio, fecha y duración. La viabilidad es un índice de condiciones; el simulador comprueba la energía del módulo.
+En **Explorar sitio**, la lectura sigue sitio → fecha y duración → terreno y viabilidad → explicación visual del Sol y la Tierra → calendario → recomendaciones. La página usa un único scroll; la lista de sitios permanece a mano en escritorio y se pliega en móvil. Los porcentajes corresponden al mismo plan. `SiteConditions` usa imágenes ilustrativas existentes y estados/próximos cambios calculados con los datos; no extrae cifras de las imágenes. `VisibilityCalendar` suma horas reales de luz y contacto por día UTC del mes elegido; pulsar un día actualiza la fecha. Las franjas anuales, DSN, horizonte y gráfico polar son detalles técnicos cerrados al inicio. «Simular este plan» conserva sitio, fecha y duración. La viabilidad es un índice de condiciones; el simulador comprueba la energía del módulo.
 
 - **Accesibilidad:** foco visible (contorno claro de 2 px), contraste AA, controles con nombre accesible y tooltips que se abren con teclado.
 - **Movimiento:** solo transiciones cortas (150–300 ms). Se respeta `prefers-reduced-motion`.

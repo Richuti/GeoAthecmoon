@@ -84,13 +84,13 @@ export function Select({ id, label, value, options, onChange, placeholder = 'Eli
       aria-controls={open ? `${field}-list` : undefined} aria-labelledby={`${field}-label ${field}-value`}
       aria-describedby={hint ? `${field}-hint` : undefined} aria-activedescendant={open ? `${field}-option-${active}` : undefined}
       onKeyDown={keyDown} onClick={() => open ? setOpen(false) : reveal()} onBlur={() => setOpen(false)}
-      className={cx('flex min-h-14 w-full items-center justify-between gap-3 border bg-hull px-4 py-3 text-left transition-colors hover:border-ink-faint', open ? 'border-ink' : 'border-seam-strong')}>
+      className={cx('flight-field flex min-h-14 w-full items-center justify-between gap-3 border bg-hull px-4 py-3 text-left transition-colors hover:border-ink-faint', open ? 'border-ink' : 'border-seam-strong')}>
       <span id={`${field}-value`} className="min-w-0 truncate text-base font-bold text-ink">{selected?.label ?? placeholder}</span>
       <svg aria-hidden viewBox="0 0 20 20" className={cx('size-5 shrink-0 text-ink-muted transition-transform motion-reduce:transition-none', open && 'rotate-180')}><path d="m5 7.5 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
     </button>
     {hint && <p id={`${field}-hint`} className="mt-2 text-xs leading-relaxed text-ink-muted">{hint}</p>}
     {open && createPortal(<div ref={popup} id={`${field}-list`} role="listbox" aria-labelledby={`${field}-label`}
-      className="fixed z-[100] overflow-y-auto overscroll-contain border border-seam-strong bg-hull p-1 shadow-[0_12px_36px_rgb(0_0_0/0.5)]"
+      className="flight-menu fixed z-[100] overflow-y-auto overscroll-contain border border-seam-strong bg-hull p-1 shadow-[0_12px_36px_rgb(0_0_0/0.5)]"
       style={position} onMouseDown={e => e.preventDefault()}>
       {options.map((option, i) => <div key={option.value} id={`${field}-option-${i}`} role="option" aria-selected={option.value === value}
         aria-disabled={option.disabled || undefined} data-option-index={i} onPointerMove={e => { if (e.pointerType === 'mouse' && !option.disabled) setActive(i) }} onClick={() => choose(i)}

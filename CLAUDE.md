@@ -44,11 +44,11 @@ Con eso da un **porcentaje de viabilidad** y, si no conviene, **recomienda un si
 - React 19 + Vite + TypeScript + Tailwind CSS v4 (plugin `@tailwindcss/vite`; `@import "tailwindcss"` en `src/index.css`).
 - 3D: **React Three Fiber** + drei + three (instalar en la tarea 9), solo para **cargar** los `.glb` de Richard.
 - Sin librerías de gráficos: el gráfico polar y la barra de ventanas se hacen en **SVG**.
-- Estética **"hardware de vuelo"** (ver `docs/DISENO.md`). Fondo `#05070d`; el ámbar es solo el Sol y el azul solo la Tierra.
+- Estética actual: **exploración lunar sobre cristal líquido**, por decisión de Richard el 14 nov (ver `docs/DISENO.md`). Reemplaza la restricción anterior de marcos rectos. Fondo `#05070d`; el ámbar es solo el Sol y el azul solo la Tierra.
   - Big Shoulders Stencil solo en rótulos grandes. B612 (de cabina) para la interfaz y los números.
-  - Paneles como marcos finos con el nombre en el borde.
+  - Paneles, menús y controles de cristal neutro sobre fondo lunar; títulos dentro del panel. Estilo en `src/flight-glass.css`. Versión opaca si el usuario pide menos transparencia.
   - Fuentes locales en `public/fonts`.
-- **Nada de diseño con cara de IA:** sin tarjetas redondeadas genéricas, etiquetas en mono espaciada, píldoras con punto ni gradientes. Antes de entregar una pantalla, capturas en escritorio y móvil.
+- **Nada de diseño con cara de IA:** Richard autorizó expresamente el cristal líquido en toda la herramienta, incluidas esquinas redondeadas y reflejos neutros. Prioriza explicaciones visuales y datos legibles. Las imágenes de `SiteConditions` son ilustrativas; `VisibilityCalendar` suma las horas reales por día UTC. Los gráficos de líneas quedan como detalle técnico opcional. Antes de entregar: capturas en escritorio y móvil.
 - **Imágenes y videos:** los genera Richard con los prompts de `docs/MEDIOS_VISUALES.md`. Son ilustraciones; ningún dato sale de ellas. **Decisión de Richard (14 nov): la app no menciona la IA en ningún lugar**, ni en leyendas ni en el panel de fuentes. Si hace falta aclarar, se dice «Ilustración · los datos no salen de la imagen».
 
 ## Estructura
