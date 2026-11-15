@@ -22,7 +22,8 @@ Las rutas del contrato existen de dos formas, con **el mismo contenido byte a by
 - **De dónde salen:** los genera la rama `frontend` (`npm run horizons`, `npm run horizon` y `npm run mock`). `backend/out/` es la versión de Python para la validación cruzada y **no se exporta**.
 - **No hay más rutas** (ninguna de escritura). La API lee los JSON al arrancar y los devuelve tal cual, sin calcular nada.
 - **API, en detalle:** CORS solo para `https://geoathectum.vercel.app` y `http://localhost:5173` (se puede cambiar con la variable `ALLOWED_ORIGINS`), con gzip y `Cache-Control: public, max-age=3600`. Un id desconocido devuelve 404. Probado en local: los 6 sitios salen idénticos byte a byte a `public/data`.
-- **Deploy en Render** (Web Service, plan gratis, lo hace Rafael):
+- **✅ En línea (dom 00:40):** **`https://geoathecmoon-api.onrender.com`**, servicio `geoathecmoon-api` (plan gratis, Oregon, rama `backend`, auto-deploy en cada commit). Comprobado: `/health` responde, los 6 sitios salen idénticos byte a byte a los de Vercel, gzip, CORS solo para Vercel y localhost, y un id desconocido da 404. **Richard: pon esa URL en `VITE_API_URL` en Vercel.** Cuando el PR #1 esté en `main`, cambiamos la rama del servicio a `main`.
+- **Configuración en Render** (por si hay que rehacerlo):
   - Repo `Richuti/GeoAthectum`, rama `main` (o `backend` antes del merge). Root Directory vacío.
   - Runtime Python. Build: `pip install -r backend/api/requirements.txt`. Start: `uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT`.
   - Health check: `/health`.
@@ -89,7 +90,7 @@ Sitio **Macizo Malapert**, preset **Explorador ligero**, misión de 14 días. N�
 1. **Bug pequeño de coherencia:** en «¿Y si la misión se atrasa?», la viabilidad del plan atrasado no aplica el tope del 40 % cuando la misión falla. Con +1 semana dice 70, y al aplicar la fecha el resultado dice 40. Es `planOutcome()` en `src/sim/delay.ts`: pasarle `{ missionSurvives: s.survived }` a `siteViability()`.
 2. **"La siguiente opción"** puede proponer una fecha anterior a la del alunizaje (el 8 ene) aunque la misión ya se atrasó.
 3. **Feature freeze dom 07:00:** a partir de ahí, solo bugs. La portada ya está muy bien; mejor no tocarla más.
-4. **API en vivo:** te paso la URL de Render en cuanto esté arriba, para `VITE_API_URL`. Devuelve exactamente los mismos JSON de `public/data`.
+4. **API en vivo:** `VITE_API_URL=https://geoathecmoon-api.onrender.com` en Vercel (sin `/` al final). Devuelve exactamente los mismos JSON de `public/data`. Si duerme, tarda unos 50 s en despertar y tu respaldo de 6 s usa los archivos estáticos.
 
 ## Limitaciones (decirlas en el pitch)
 No modelamos la temperatura, el polvo, los satélites de relevo ni la degradación de la batería. La pendiente es regional (unos 160 m) y los presets son ilustrativos. Suponemos que siempre hay una antena de la DSN disponible cuando la Tierra es visible.

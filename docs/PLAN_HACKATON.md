@@ -36,6 +36,8 @@
 | Esqueleto de las diapositivas (problema, demo, validación, limitaciones, equipo) | Odelmy | ⏳ | sáb 22:00 |
 | Nombre: app **GEOATHECMOON**, equipo **GeoAthectum** | Equipo | ✅ (falta cambiar "Simulador" en el doc de identidad) | sáb 18:00 |
 | Primer deploy en Vercel (aunque esté incompleto) | Richard y Rafael | ✅ `geoathectum.vercel.app` | — |
+| API en vivo en Render (`/health`, `/sites`, `/sites/{id}`): mismos JSON que Vercel | Rafael | ✅ `geoathecmoon-api.onrender.com` (dom 00:40) | — |
+| Poner `VITE_API_URL` en Vercel y probar el respaldo | Richard | ⏳ | dom 03:30 |
 | QA del guion de la demo en producción (celular y laptop), con los clics de `docs/CASO_DEMO.md` | Dilan | ⏳ | dom 01:00 |
 | Cambiar "Simulador" por GEOATHECMOON en el doc de identidad | Odelmy | ⏳ | dom 01:00 |
 | Guion del pitch en borrador | Odelmy y Joshua | ⏳ | dom 05:00 |
