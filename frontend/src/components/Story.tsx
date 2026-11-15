@@ -202,7 +202,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
       const pos = g * n
       const scene = Math.min(n - 1, Math.floor(pos))
       const local = Math.min(1, pos - scene)
-      const wipe = scene < n - 1 ? smooth(0.7, 1, local) : 0
+      const wipe = scene < n - 1 ? smooth(0.88, 1, local) : 0
 
       layers.current.forEach((el, k) => {
         const img = images.current[k]
@@ -240,7 +240,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
         el.style.setProperty('--title', cues.title.toFixed(4))
         el.style.setProperty('--body', cues.body.toFixed(4))
         el.style.setProperty('--readout', cues.readout.toFixed(4))
-        el.style.setProperty('--visible', (k === n - 1 ? 1 : 1 - smooth(0.62, 0.74, local)).toFixed(4))
+        el.style.setProperty('--visible', (k === n - 1 ? 1 : cues.visible).toFixed(4))
       })
 
       // Pasado el viaje (cierre y pie de página) se ocultan los capítulos.
@@ -261,7 +261,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
     const el = journey.current
     if (!el) return
     const top = el.getBoundingClientRect().top + window.scrollY
-    const offset = (el.offsetHeight - window.innerHeight) * ((k + (k === 0 ? 0 : 0.3)) / scenes.length)
+    const offset = (el.offsetHeight - window.innerHeight) * ((k + (k === 0 ? 0 : 0.45)) / scenes.length)
     window.scrollTo({ top: top + offset, behavior: 'smooth' })
   }
 
@@ -291,7 +291,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
       ) : (
         <>
           <ChapterNav scenes={scenes} active={active} onGo={goTo} />
-          <section ref={journey} aria-label="Viaje al polo sur lunar" className="relative" style={{ height: `${scenes.length * 115 + 30}svh` }}>
+          <section ref={journey} aria-label="Viaje al polo sur lunar" className="relative" style={{ height: `${scenes.length * 220 + 100}svh` }}>
             <div className="sticky top-0 h-dvh overflow-hidden bg-void">
               <div className="absolute inset-0">
                 {scenes.map((sc, k) => (

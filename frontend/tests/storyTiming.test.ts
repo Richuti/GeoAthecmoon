@@ -6,10 +6,10 @@ test('la primera pantalla presenta la idea sin adelantar explicación y dato', (
   assert.deepEqual(storyCues(0, 0, true), { title: 1, body: 0, readout: 0, visible: 1 })
 })
 
-test('el video revela primero el título, después la explicación y al final el dato', () => {
-  assert.deepEqual(storyCues(0.2, 0.25), { title: 1, body: 0, readout: 0, visible: 1 })
-  assert.deepEqual(storyCues(0.4, 0.5), { title: 1, body: 1, readout: 0, visible: 1 })
-  assert.deepEqual(storyCues(0.7, 0.8), { title: 1, body: 1, readout: 1, visible: 1 })
+test('el título, la explicación y el dato entran temprano en ese orden', () => {
+  assert.deepEqual(storyCues(0.1, 0.11), { title: 1, body: 0, readout: 0, visible: 1 })
+  assert.deepEqual(storyCues(0.24, 0.27), { title: 1, body: 1, readout: 0, visible: 1 })
+  assert.deepEqual(storyCues(0.4, 0.43), { title: 1, body: 1, readout: 1, visible: 1 })
 })
 
 test('un video que tarda en buscar el fotograma no adelanta el texto', () => {
@@ -19,8 +19,14 @@ test('un video que tarda en buscar el fotograma no adelanta el texto', () => {
 
 test('el final reserva un tramo para leer antes de salir', () => {
   assert.equal(storyVideoProgress(0.84), 1)
-  assert.equal(storyCues(0.92, 1).visible, 1)
+  assert.equal(storyCues(0.85, 1).visible, 1)
   assert.equal(storyCues(1, 1).visible, 0)
+})
+
+test('el texto completo permanece visible en toda la parte central de la escena', () => {
+  for (const scroll of [0.4, 0.55, 0.7, 0.85]) {
+    assert.deepEqual(storyCues(scroll, storyVideoProgress(scroll)), { title: 1, body: 1, readout: 1, visible: 1 })
+  }
 })
 
 test('volver hacia atrás restaura cada momento sin acumular animaciones', () => {

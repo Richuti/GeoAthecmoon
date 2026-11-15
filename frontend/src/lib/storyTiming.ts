@@ -1,4 +1,4 @@
-/** Secuencia editorial del video: idea → explicación → dato, con una pausa de lectura al final. */
+/** Secuencia editorial: idea → explicación → dato, seguida de un tramo amplio de lectura. */
 function progress(value: number): number {
   return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0
 }
@@ -13,14 +13,14 @@ export function storyVideoProgress(scrollProgress: number): number {
   return progress(progress(scrollProgress) / 0.84)
 }
 
-/** Las entradas siguen el fotograma del video; la salida sigue el final del tramo de scroll. */
+/** Las entradas siguen la imagen; todo el contenido queda visible durante la parte central del scroll. */
 export function storyCues(scrollProgress: number, videoProgress: number, first = false) {
   const video = progress(videoProgress)
   return {
-    title: first ? 1 : reveal(0.06, 0.2, video),
-    body: reveal(0.28, 0.42, video),
-    readout: reveal(0.56, 0.7, video),
-    visible: 1 - reveal(0.93, 1, progress(scrollProgress)),
+    title: first ? 1 : reveal(0.02, 0.1, video),
+    body: reveal(0.12, 0.26, video),
+    readout: reveal(0.28, 0.42, video),
+    visible: 1 - reveal(0.86, 0.98, progress(scrollProgress)),
   }
 }
 
