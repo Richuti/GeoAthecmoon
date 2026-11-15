@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { journeyAt, lunarTransfer, MOON_RADIUS_KM } from '../src/sim/transfer.ts'
-import { LAUNCH_PAD_DECK_M, LAUNCH_SHIP_HEIGHT_M, descentFrame, encounterFrame, launchFrame } from '../src/sim/transferView.ts'
+import { DUST_ONSET_KM, DUST_SETTLE, LAUNCH_PAD_DECK_M, LAUNCH_SHIP_HEIGHT_M, TOUCHDOWN, descentFrame, encounterFrame, launchFrame } from '../src/sim/transferView.ts'
 
 test('la nave parte apoyada en la cubierta y el encuadre conserva el conjunto en móvil', () => {
   for (const aspect of [0.6, 350 / 400, 808 / 448, 2.5]) {
@@ -59,6 +59,7 @@ test('el descenso alcanza el suelo sin atravesarlo y conserva el m?dulo en m?vil
       previous = frame.altitudeKm
     }
     assert.equal(descentFrame(1, aspect).altitudeKm, 0)
+    assert.equal(descentFrame(TOUCHDOWN, aspect).altitudeKm, 0)
     assert.deepEqual(descentFrame(2, aspect), descentFrame(1, aspect))
     assert.deepEqual(descentFrame(-1, aspect), descentFrame(0, aspect))
   }
@@ -109,4 +110,22 @@ test('la escala de tiempo convierte la duración real en segundos de pantalla', 
   const hours = orbit.durationSeconds / 3600
   for (const k of TIME_SCALES_H_PER_S) assert.ok(Math.abs(transferPlaybackSeconds(orbit, k) * k - hours) < 1e-9)
   assert.throws(() => transferPlaybackSeconds(orbit, 0), RangeError)
+})
+
+test('el polvo solo aparece cerca del suelo y cae enseguida al apagar el motor (no hay aire)', () => {
+  assert.equal(descentFrame(0, 1).dust, 0)
+  assert.equal(descentFrame(0.5, 1).dust, 0)
+  // Justo antes del contacto el chorro levanta polvo y el motor está encendido.
+  const before = descentFrame(TOUCHDOWN - 0.002, 1)
+  assert.ok(before.altitudeKm < DUST_ONSET_KM && before.dust > 0.9 && before.engine === 1 && !before.touched)
+  // Tras el contacto: motor apagado y el polvo desaparece en DUST_SETTLE.
+  const after = descentFrame(TOUCHDOWN + DUST_SETTLE / 2, 1)
+  assert.ok(after.touched && after.engine === 0 && after.dust > 0 && after.dust < 1)
+  assert.ok(descentFrame(TOUCHDOWN + DUST_SETTLE, 1).dust < 1e-9)
+  assert.equal(descentFrame(1, 1).dust, 0)
+})
+
+test('la esfera de influencia lunar mide unos 66 000 km (masas de JPL)', async () => {
+  const { MOON_SOI_KM } = await import('../src/sim/transfer.ts')
+  assert.ok(MOON_SOI_KM > 66000 && MOON_SOI_KM < 66300, String(MOON_SOI_KM))
 })

@@ -6,13 +6,34 @@ export const LAUNCH_PAD_DECK_M = 4.85
 /** Distancia máxima de la cámara al cohete durante el ascenso (m). */
 export const LAUNCH_CHASE_MAX_M = 600
 
-/** Presentación local en km; no calcula una maniobra propulsiva lunar. */
+/** Fracción del descenso en la que la nave toca el suelo; el resto muestra el apagado y el polvo cayendo. */
+export const TOUCHDOWN = 0.85
+/**
+ * Altura de la base de la nave (km de escena) bajo la que el chorro levanta polvo. En los alunizajes del
+ * Apolo el polvo se vio desde unos 30 m; la nave se dibuja 4 veces más grande, así que aquí son 0.12 km.
+ */
+export const DUST_ONSET_KM = 0.12
+/** Tras apagar el motor el polvo cae en balística, sin aire que lo sostenga: se asienta en este tramo. */
+export const DUST_SETTLE = 0.06
+
+const smoothstep = (a: number, b: number, x: number) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t) }
+
+/** Presentación local en km; no calcula una maniobra propulsiva lunar (frenado, combustible ni gravedad). */
 export function descentFrame(progress: number, aspect: number) {
   if (!Number.isFinite(progress) || !Number.isFinite(aspect) || aspect <= 0) throw new RangeError('Descenso no válido.')
   const p = Math.max(0, Math.min(1, progress))
+  const t = Math.min(1, p / TOUCHDOWN)
+  const altitudeKm = 3 * (1 - t) ** 2
+  const touched = p >= TOUCHDOWN
+  const settle = touched ? Math.max(0, 1 - (p - TOUCHDOWN) / DUST_SETTLE) : 1
   return {
-    altitudeKm: 3 * (1 - p) ** 2,
-    distanceKm: Math.max(0.65, 0.42 / Math.min(1, aspect), 2.5 * (1 - p)),
+    altitudeKm,
+    distanceKm: Math.max(0.65, 0.42 / Math.min(1, aspect), 2.5 * (1 - t)),
+    touched,
+    /** 1 con el motor encendido; 0 desde el contacto. */
+    engine: touched ? 0 : 1,
+    /** Intensidad del polvo (0–1): crece cerca del suelo y cae enseguida tras el apagado. */
+    dust: smoothstep(DUST_ONSET_KM, 0, altitudeKm) * settle,
   }
 }
 

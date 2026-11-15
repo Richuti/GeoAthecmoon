@@ -115,10 +115,12 @@ function TransferScene({ orbit, sample, reduced, onReady, overlay }: SceneProps)
     const shipSizeKm = Math.min(100, moonSeparationKm * 0.5)
     const encounter = encounterFrame(sample, moonRadius, shipSizeKm, aspect)
     // La leyenda ocupa la franja inferior: la vista general se corre hacia abajo para dejarle espacio.
-    const overviewY = overview.yKm - overview.distanceKm * Math.tan(21 * Math.PI / 180) * 0.1
+    // En pantallas angostas el título ocupa más alto; ahí no se corre (se aleja más, abajo).
+    const overviewY = overview.yKm - overview.distanceKm * Math.tan(21 * Math.PI / 180) * (aspect < 1 ? 0 : 0.1)
     const cx = THREE.MathUtils.lerp(THREE.MathUtils.lerp(depart.xKm, overview.xKm, wide), encounter.xKm, close)
     const cy = THREE.MathUtils.lerp(THREE.MathUtils.lerp(depart.yKm, overviewY, wide), encounter.yKm, close)
-    const distanceKm = logLerp(logLerp(depart.distanceKm, overview.distanceKm * 1.12, wide), encounter.distanceKm, close)
+    // En pantallas angostas el título y la leyenda ocupan más alto: la vista general se aleja un poco más.
+    const distanceKm = logLerp(logLerp(depart.distanceKm, overview.distanceKm * (aspect < 1 ? 1.45 : 1.12), wide), encounter.distanceKm, close)
     camera.position.set(cx / KM_PER_UNIT, cy / KM_PER_UNIT, distanceKm / KM_PER_UNIT)
     camera.lookAt(cx / KM_PER_UNIT, cy / KM_PER_UNIT, 0)
     camera.updateMatrixWorld()
@@ -161,11 +163,12 @@ function TransferScene({ orbit, sample, reduced, onReady, overlay }: SceneProps)
       <Html position={[0, -0.7, 0]} center style={{ pointerEvents: 'none' }}><span aria-hidden className="whitespace-nowrap text-xs text-earth">Tierra</span></Html>
     </group>
     <group ref={moonGroup} scale={MOON_RADIUS_KM * 2 / KM_PER_UNIT}>
-      <primitive object={moon} dispose={null} />
+      {/* Inclinada 60° para que el polo sur (destino del alunizaje) mire hacia la cámara al llegar. */}
+      <group rotation={[-Math.PI / 3, 0, 0]}><primitive object={moon} dispose={null} /></group>
       <Html position={[0, -0.8, 0]} center style={{ pointerEvents: 'none' }}><span aria-hidden className="whitespace-nowrap text-xs text-ink-muted">Luna</span></Html>
     </group>
     <group ref={ship}><primitive object={rocket} dispose={null} /></group>
-    {sample.flight > 0.05 && sample.flight < 0.88 && <Html position={[-orbit.apoapsisKm / KM_PER_UNIT, 0, 0]} style={{ pointerEvents: 'none' }}>
+    {sample.flight > 0.14 && sample.flight < 0.88 && <Html position={[-orbit.apoapsisKm / KM_PER_UNIT, 0, 0]} style={{ pointerEvents: 'none' }}>
       {/* Anclado por la izquierda: el texto crece hacia dentro del cuadro, no se corta en el borde. */}
       <span aria-hidden className="ml-2 mt-2 block whitespace-nowrap text-xs text-ink-muted">Encuentro previsto</span>
     </Html>}

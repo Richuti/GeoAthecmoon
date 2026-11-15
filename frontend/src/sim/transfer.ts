@@ -4,10 +4,16 @@
 // Modelo: órbita elíptica de transferencia, sin gravedad lunar/solar, ascenso, captura ni descenso.
 
 export const EARTH_GM_KM3_S2 = 398600.435507
+export const MOON_GM_KM3_S2 = 4902.800118
 export const EARTH_RADIUS_KM = 6378.1
 export const MOON_RADIUS_KM = 1737.4
 export const MOON_DISTANCE_KM = 384400
 export const MOON_PERIOD_SECONDS = 27.3217 * 86400
+/**
+ * Esfera de influencia de la Luna (Laplace): r = a·(m_Luna/m_Tierra)^(2/5), unos 66 000 km.
+ * Dentro de ella domina la gravedad lunar. Este modelo de dos cuerpos no la incluye; solo la señala.
+ */
+export const MOON_SOI_KM = MOON_DISTANCE_KM * (MOON_GM_KM3_S2 / EARTH_GM_KM3_S2) ** 0.4
 export const LAUNCH_END = 0.12
 /** El último tramo es una presentación del descenso, fuera del modelo orbital. */
 export const DESCENT_START = 0.86
