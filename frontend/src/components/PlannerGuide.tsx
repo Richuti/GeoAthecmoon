@@ -22,7 +22,7 @@ const TITLES = ['¿Dónde quieres alunizar?', '¿Cuándo llegará tu misión?', 
 const HINTS = [
   'Elige un lugar del polo sur. Después veremos qué fecha funciona para tu misión.',
   'Elige la fecha de llegada y cuántos días estará tu módulo en la superficie.',
-  'Revisa la luz, la comunicación y el terreno. Después podrás comprobar si tu módulo tiene energía suficiente.',
+  'Tu puntaje, qué lo limita y cómo mejorarlo.',
 ]
 
 /** Una decisión por pantalla. Los resultados conservan el explorador y sus datos reales. */

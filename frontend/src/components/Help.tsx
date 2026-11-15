@@ -2,6 +2,7 @@
 // Cada término dice qué es y por qué importa en el polo sur. No trae números: los datos están en la app.
 import { useRef } from 'react'
 import { Button } from './ui'
+import { openWelcome } from './Welcome'
 
 interface Term {
   term: string
@@ -90,7 +91,10 @@ export function Help() {
                 Las palabras de la app, explicadas en simple. En la app, el ámbar es siempre el Sol y el azul, siempre la Tierra.
               </p>
             </div>
-            <Button size="sm" onClick={() => dialog.current?.close()} autoFocus>Cerrar</Button>
+            <div className="flex shrink-0 flex-wrap justify-end gap-2">
+              <Button size="sm" variant="ghost" onClick={() => { dialog.current?.close(); openWelcome() }}>Ver la guía rápida</Button>
+              <Button size="sm" onClick={() => dialog.current?.close()} autoFocus>Cerrar</Button>
+            </div>
           </div>
           <dl className="flex flex-col">
             {TERMS.map((t) => (

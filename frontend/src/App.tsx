@@ -11,6 +11,8 @@ import { PlannerGuide } from './components/PlannerGuide'
 import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
 import { TimeScale } from './components/TimeScale'
+import { Welcome } from './components/Welcome'
+import { DelayCheck } from './components/DelayCheck'
 import { SiteConditions } from './components/SiteConditions'
 import { VisibilityCalendar } from './components/VisibilityCalendar'
 import { Badge, Button, DateTimeField, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
@@ -169,6 +171,7 @@ function Planner() {
 
   return (
     <div className="flight-console flex min-h-dvh flex-col">
+      <Welcome />
       <header className="flight-header flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4 sm:px-8">
         <Brand />
         <Segmented label="Modo" options={MODES} value={mode} onChange={actions.setMode} />
@@ -249,6 +252,8 @@ function Planner() {
                   </div>
                   {rec && <Viability p={p} rec={rec} onSimulate={() => { actions.setPlaying(false); setDraftStart(rec.window.from); actions.setMode('simulate') }} />}
                 </div>
+                {current && <DelayCheck data={p.data} vis={current.vis} cfg={cfg} moduleName={preset ? PRESETS[preset].label : 'módulo personalizado'}
+                  startIndex={i} missionDays={missionDays} onApply={seek} />}
                 {rec && <PlanAlternatives p={p} rec={rec} onSelect={actions.select} onSeek={seek} />}
                 <Disclosure title="Ver luz, comunicación y calendario" description="Explora el entorno del módulo y busca otros días para alunizar.">
                   <SiteConditions data={p.data} index={i} lit={p.lit} contact={p.contact} />
@@ -471,7 +476,6 @@ function Viability({
           {VERDICT_LABEL[r.verdict]}
         </Badge>
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-ink-muted">Luz, comunicación y terreno durante tu estancia.</p>
 
       <div className="mt-5 flex flex-col gap-3.5">
         <Factor
@@ -496,7 +500,6 @@ function Viability({
         />
         {r.factors.slope.score === 0 && <p className="text-xs leading-relaxed text-caution">Pendiente peligrosa para el alunizaje.</p>}
       </div>
-      <p className="mt-4 text-xs leading-relaxed text-ink-muted">Índice de condiciones del sitio. Para comprobar si la batería alcanza, simula tu módulo.</p>
       <Button variant="primary" size="lg" className="mt-5 w-full" onClick={onSimulate}>Simular este plan →</Button>
     </section>
   )
@@ -504,8 +507,7 @@ function Viability({
 
 function PlanAlternatives({ p, rec, onSelect, onSeek }: { p: SiteView; rec: Recommendation; onSelect: (id: string) => void; onSeek: (index: number) => void }) {
   return <section aria-label="Recomendaciones para el plan" className="glass-surface p-5 sm:p-6">
-        <h2 className="text-xl font-bold text-ink">Entiende tu resultado.</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-muted">{p.result.summary}</p>
+        <h2 className="text-xl font-bold text-ink">Cómo mejorar tu plan.</h2>
         {p.result.warnings.length > 0 && <p className="mt-3 text-sm leading-relaxed text-caution">{p.result.warnings.join(' ')}</p>}
         {rec.betterDate || rec.betterSite ? (
           <ul className="mt-5 grid gap-6 sm:grid-cols-2">

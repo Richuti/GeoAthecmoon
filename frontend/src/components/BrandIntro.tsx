@@ -43,9 +43,8 @@ export function BrandIntro() {
     {/* El corte descubre el nombre, se cierra y vuelve a abrirse para revelar la portada. */}
     {['top', 'bottom'].map(half => <div key={half} className={`brand-intro__half brand-intro__half--${half}`} aria-hidden>
       <div className="brand-intro__identity">
-        <svg className="brand-intro__emblem" viewBox="245 285 510 355">
-          <image href="/brand/logo.png" width="1000" height="1000" />
-        </svg>
+        {/* Logo sin fondo: no depende de mix-blend-mode, que Safari en iPhone no aplica bien y dejaba ver el cuadrado del PNG. */}
+        <img className="brand-intro__emblem" src="/brand/logo-transparent.svg" alt="" width={510} height={355} decoding="sync" />
       </div>
     </div>)}
     <button className="brand-intro__skip" type="button" onClick={dismiss}>Saltar intro <span aria-hidden>↗</span></button>
