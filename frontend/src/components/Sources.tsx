@@ -19,6 +19,7 @@ const DATA: Source[] = [
   { name: 'LOLA · Lunar Reconnaissance Orbiter (NASA)', href: 'https://pds-geosciences.wustl.edu/missions/lro/lola.htm', use: 'Relieve del polo sur (DEM LDEM_80S_80M, 80 m por píxel): horizonte, pendiente y terreno 3D.' },
   { name: 'Mapas de iluminación del equipo LOLA · NASA/GSFC', use: 'Validación de la luz y de la Tierra visible (Mazarico et al. 2011, Icarus 211, 1066–1081).' },
   { name: 'Deep Space Network · NASA/JPL', href: 'https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301K.pdf', use: 'Ubicación de las antenas DSS-14, DSS-63 y DSS-43 (documento 810-005, módulo 301).' },
+  { name: 'OpenAI · copiloto de rescate', use: 'Decide qué combinaciones probar cuando un atraso hace fallar la misión y explica el plan elegido. No calcula: cada número sale del simulador de la app.' },
   { name: 'JPL DE440 y NASA Moon Fact Sheet', href: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html', use: 'Constantes del viaje Tierra–Luna idealizado.' },
 ]
 

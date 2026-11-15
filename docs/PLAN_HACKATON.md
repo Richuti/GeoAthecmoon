@@ -1,6 +1,7 @@
 # Plan de la hackatón · GeoAthectum
 
 **Entrega (H):** domingo 15 nov, **13:00** (meta interna: no hay hora oficial todavía; si la anuncian, se ajusta)
+**Checkpoint dom 05:55:** 🟢 con un riesgo nuevo. Bugs corregidos (el tope del 40 % y "La siguiente opción"), `VITE_API_URL` puesta y la API respondiendo (0.8 s). Entraron la IA (copiloto de rescate con OpenAI en una función de Vercel; la clave no llega al navegador) y el mapa de supervivencia. **Riesgo:** el momento wow ahora depende de OpenAI y del wifi de la sede. La demo tiene que poder terminar sin la IA (las 3 salidas simuladas) y el video de respaldo tiene que mostrarla funcionando. **Feature freeze a las 07:00, sin excepciones.**
 **Checkpoint dom 00:55:** 🟢. El PR #1 ya está en `main`. La API está en Render (`geoathecmoon-api.onrender.com`, arranque en frío de 22 s, cubierto por el respaldo de 6 s). Richard hizo el comparador (10) y la animación del despegue y la trayectoria. **Riesgo:** sigue agregando animaciones grandes; freeze a las 07:00 sin excepción. Pendientes: el bug del tope del 40 % (`delay.ts`), `VITE_API_URL` en Vercel y el QA del guion A.
 **Checkpoint sáb 23:35:** 🟢. La rama `frontend` ya está en `main` y desplegada en `https://geoathectum.vercel.app` (prueba de humo: 200 y datos con las coordenadas nuevas). El caso de la demo sigue igual con los datos nuevos (réplica en Python: falla el 2 feb a las 10:00 y viabilidad del 40 % el 20 ene). Falta: merge del PR #1 (sin conflictos con `main`), revisión de D2, SU7 y 12, y el congelamiento del pulido visual. IA1 queda fuera de esta entrega.
 **Checkpoint sáb 18:40:** 🟡. Coordenadas corregidas y PR #1 sin conflictos.
@@ -28,8 +29,13 @@
 | S3 (búsqueda de fechas y sitios), 6 (línea de tiempo), 7 (gráfico polar), 8 (métricas y recomendación) | Richard | ⏳ | sáb 23:00 |
 | Integrar en `main` la rama `frontend` | Richard | ✅ | — |
 | Merge del PR #1 (`backend` → `main`) | Richard | ✅ sáb 23:59 | — |
+<<<<<<< HEAD
 | Servicio de Render apuntando a la rama `main` | Rafael | ⏳ | dom 01:00 |
 | Corregir el tope del 40 % en «¿Y si la misión se atrasa?» (`src/sim/delay.ts:31`, `missionSurvives`) | Richard | ⏳ | dom 03:30 |
+=======
+| Servicio de Render apuntando a la rama `main` (`backend/api/` ya está en `main` desde el 15 nov) | Rafael | ⏳ | — |
+| Corregir el tope del 40 % en «¿Y si la misión se atrasa?» (`src/sim/delay.ts`, `missionSurvives`) | Richard | ✅ `28a0fb3` | — |
+>>>>>>> origin/main
 | QA del guion A (`docs/CASO_DEMO.md`) con la versión «sin tablas», en el celular y en la laptop | Dilan | ⏳ | dom 03:00 |
 | Revisar D2, SU7 y 12 (implementadas, sin marcar) y **dejar de pulir la portada** | Richard | ⏳ | dom 03:30 |
 | 3.3 Verificar coordenadas en Quickmap (`docs/VERIFICACION_SITIOS.md`) | Dilan y Joshua | ⏳ | sáb 15:00 |
@@ -41,7 +47,11 @@
 | Nombre: app **GEOATHECMOON**, equipo **GeoAthectum** | Equipo | ✅ (falta cambiar "Simulador" en el doc de identidad) | sáb 18:00 |
 | Primer deploy en Vercel (aunque esté incompleto) | Richard y Rafael | ✅ `geoathectum.vercel.app` | — |
 | API en vivo en Render (`/health`, `/sites`, `/sites/{id}`): mismos JSON que Vercel | Rafael | ✅ `geoathecmoon-api.onrender.com` (dom 00:40) | — |
+<<<<<<< HEAD
 | Poner `VITE_API_URL` en Vercel y probar el respaldo | Richard | ⏳ | dom 03:30 |
+=======
+| Poner `VITE_API_URL` y `OPENAI_API_KEY` en Vercel y probar el respaldo | Richard | ✅ dom 15 nov | — |
+>>>>>>> origin/main
 | QA del guion de la demo en producción (celular y laptop), con los clics de `docs/CASO_DEMO.md` | Dilan | ⏳ | dom 01:00 |
 | Cambiar "Simulador" por GEOATHECMOON en el doc de identidad | Odelmy | ⏳ | dom 01:00 |
 | Guion del pitch en borrador | Odelmy y Joshua | ⏳ | dom 05:00 |
@@ -56,7 +66,7 @@ Nadie debe pasar más de 20 h despierto. Rafael y Richard no duermen al mismo ti
 - Joshua, Odelmy y Dilan: turnos de 4 h antes de las 05:00 (borrador del pitch).
 
 ## Si sobra tiempo (en orden inverso de recorte)
-**Fuera de esta entrega:** IA1 (planificador con IA, `docs/TAREAS.md`), porque requiere servidor, clave de OpenAI y backend en vivo. Puede ir en el pitch como "siguiente paso".
+**Hecho (15 nov):** la IA entró como **copiloto de rescate** en el imprevisto (OpenAI, función de Vercel `api/copilot.ts`): propone combinaciones y el simulador calcula cada una. También el **mapa de supervivencia** (6 sitios × 365 días).
 
 ~~Comparador (10)~~ (ya hecho, dom 00:50), textura LRO (9.5), globo de portada (M2), sliders de pesos, animación 3D, servidor en vivo con coordenadas libres.
 
@@ -64,6 +74,6 @@ Nadie debe pasar más de 20 h despierto. Rafael y Richard no duermen al mismo ti
 La app es estática: lee `/data/*.json` y el enlace directo usa `?sitio=` (query), así que **no hace falta `vercel.json` ni rewrites**. Los datos pesan 1 MB, los modelos 2.5 MB y el build 3.8 MB.
 1. Vercel → *Add New Project* → importar `Richuti/GeoAthectum`.
 2. **Root Directory: `frontend`** · Framework: **Vite** · Build: `npm run build` · Output: `dist`.
-3. **No** definir `VITE_API_URL` (vacía = usa los JSON de `public/data`).
+3. `VITE_API_URL=https://geoathecmoon-api.onrender.com` (sin `/` al final), en *Production* y *Preview*. La app despierta la API al abrir la portada; si no responde en 6 s, usa los JSON de `public/data`, que son idénticos. Las previews de Vercel no están en el CORS de la API y usan siempre el respaldo estático. `OPENAI_API_KEY` (sin `VITE_`) para el copiloto.
 4. Rama de producción: `main`. Cada PR genera su propia preview, así que el PR de `backend` se puede probar antes del merge.
 5. Prueba de humo: abrir Malapert en el celular y en la laptop de la presentación, y revisar el panel de fuentes (`lola` + `jpl-horizons`).

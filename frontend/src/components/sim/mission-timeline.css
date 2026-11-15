@@ -1,0 +1,59 @@
+/* Reproducción de la misión: valores del momento y la misión entera dibujada. Ámbar = Sol, azul = Tierra. */
+.mission-now { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.mission-now__tile {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 12px 14px; border-radius: 12px;
+  border: 1px solid rgb(232 235 241 / 0.14); background: rgb(5 7 13 / 0.45); transition: border-color 200ms, background-color 200ms;
+}
+.mission-now__tile > span { font-size: 12px; color: var(--color-ink-muted); }
+.mission-now__tile > b { font-size: 18px; line-height: 1.25; color: var(--color-ink); }
+.mission-now__tile > small { font-size: 12px; color: var(--color-ink-muted); }
+.mission-now__tile > i { display: block; height: 6px; margin-top: 6px; border-radius: 999px; background: rgb(232 235 241 / 0.1); overflow: hidden; }
+.mission-now__tile > i > i { display: block; height: 100%; border-radius: inherit; background: var(--color-ok); transition: width 160ms linear; }
+.mission-now__tile.is-ok > b { color: var(--color-ok); }
+.mission-now__tile.is-warn { border-color: rgb(233 207 74 / 0.45); }
+.mission-now__tile.is-warn > b { color: var(--color-caution); }
+.mission-now__tile.is-warn > i > i { background: var(--color-caution); }
+.mission-now__tile.is-fail { border-color: rgb(255 107 107 / 0.55); }
+.mission-now__tile.is-fail > b { color: var(--color-critical); }
+.mission-now__tile.is-fail > i > i { background: var(--color-critical); }
+.mission-now__tile.is-sun { border-color: rgb(255 181 71 / 0.45); }
+.mission-now__tile.is-sun > b { color: var(--color-sun); }
+.mission-now__tile.is-earth { border-color: rgb(90 169 255 / 0.45); }
+.mission-now__tile.is-earth > b { color: var(--color-earth); }
+.mission-now__tile.is-off > b { color: var(--color-ink-muted); }
+
+.mission-track { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); column-gap: 10px; row-gap: 6px; }
+.mission-track__labels { display: grid; grid-template-rows: 10px 10px 80px; row-gap: 6px; font-size: 11px; color: var(--color-ink-muted); text-align: right; }
+.mission-track__labels > span { line-height: 10px; }
+.mission-track__labels > span:last-child { align-self: center; }
+.mission-track__body { position: relative; display: grid; grid-template-rows: 10px 10px 80px; row-gap: 6px; border-radius: 8px; }
+.mission-track__body:focus-within { box-shadow: 0 0 0 2px var(--color-ink); }
+.mission-track__strip { display: block; width: 100%; height: 10px; border-radius: 3px; background: rgb(232 235 241 / 0.06); }
+.mission-track__chart { display: block; width: 100%; height: 80px; border-radius: 6px; background: rgb(232 235 241 / 0.04); overflow: visible; }
+.mission-track__area { fill: rgb(69 212 155 / 0.16); }
+.mission-track__area.is-fail { fill: rgb(255 107 107 / 0.12); }
+.mission-track__line { fill: none; stroke: var(--color-ok); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.mission-track__line.is-fail { stroke: var(--color-critical); }
+.mission-track__floor { stroke: rgb(255 107 107 / 0.7); stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+.mission-track__save { stroke: rgb(233 207 74 / 0.55); stroke-dasharray: 2 5; vector-effect: non-scaling-stroke; }
+.mission-track__mark { stroke: var(--color-void); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.mission-track__mark.is-failure { fill: var(--color-critical); }
+.mission-track__mark.is-survival { fill: var(--color-caution); }
+.mission-track__mark.is-recovered { fill: var(--color-ok); }
+.mission-track__future { position: absolute; top: -3px; right: 0; bottom: -3px; background: rgb(5 7 13 / 0.55); pointer-events: none; border-radius: 0 8px 8px 0; }
+.mission-track__cursor { position: absolute; top: -6px; bottom: -6px; width: 2px; margin-left: -1px; background: var(--color-ink); box-shadow: 0 0 0 1px rgb(5 7 13 / 0.7); pointer-events: none; }
+.mission-track__cursor::before { content: ''; position: absolute; top: -4px; left: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--color-ink); }
+/* La barra de desplazamiento real va encima de todo, invisible: clic, arrastre y teclado. */
+.mission-track__input { position: absolute; inset: -6px 0; width: 100%; height: calc(100% + 12px); margin: 0; opacity: 0; cursor: pointer; }
+.mission-track__ends { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--color-ink-faint); }
+.mission-key { display: inline-block; width: 14px; height: 8px; margin-right: 6px; border-radius: 2px; vertical-align: 0; }
+.mission-key.is-sun { background: var(--color-sun); }
+.mission-key.is-earth { background: var(--color-earth); }
+.mission-key.is-save { height: 0; border-top: 2px dotted rgb(233 207 74 / 0.8); }
+.mission-key.is-floor { height: 0; border-top: 2px dashed rgb(255 107 107 / 0.8); }
+@media (max-width: 899px) { .mission-now { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 479px) {
+  .mission-track { grid-template-columns: 3.5rem minmax(0, 1fr); }
+  .mission-now__tile { padding: 10px 12px; }
+  .mission-now__tile > b { font-size: 16px; }
+}

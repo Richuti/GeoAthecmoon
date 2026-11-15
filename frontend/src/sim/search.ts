@@ -23,11 +23,20 @@ export interface StartResult {
 
 export type ViableStart = StartResult & { viability: number }
 
-/** Entre las fechas que sobreviven, prioriza luz, contacto y pendiente; después el margen y la fecha más temprana. */
-export function bestViableStart(data: SiteData, scan: StartResult[], missionDays: number, vis: Visibility = visibility(data)): ViableStart | null {
+/**
+ * Entre las fechas que sobreviven, prioriza luz, contacto y pendiente; después el margen y la fecha más temprana.
+ * `notBefore`: solo fechas desde esa muestra (una misión atrasada no puede volver a una fecha anterior).
+ */
+export function bestViableStart(
+  data: SiteData,
+  scan: StartResult[],
+  missionDays: number,
+  vis: Visibility = visibility(data),
+  notBefore = 0,
+): ViableStart | null {
   let best: ViableStart | null = null
   for (const candidate of scan) {
-    if (!candidate.survived) continue
+    if (!candidate.survived || candidate.startIndex < notBefore) continue
     const score = siteViability(data, vis, DEFAULT_WEIGHTS, missionWindow(data, candidate.startIndex, missionDays)).score
     const tiedScore = best !== null && Math.abs(score - best.viability) < 1e-9
     const tiedMargin = best !== null && Math.abs(candidate.marginKWh - best.marginKWh) < 1e-9

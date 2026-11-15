@@ -40,6 +40,8 @@ describe('compareDelay: si la misión se atrasa, ¿todavía funciona?', () => {
     assert.equal(c.stillWorks, false)
     assert.ok(c.viabilityChange < 0)
     assert.ok(c.delayed.lightPct < c.original.lightPct)
+    // Igual que el resultado de la misión: si falla, la viabilidad queda en 40 como máximo.
+    assert.ok(c.delayed.viability <= 40)
   })
 
   test('el atraso se recorta cuando la misión ya no cabe en los datos', () => {

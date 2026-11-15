@@ -27,6 +27,12 @@ describe('bestViableStart: luz, comunicación y terreno', () => {
     const best = bestViableStart(d, [candidate(48, 2), candidate(24, 1), candidate(0, 2)], 1)
     assert.equal(best?.startIndex, 0)
   })
+  test('con notBefore no propone fechas anteriores al alunizaje', () => {
+    const d = site('a', () => true)
+    const best = bestViableStart(d, [candidate(0, 3), candidate(24, 1), candidate(48, 2)], 1, undefined, 24)
+    assert.equal(best?.startIndex, 48)
+    assert.equal(bestViableStart(d, [candidate(0, 3)], 1, undefined, 24), null)
+  })
 })
 
 /** 20 días: el Sol se ve mientras `sunUp(i)`; la Tierra siempre. */

@@ -134,8 +134,40 @@ export function planDelayIncident(input: IncidentInput): Incident | null {
   const delayed = delayedRun.summary
   const cause = delayed.survived || delayed.failedAtIndex === null ? null : failureCause(data, delayedStart, delayed.failedAtIndex, series)
 
+  const options = delayed.survived ? [] : rescueOptions({ ...input, startIndex: delayedStart }, series)
+  return { delayHours: delaySamples * data.stepHours, breaksMission, original, delayedStart, delayed, cause, options }
+}
+
+/**
+ * Caso de rescate para un plan que ya falla sin ningún atraso (por la fecha o el sitio elegidos): el mismo formato
+ * que el imprevisto, con atraso cero, para que el copiloto lo trate igual. Devuelve null si el plan sobrevive.
+ */
+export function planRescueCase(input: IncidentInput): Incident | null {
+  const { data, cfg, missionDays } = input
+  const series = input.series ?? seriesOf(data)
+  const { from } = missionWindow(data, input.startIndex, missionDays)
+  const run = simulate(data, cfg, { startIndex: from, missionDays }, series)
+  if (run.summary.survived || run.summary.failedAtIndex === null) return null
+  return {
+    delayHours: 0,
+    breaksMission: true,
+    original: run.summary,
+    delayedStart: from,
+    delayed: run.summary,
+    cause: failureCause(data, from, run.summary.failedAtIndex, series),
+    options: rescueOptions({ ...input, startIndex: from }, series),
+  }
+}
+
+/** Salidas sencillas para una llegada que falla: esperar en órbita, cambiar de sitio o ahorrar energía. */
+export function rescueOptions(input: IncidentInput, series: Series): IncidentOption[] {
+  const { data, cfg, missionDays } = input
+  const delayedStart = input.startIndex
+  const n = data.sun.el.length
+  const len = samplesFor(data, missionDays * 24)
+  const step = Math.max(1, samplesFor(data, SCAN_STEP_HOURS))
   const options: IncidentOption[] = []
-  if (!delayed.survived) {
+  {
     // 1. Esperar en órbita: el primer inicio después de la llegada atrasada que sobrevive.
     for (let s = delayedStart + step; s + len <= n; s += step) {
       const r = simulate(data, cfg, { startIndex: s, missionDays }, series).summary
@@ -169,5 +201,5 @@ export function planDelayIncident(input: IncidentInput): Incident | null {
     }
   }
 
-  return { delayHours: delaySamples * data.stepHours, breaksMission, original, delayedStart, delayed, cause, options }
+  return options
 }

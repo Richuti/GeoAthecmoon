@@ -180,7 +180,7 @@ export function viability(
  */
 export function siteViability(
   data: SiteData,
-  vis: Visibility,
+  vis: Pick<Visibility, 'lit' | 'contact'>,
   weights: Weights = DEFAULT_WEIGHTS,
   range?: { from: number; to: number },
   options: { missionSurvives?: boolean } = {},

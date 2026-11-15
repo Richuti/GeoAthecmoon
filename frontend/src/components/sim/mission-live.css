@@ -1,0 +1,59 @@
+/* Instrumentos sobre el terreno: el mismo cristal neutro de la cabina. */
+.mission-live__veil { transition: background-color 240ms ease-out; }
+.mission-live--survival .mission-live__veil { background: rgb(5 7 13 / 0.12); }
+.mission-live--failed .mission-live__veil { background: rgb(5 7 13 / 0.38); }
+.mission-hud__card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgb(232 235 241 / 0.19);
+  border-radius: 12px;
+  background: rgb(5 7 13 / 0.87);
+  backdrop-filter: blur(12px);
+}
+.mission-hud__label { margin-bottom: 9px; font-size: 0.75rem; color: var(--color-ink-muted); }
+.mission-hud__battery { position: relative; height: 5px; overflow: hidden; background: rgb(232 235 241 / 0.16); }
+.mission-hud__fill { display: block; height: 100%; background: var(--color-ink); }
+.mission-hud__fill.is-survival { background: var(--color-caution); }
+.mission-hud__fill.is-failed { background: var(--color-critical); }
+.mission-hud__limit { position: absolute; left: 20%; top: 0; bottom: 0; width: 2px; background: var(--color-critical); }
+.mission-hud__link { display: inline-flex; gap: 2px; align-items: end; height: 14px; }
+.mission-hud__link i { width: 3px; height: 5px; background: currentColor; opacity: 0.4; }
+.mission-hud__link i:nth-child(2) { height: 9px; }
+.mission-hud__link i:nth-child(3) { height: 13px; }
+.mission-hud__link.is-on i { opacity: 1; }
+.mission-toast, .mission-stamp {
+  padding: 20px;
+  border: 1px solid rgb(232 235 241 / 0.28);
+  border-radius: 16px;
+  background: rgb(5 7 13 / 0.94);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 0.24);
+  text-align: center;
+}
+.mission-toast.is-sun .mission-toast__title { color: var(--color-sun); }
+.mission-toast.is-earth .mission-toast__title { color: var(--color-earth); }
+.mission-toast.is-critical .mission-toast__title, .mission-stamp.is-critical > :first-child { color: var(--color-critical); }
+.mission-play {
+  display: flex; align-items: center; gap: 12px;
+  min-height: 64px; max-width: calc(100% - 32px); padding: 12px 18px;
+  border: 1px solid rgb(232 235 241 / 0.45); border-radius: 16px;
+  color: var(--color-ink); background: rgb(5 7 13 / 0.92);
+  cursor: pointer;
+}
+.mission-play:hover { background: #202630; }
+.mission-play:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 4px; }
+.mission-play__icon { width: 24px; flex-shrink: 0; }
+.mission-play__icon svg { width: 100%; }
+@media (max-width: 639px) {
+  .mission-hud__solar svg, .mission-hud__link { display: none; }
+}
+@media (max-width: 420px) {
+  .mission-hud__card { padding: 9px 7px; }
+  .mission-hud__label { font-size: 0.6875rem; }
+  .mission-toast, .mission-stamp { padding: 16px; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .mission-hud__card { background: #0d111a; backdrop-filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mission-live__veil { transition: none; }
+}

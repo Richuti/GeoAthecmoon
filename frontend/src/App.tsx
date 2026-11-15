@@ -11,6 +11,7 @@ import { PlannerGuide } from './components/PlannerGuide'
 import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
 import { TimeScale } from './components/TimeScale'
+import { AiPlanner } from './components/AiPlanner'
 import { DelayCheck } from './components/DelayCheck'
 import { PlanCompare, type SavedPlan } from './components/PlanCompare'
 import { SiteConditions } from './components/SiteConditions'
@@ -154,9 +155,10 @@ function Planner() {
     [current, landing !== null, missionDays, simCfg], // eslint-disable-line react-hooks/exhaustive-deps
   )
   const bestMissionDate = useMemo(() => {
-    if (!current || !scan) return null
-    return bestViableStart(current.data, scan, missionDays, current.vis)
-  }, [current, scan, missionDays])
+    if (!current || !scan || !result) return null
+    // «La siguiente opción»: desde el alunizaje actual hacia adelante, nunca una fecha anterior.
+    return bestViableStart(current.data, scan, missionDays, current.vis, result.from)
+  }, [current, scan, missionDays, result])
   const tolerance = useMemo(
     () => (current && result ? delayTolerance(current.data, simCfg, result.from, missionDays, current.vis) : null),
     [current, result, missionDays, simCfg],
@@ -240,6 +242,9 @@ function Planner() {
               } : null}
             />
           ) : <PlannerGuide sites={sites} selectedId={p.data.site.id} errors={state.dataErrors} onSelect={actions.select}
+            assistant={<AiPlanner reference={p.data} preset={preset} cfg={cfg} missionDays={missionDays}
+              onPreset={(id) => { setPreset(id); setCfg(PRESETS[id].config) }}
+              onApply={(siteId, start, days) => { actions.select(siteId); actions.setMissionDays(days); seek(start); transition(() => setPlannerStep(2), 'forward') }} />}
             step={plannerStep} onStep={setPlannerStep}
             date={sampleTime(p.data, i)} missionDays={missionDays} schedule={
                 <section aria-label="Fecha y duración del plan" className="glass-surface grid grid-cols-1 items-end gap-5 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">
@@ -387,7 +392,7 @@ function Timeline({
         </span>
         <TimeScale className="sm:ml-auto" speed={speed} onSpeed={onSpeed}
           spanHours={(max - min + 1) * p.data.stepHours}
-          spanLabel={mission ? `La misión de ${formatDurationLong((max - min + 1) * p.data.stepHours)}` : `El periodo de ${days} días`} />
+          spanLabel={mission ? `la misión de ${formatDurationLong((max - min + 1) * p.data.stepHours)}` : `el periodo de ${days} días`} />
       </div>
       <input
         type="range"

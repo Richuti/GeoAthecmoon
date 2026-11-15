@@ -12,17 +12,17 @@ Sitio **Macizo Malapert**, módulo **Explorador ligero** (el que viene por defec
 4. **Momento wow:** elegir **+1 semana**. *"No. Con 7 días de atraso, la batería se agota."* La luz baja del 100 % al **73 %** y la batería pasa de "Aguanta" a **"Se agota"** (llega al 20 %).
 5. (Opcional) **Usar la fecha atrasada** aplica el 22 ene, y en las alternativas se ve qué fecha o qué sitio la salva.
 
-> **Dom 00:55:** Richard rehízo este bloque "sin tablas" (commit `1d52a97`). La tabla de abajo ya no aparece tal cual en la app: es la referencia de los números. En la demo se lee **la frase** ("Sí…" / "No…") y **la tolerancia** (4 días y 6 horas). El tope del 40 % sigue sin aplicarse ahí. Dilan: confirma los textos nuevos.
+> **Dom 00:55:** Richard rehízo este bloque "sin tablas" (commit `1d52a97`). La tabla de abajo ya no aparece tal cual en la app: es la referencia de los números. En la demo se lee **la frase** ("Sí…" / "No…") y **la tolerancia** (4 días y 6 horas). Desde el 15 nov aplica el tope del 40 % igual que el resultado principal. Dilan: confirma los textos nuevos.
 
 | Atraso | ¿Funciona? | Viabilidad | Luz | Tierra visible | Batería mínima |
 |---|---|---|---|---|---|
 | Plan (15 ene) | ✅ | 95 | 100 % | 85 % | 100 % |
 | +1 día | ✅ | 92 | 100 % | 78 % | 100 % |
 | +3 días | ✅ | 87 | 100 % | 64 % | 100 % |
-| +1 semana | ❌ | 70* | 73 % | 49 % | 20 % (falla) |
-| +2 semanas | ❌ | 55* | 28 % | 64 % | 20 % (falla) |
+| +1 semana | ❌ | 40 | 73 % | 49 % | 20 % (falla) |
+| +2 semanas | ❌ | 40 | 28 % | 64 % | 20 % (falla) |
 
-\* **⚠ Para Richard:** en esta tabla la viabilidad **no** aplica el tope del 40 % cuando la misión falla (`planOutcome()` en `src/sim/delay.ts` llama a `siteViability()` sin `missionSurvives`). Al aplicar la fecha atrasada, el resultado principal sí muestra 40 %. Si alguien del jurado compara los dos números, se ve incoherente. Se arregla pasando `{ missionSurvives: s.survived }`. Mientras tanto, en la demo hay que leer **la frase y la batería**, no el número.
+✅ **Corregido el 15 nov (commit `28a0fb3`):** antes, en esta tabla la viabilidad **no** aplicaba el tope del 40 % cuando la misión falla (`planOutcome()` en `src/sim/delay.ts` llama a `siteViability()` sin `missionSurvives`). Al aplicar la fecha atrasada, el resultado principal sí muestra 40 %. Si alguien del jurado compara los dos números, se ve incoherente. Ahora `planOutcome()` pasa `{ missionSurvives: s.survived }` y los dos números coinciden (recalculados con la app: +1 semana y +2 semanas dan 40).
 
 ## Guion B: «Simular el imprevisto» en el simulador
 1. En el simulador: Malapert, **15 ene 2027, 00:00 UTC**, 14 días y **Explorador ligero** → **Continuar al viaje →** → **Evaluar misión en la Luna →**.
@@ -33,10 +33,14 @@ Sitio **Macizo Malapert**, módulo **Explorador ligero** (el que viene por defec
    - **Esperar en órbita** y alunizar el 11 feb a las 12:00 → sobrevive y envía el 84 % de los datos.
    - **Cambiar a de Gerlache** → sobrevive, pero envía solo el 34 % de los datos.
    - **Ahorrar energía**: el mismo sitio con el 75 % de los instrumentos.
+   - Los botones son **Aplicar nueva fecha**, **Aplicar este sitio** y **Aplicar ahorro**. Actualizan el plan y su resultado sin repetir el viaje Tierra–Luna.
+4. En la vista del escenario, pulsar **El Sol se oculta** y después **Batería al 20 %**: el terreno usa la luz de esa fecha y el estado aparece junto a la nave.
+5. **Momento wow · Copiloto de rescate (IA):** pulsar **Buscar el mejor plan de rescate**. Parte de las tres salidas como punto de partida y prueba combinaciones, cada una simulada (tarjetas con batería, Sol y Tierra). Probado con OpenAI el 15 nov: propuso **Connecting Ridge con 12.5 días de espera** (alunizaje el 1 feb), que envía **21.0 Gb, 4.2 Gb más** que la mejor salida sencilla (esperar en órbita, 16.8 Gb). La IA puede elegir otra combinación en cada corrida: se lee lo que muestre la app. Todos los números salen del simulador.
+6. Bajar al **Mapa de supervivencia**: los 6 sitios × 365 días con el mismo módulo. Se ve de un vistazo dónde y cuándo sobrevive (con el Explorador ligero, Connecting Ridge tiene 260 días seguros de 352). Clic en cualquier día lo simula.
 
 (Richard dijo que Codex está rehaciendo el simulador visual: si cambia, se confirma este guion con Dilan.)
 
-**⚠ "La siguiente opción"** puede recomendar una fecha *anterior* a la del alunizaje (el 8 ene), incluso cuando la misión ya se atrasó. Durante la demo, no hacer clic ahí.
+✅ **"La siguiente opción"** ya solo propone fechas posteriores al alunizaje (corregido el 15 nov, commit `28a0fb3`).
 
 ## Guion C (respaldo manual: cambiar la fecha a mano)
 Sitio **Macizo Malapert**, preset **Explorador ligero** (306 W pico, 3 kWh y 60 + 90 W), misión de 14 días.

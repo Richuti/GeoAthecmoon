@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { journeyAt, lunarTransfer, MOON_RADIUS_KM } from '../src/sim/transfer.ts'
-import { LAUNCH_PAD_DECK_M, LAUNCH_SHIP_HEIGHT_M, descentFrame, encounterFrame, launchFrame } from '../src/sim/transferView.ts'
+import { APPROACH_FADE, DESCENT_CAMERA_START_ELEV_DEG, DESCENT_CAMERA_START_KM, DESCENT_START_ALT_KM, DUST_ONSET_KM, DUST_SETTLE, LAUNCH_PAD_DECK_M, LAUNCH_SHIP_HEIGHT_M, TOUCHDOWN, approachState, descentFrame, encounterFrame, finalLeg, launchFrame } from '../src/sim/transferView.ts'
 
 test('la nave parte apoyada en la cubierta y el encuadre conserva el conjunto en móvil', () => {
   for (const aspect of [0.6, 350 / 400, 808 / 448, 2.5]) {
@@ -49,21 +49,42 @@ test('el encuadre de aproximación mantiene a la nave y la Luna visibles en escr
 })
 
 
-test('el descenso alcanza el suelo sin atravesarlo y conserva el m?dulo en m?vil', () => {
+test('el descenso baja hasta el suelo y la cámara se acerca sin saltos', () => {
   for (const aspect of [0.6, 1, 2.5]) {
-    let previous = 3
-    for (let step = 0; step <= 100; step++) {
+    let previous = descentFrame(0, aspect)
+    assert.equal(previous.altitudeKm, DESCENT_START_ALT_KM)
+    assert.ok(Math.abs(previous.cameraDistanceKm - DESCENT_CAMERA_START_KM) < 1e-9)
+    assert.equal(previous.cameraElevationDeg, DESCENT_CAMERA_START_ELEV_DEG)
+    for (let step = 1; step <= 100; step++) {
       const frame = descentFrame(step / 100, aspect)
-      assert.ok(frame.altitudeKm <= previous && frame.altitudeKm >= 0)
-      assert.ok(frame.distanceKm * Math.tan(22.5 * Math.PI / 180) * aspect > 0.1)
-      previous = frame.altitudeKm
+      assert.ok(frame.altitudeKm <= previous.altitudeKm && frame.altitudeKm >= 0)
+      assert.ok(frame.cameraDistanceKm <= previous.cameraDistanceKm + 1e-9)
+      assert.ok(frame.cameraDistanceKm * Math.tan(22.5 * Math.PI / 180) * aspect > 0.25, 'la nave cabe en el cuadro')
+      previous = frame
     }
     assert.equal(descentFrame(1, aspect).altitudeKm, 0)
+    assert.equal(descentFrame(TOUCHDOWN, aspect).altitudeKm, 0)
     assert.deepEqual(descentFrame(2, aspect), descentFrame(1, aspect))
     assert.deepEqual(descentFrame(-1, aspect), descentFrame(0, aspect))
   }
   for (const aspect of [0, -1, NaN]) assert.throws(() => descentFrame(0, aspect), RangeError)
   assert.throws(() => descentFrame(NaN, 1), RangeError)
+})
+
+test('la llegada va del punto de encuentro al polo sur y empalma con el descenso', () => {
+  const start = approachState(0), end = approachState(1)
+  assert.ok(Math.abs(start.dir[0] - 1) < 1e-12 && Math.abs(start.dir[1]) < 1e-12 && start.dir[2] === 0)
+  assert.equal(start.altitudeKm, 100)
+  assert.ok(Math.abs(end.dir[0]) < 1e-12 && end.dir[1] === -1)
+  assert.equal(end.altitudeKm, DESCENT_START_ALT_KM)
+  assert.equal(end.upright, 1)
+  // La llegada termina justo cuando empieza el fundido, y el descenso empieza en ese instante.
+  const fade = finalLeg(APPROACH_FADE[0])
+  assert.equal(fade.approach, 1)
+  assert.equal(fade.descent, 0)
+  assert.equal(fade.terrain, 0)
+  assert.equal(finalLeg(APPROACH_FADE[1]).terrain, 1)
+  assert.equal(finalLeg(1).descent, 1)
 })
 
 test('durante el ascenso la cámara no se aleja tanto que el cohete desaparezca', async () => {
@@ -109,4 +130,31 @@ test('la escala de tiempo convierte la duración real en segundos de pantalla', 
   const hours = orbit.durationSeconds / 3600
   for (const k of TIME_SCALES_H_PER_S) assert.ok(Math.abs(transferPlaybackSeconds(orbit, k) * k - hours) < 1e-9)
   assert.throws(() => transferPlaybackSeconds(orbit, 0), RangeError)
+})
+
+test('el polvo solo aparece cerca del suelo y cae enseguida al apagar el motor (no hay aire)', () => {
+  assert.equal(descentFrame(0, 1).dust, 0)
+  assert.equal(descentFrame(0.5, 1).dust, 0)
+  // Justo antes del contacto el chorro levanta polvo y el motor está encendido.
+  const before = descentFrame(TOUCHDOWN - 0.002, 1)
+  assert.ok(before.altitudeKm < DUST_ONSET_KM && before.dust > 0.9 && before.engine === 1 && !before.touched)
+  // Tras el contacto: motor apagado y el polvo desaparece en DUST_SETTLE.
+  const after = descentFrame(TOUCHDOWN + DUST_SETTLE / 2, 1)
+  assert.ok(after.touched && after.engine === 0 && after.dust > 0 && after.dust < 1)
+  assert.ok(descentFrame(TOUCHDOWN + DUST_SETTLE, 1).dust < 1e-9)
+  assert.equal(descentFrame(1, 1).dust, 0)
+})
+
+test('la esfera de influencia lunar mide unos 66 000 km (masas de JPL)', async () => {
+  const { MOON_SOI_KM } = await import('../src/sim/transfer.ts')
+  assert.ok(MOON_SOI_KM > 66000 && MOON_SOI_KM < 66300, String(MOON_SOI_KM))
+})
+
+test('el relieve lejano se abre desde el centro sin mostrar su borde', async () => {
+  const { terrainScreenFraction } = await import('../src/sim/transferView.ts')
+  // A 900 km el relieve ocupa menos de la mitad del alto; muy cerca lo llena de sobra.
+  assert.ok(terrainScreenFraction(900) < 0.5)
+  assert.ok(terrainScreenFraction(5) > 1.9)
+  assert.ok(terrainScreenFraction(100) > terrainScreenFraction(900))
+  assert.throws(() => terrainScreenFraction(0), RangeError)
 })

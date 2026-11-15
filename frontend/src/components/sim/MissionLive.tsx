@@ -8,6 +8,7 @@ import { dayNumber } from '../../lib/time'
 import type { EventType, SimEvent, SimResult } from '../../sim/simulate'
 import type { SiteData } from '../../types'
 import { cx } from '../ui'
+import './mission-live.css'
 
 export const EVENT_INFO: Record<EventType, { title: string; tone: 'sun' | 'earth' | 'ok' | 'caution' | 'critical' | 'neutral' }> = {
   landing: { title: 'Alunizaje', tone: 'neutral' },
@@ -31,13 +32,14 @@ export function eventText(e: SimEvent): string {
 
 const TOAST_MS = 3200
 
-export function MissionLive({ data, result, index, playing, onPlay, onPause }: {
+export function MissionLive({ data, result, index, playing, onPlay, onPause, playLabel = 'Ver la misión' }: {
   data: SiteData
   result: SimResult
   index: number
   playing: boolean
   onPlay: () => void
   onPause: () => void
+  playLabel?: string
 }) {
   const { series, events, summary } = result
   const last = series.soc.length - 1
@@ -48,7 +50,7 @@ export function MissionLive({ data, result, index, playing, onPlay, onPause }: {
   const gen = series.generatedW[k]
   const load = series.loadW[k]
   const queued = series.dataQueuedMb[k]
-  const sending = k > 0 && series.dataSentMb[k] > series.dataSentMb[k - 1]
+  const sending = series.dataSentMb[k] > (k > 0 ? series.dataSentMb[k - 1] : 0)
   const finished = k === last && inMission
   const failedNow = mode === 'failed'
 
@@ -58,11 +60,12 @@ export function MissionLive({ data, result, index, playing, onPlay, onPause }: {
   useEffect(() => {
     const before = prev.current
     prev.current = index
-    if (index <= before || index - before > 72) return
+    if (index < before) { setToast(null); return }
+    if (index === before) return
     const crossed = events.filter((e) => e.index > before && e.index <= index && e.type !== 'landing')
     const pick = crossed.find((e) => e.type === 'failure') ?? crossed.at(-1)
     if (!pick) return
-    setToast({ e: pick, key: Date.now() })
+    setToast({ e: pick, key: pick.index })
     if (pick.type === 'failure' && playing) onPause()
   }, [index, events, playing, onPause])
   useEffect(() => {
@@ -71,7 +74,7 @@ export function MissionLive({ data, result, index, playing, onPlay, onPause }: {
     return () => window.clearTimeout(id)
   }, [toast])
 
-  const atStart = k === 0 && !playing
+  const atStart = k === 0 && !playing && inMission && !failedNow && !finished
 
   return (
     <div className={cx('mission-live pointer-events-none absolute inset-0', inMission && `mission-live--${mode}`, finished && summary.survived && 'mission-live--done')}>
@@ -79,26 +82,27 @@ export function MissionLive({ data, result, index, playing, onPlay, onPause }: {
       <div aria-hidden className="mission-live__veil absolute inset-0" />
 
       {/* Indicadores del módulo */}
-      <div className="mission-hud absolute inset-x-3 bottom-[4.75rem] grid grid-cols-3 gap-1.5 sm:inset-x-auto sm:bottom-auto sm:right-5 sm:top-24 sm:flex sm:w-44 sm:flex-col sm:gap-2" aria-label="Estado del módulo">
+      <div className="mission-hud absolute inset-x-3 bottom-3 grid grid-cols-3 gap-2 sm:inset-x-5 sm:bottom-5 sm:gap-3" role="group" aria-label="Estado del módulo">
         <div className="mission-hud__card">
           <p className="mission-hud__label">Batería</p>
-          <p className={cx('text-2xl font-bold tabular-nums leading-none', mode === 'failed' ? 'text-critical' : mode === 'survival' ? 'text-caution' : 'text-ink')}>{Math.round(soc)} %</p>
-          <div className="mission-hud__battery mt-2" role="meter" aria-label="Carga de la batería" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(soc)}>
+          <p className={cx('whitespace-nowrap text-xl font-bold tabular-nums leading-none sm:text-2xl', mode === 'failed' ? 'text-critical' : mode === 'survival' ? 'text-caution' : 'text-ink')}>{Math.round(soc)} %</p>
+          <div className="mission-hud__battery mt-2" role="meter" aria-label="Carga de la batería" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(soc)} aria-valuetext={`${Math.round(soc)} %. Mínimo operativo: 20 %.`}>
             <span className={cx('mission-hud__fill', `is-${mode}`)} style={{ width: `${Math.max(0, Math.min(100, soc))}%` }} />
             <span className="mission-hud__limit" title="Mínimo: 20 %" />
           </div>
-          <p className="mt-1.5 text-[0.6875rem] text-ink-muted">{mode === 'failed' ? 'Sin energía' : mode === 'survival' ? 'Ahorrando energía' : gen > load ? 'Cargando ▲' : 'Gastando ▼'}</p>
+          <p className="mt-1.5 text-[0.6875rem] text-ink-muted">{mode === 'failed' ? 'Sin energía' : mode === 'survival' ? 'Ahorrando energía' : soc >= 99.95 ? 'Carga completa' : gen > load ? 'Cargando ▲' : 'Gastando ▼'}</p>
         </div>
         <div className="mission-hud__card">
           <p className="mission-hud__label">Energía</p>
-          <p className={cx('flex items-center gap-1.5 text-sm font-bold tabular-nums', gen > 0 ? 'text-sun' : 'text-ink-faint')}>
-            <SunGlyph />Panel {Math.round(gen)} W
+          <p className={cx('mission-hud__solar flex items-center gap-1.5 text-lg font-bold tabular-nums leading-none sm:text-2xl', gen > 0 ? 'text-sun' : 'text-ink-muted')}>
+            <SunGlyph /><span>{Math.round(gen)} W</span>
           </p>
-          <p className="mt-1 flex items-center gap-1.5 text-sm tabular-nums text-ink-muted"><span aria-hidden className="inline-block w-3.5 text-center">⚡</span>Uso {Math.round(load)} W</p>
+          <p className="mt-1.5 text-[0.6875rem] text-ink-muted">Panel solar</p>
+          <p className="mt-1 whitespace-nowrap text-[0.6875rem] tabular-nums text-ink-muted sm:text-xs">Uso {Math.round(load)} W</p>
         </div>
         <div className="mission-hud__card">
           <p className="mission-hud__label">Datos</p>
-          <p className={cx('flex items-center gap-1.5 text-sm font-bold', sending ? 'text-earth' : 'text-ink-faint')}>
+          <p className={cx('flex flex-wrap items-center gap-1.5 text-xs font-bold sm:text-sm', sending ? 'text-earth' : 'text-ink-muted')}>
             <span aria-hidden className={cx('mission-hud__link', sending && 'is-on')}><i /><i /><i /></span>
             {sending ? 'Enviando' : 'En espera'}
           </p>
@@ -108,7 +112,7 @@ export function MissionLive({ data, result, index, playing, onPlay, onPause }: {
 
       {/* Aviso del suceso */}
       {toast && (
-        <div key={toast.key} role="status" className={cx('mission-toast absolute left-1/2 top-[38%] w-[min(30rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2', `is-${EVENT_INFO[toast.e.type].tone}`)}>
+        <div key={toast.key} role="status" className={cx('mission-toast absolute left-1/2 top-[47%] w-[min(30rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2', `is-${EVENT_INFO[toast.e.type].tone}`)}>
           <p className="text-[0.6875rem] uppercase tracking-[0.14em] text-ink-muted">Día {dayNumber(data, toast.e.index, result.from)}</p>
           <p className="mission-toast__title mt-1 font-display text-3xl font-extrabold uppercase leading-none sm:text-4xl">{EVENT_INFO[toast.e.type].title}</p>
           <p className="mt-2 text-sm leading-relaxed text-ink">{eventText(toast.e)}</p>
@@ -117,13 +121,13 @@ export function MissionLive({ data, result, index, playing, onPlay, onPause }: {
 
       {/* Sin energía: sello sobre la escena */}
       {failedNow && !toast && inMission && (
-        <div className="mission-stamp is-critical absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2">
+        <div role="status" className="mission-stamp is-critical absolute left-1/2 top-[47%] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2">
           <p className="font-display text-4xl font-extrabold uppercase leading-none sm:text-5xl">Sin energía</p>
           <p className="mt-2 text-sm text-ink">La batería llegó al 20 % el día {summary.failedAtIndex !== null ? dayNumber(data, summary.failedAtIndex, result.from) : '—'}.</p>
         </div>
       )}
       {finished && summary.survived && !toast && (
-        <div className="mission-stamp is-ok absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2">
+        <div role="status" className="mission-stamp is-ok absolute left-1/2 top-[47%] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2">
           <p className="font-display text-4xl font-extrabold uppercase leading-none sm:text-5xl">Misión cumplida</p>
           <p className="mt-2 text-sm text-ink">Llegó a la Tierra el {Math.round(summary.dataSentPct)} % de los datos.</p>
         </div>
@@ -134,7 +138,7 @@ export function MissionLive({ data, result, index, playing, onPlay, onPause }: {
         <div className="absolute inset-0 grid place-items-center">
           <button type="button" onClick={onPlay} className="mission-play pointer-events-auto">
             <span aria-hidden className="mission-play__icon"><svg viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor" /></svg></span>
-            <span className="text-left"><span className="block text-base font-bold">Ver la misión</span><span className="block text-xs text-ink-muted">Hora por hora, con los datos reales</span></span>
+            <span className="text-left"><span className="block text-base font-bold">{playLabel}</span><span className="block text-xs text-ink-muted">Hora por hora, con los datos reales</span></span>
           </button>
         </div>
       )}

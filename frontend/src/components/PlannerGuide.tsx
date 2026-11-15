@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { SITE_IMAGERY, SITE_IMAGE_CREDIT } from '../content/siteImagery'
 import { formatDate } from '../lib/time'
 import type { Site } from '../types'
@@ -16,6 +16,8 @@ interface PlannerGuideProps {
   onStep: (step: number) => void
   schedule: ReactNode
   children: ReactNode
+  /** «Planéalo por mí»: la IA, arriba de los sitios */
+  assistant?: ReactNode
 }
 
 const STEPS = ['Sitio', 'Fecha', 'Resultado'] as const
@@ -29,6 +31,7 @@ const HINTS = [
 /** Explicaciones en contexto, una por elemento, la primera vez que se llega a cada paso. */
 const TOURS: TourStep[][] = [
   [
+    { target: '[data-tour="ai-planner"]', title: 'O deja que la IA lo planee', text: 'Elige tu módulo y el mes: la IA prueba sitios y fechas con el simulador y te deja el mejor plan listo.' },
     { target: '[data-tour="sites"]', title: 'Elige dónde alunizar', text: 'Cada foto es un lugar real del polo sur de la Luna. Toca el que quieras explorar.' },
     { target: '[data-tour="to-date"]', title: 'Después, la fecha', text: 'Con el destino elegido, sigue aquí para decidir cuándo llega tu misión.' },
   ],
@@ -50,12 +53,14 @@ const TOURS: TourStep[][] = [
 ]
 
 /** Una decisión por pantalla. Los resultados conservan el explorador y sus datos reales. */
-export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missionDays, step, onStep, schedule, children }: PlannerGuideProps) {
+export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missionDays, step, onStep, schedule, children, assistant }: PlannerGuideProps) {
   const [reached, setReached] = useState(step)
   const heading = useRef<HTMLHeadingElement>(null)
   const mounted = useRef(false)
   const selected = sites.find(site => site.id === selectedId)
   const image = SITE_IMAGERY[selectedId]
+  // Si se llega a un paso desde fuera (por ejemplo, con el plan de la IA), queda disponible en la navegación.
+  useEffect(() => { setReached((r) => Math.max(r, step)) }, [step])
 
   useLayoutEffect(() => {
     if (!mounted.current) { mounted.current = true; return }
@@ -92,6 +97,7 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
       </header>
 
       {step === 0 && <>
+        {assistant}
         <div role="group" aria-label="Elige tu destino" data-tour="sites" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
           {sites.map(site => {
             const photo = SITE_IMAGERY[site.id]

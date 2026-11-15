@@ -11,14 +11,14 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { siteUrl } from './site-url.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dist = path.join(root, 'dist')
 const ssr = path.join(root, 'dist-ssr')
 const dataDir = path.join(root, 'public', 'data')
 
-const raw = process.env.SITE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '')
-const base = raw.replace(/\/+$/, '')
+const base = siteUrl()
 
 const entry = fs.readdirSync(ssr).find((f) => /^entry\.m?js$/.test(f))
 if (!entry) throw new Error('prerender: falta dist-ssr/entry.js (¿corrió vite build --ssr?)')
