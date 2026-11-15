@@ -88,7 +88,7 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       {view === 'journey' && <EarthMoonJourney arrival={setup.timelineDate} destination={data.site.name} onArrive={() => { setup.onSimulate(); navigate('surface') }} />}
       {view === 'surface' && (
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
-        <div className="h-[25rem] min-w-0 sm:h-[28rem] lg:h-[26rem] xl:h-[28rem]">
+        <div className="terrain-stage h-[25rem] min-w-0 sm:h-[28rem] lg:h-[26rem] xl:h-[28rem]">
           <ViewerPanel data={data} index={state.index} contact={contact[state.index]} immersive
             missionState={result && sample !== null ? result.series.mode[sample] : undefined} />
         </div>

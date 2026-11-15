@@ -1,5 +1,17 @@
 import { MOON_RADIUS_KM, type journeyAt } from './transfer.ts'
 
+export const LAUNCH_ROCKET_HEIGHT_M = 110
+export const LAUNCH_PAD_DECK_M = 4.85
+
+/** Cámara de presentación en metros: el cohete tiene la misma escala que la plataforma. */
+export function launchFrame(altitudeM: number, aspect: number) {
+  if (!Number.isFinite(altitudeM) || altitudeM < 0 || !Number.isFinite(aspect) || aspect <= 0) {
+    throw new RangeError('Altura y proporción de cámara no válidas.')
+  }
+  const distanceM = Math.max(220, 95 / (Math.tan(21 * Math.PI / 180) * Math.min(1, aspect)), altitudeM * 0.08)
+  return { altitudeM, centerY: LAUNCH_PAD_DECK_M + altitudeM + LAUNCH_ROCKET_HEIGHT_M / 2, distanceM }
+}
+
 /** Encuadra los dos cuerpos durante la aproximación, con margen para los rótulos. */
 export function encounterFrame(sample: ReturnType<typeof journeyAt>, moonRadiusKm: number, shipSizeKm: number, aspect: number) {
   const left = Math.min(sample.shipXKm - shipSizeKm / 2, sample.moonXKm - moonRadiusKm)

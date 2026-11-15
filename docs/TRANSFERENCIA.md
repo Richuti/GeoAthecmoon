@@ -30,3 +30,10 @@ El lanzador Saturn V y el módulo Apolo adaptado son referencias visuales de NAS
 ## Verificación
 
 `frontend/tests/transfer.test.ts` comprueba condiciones iniciales, duración e impulso, encuentro a 100 km, movimiento lunar, conservación de energía y momento angular, velocidad y distancia, límites temporales y parámetros inválidos. La transferencia es educativa; para estudiar lanzamientos reales harían falta efemérides y un modelo dinámico y de vehículo más completo.
+
+
+## Escena local de lanzamiento
+
+El despegue usa `LaunchViewer.tsx` y GLB existentes en una escena local en metros, con plataforma NASA. La cámara sigue al cohete y se eleva gradualmente para mostrar la superficie detrás. En el último 20 % del tramo de ascenso se mezcla con la vista orbital; cada escena deja de renderizar cuadros cuando está oculta. `journeyAt` aplica una curva de presentación de quinta potencia al ascenso para observar la salida de la plataforma; no integra empuje ni calcula una velocidad real de ascenso. El tramo dura unos 10 segundos de reproducción y la transferencia unos 24. Se conservan la continuidad de posición al iniciar la transferencia y su modelo de Kepler.
+
+Los modelos y efectos que faltan para el acabado fotorealista están especificados en [ESCENA_DESPEGUE.md](ESCENA_DESPEGUE.md).

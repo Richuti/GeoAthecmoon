@@ -92,7 +92,9 @@ export function journeyAt(orbit: TransferOrbit, progress: number) {
   const sample = transferAt(orbit, flight * orbit.durationSeconds)
   return {
     ...sample, flight, launch, ascent,
-    shipXKm: launch ? EARTH_RADIUS_KM + orbit.parkingAltitudeKm * ascent : sample.xKm,
+    // Curva de presentación: permite ver el despegue antes de alejar la cámara.
+    // No representa una integración de empuje ni una velocidad de ascenso real.
+    shipXKm: launch ? EARTH_RADIUS_KM + orbit.parkingAltitudeKm * ascent ** 5 : sample.xKm,
     shipYKm: launch ? 0 : sample.yKm,
   }
 }

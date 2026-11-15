@@ -328,10 +328,10 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
 function StoryBar({ onOpen, solid }: { onOpen: () => void; solid: boolean }) {
   return (
     <header aria-label="Cabecera de la portada"
-      className={cx('pointer-events-none fixed inset-x-0 top-0 z-40 px-5 py-4 transition-colors duration-300 sm:px-10 sm:py-6 lg:px-16',
+      className={cx('story-header pointer-events-none fixed inset-x-0 top-0 z-40 px-5 py-4 transition-colors duration-300 sm:px-10 sm:py-6 lg:px-16',
         solid && 'bg-void')}>
       <div className="flex items-center justify-between gap-3 sm:gap-8">
-        <p className="font-display text-[clamp(1.5rem,7vw,2rem)] font-extrabold uppercase leading-none tracking-[0.01em] text-ink sm:text-4xl lg:text-5xl">
+        <p className="story-brand font-display text-[clamp(1.5rem,7vw,2rem)] font-extrabold uppercase leading-none tracking-[0.01em] text-ink sm:text-4xl lg:text-5xl">
           GEOATHECMOON
         </p>
         <PlannerButton onOpen={onOpen} compact />
@@ -390,26 +390,26 @@ function SceneText({ scene, index, still = false }: { scene: Scene; index: numbe
     still ? undefined : { opacity: `var(--${name})`, transform: `translateY(calc((1 - var(--${name})) * 14px))` }
   const ground = scene.mobileGround
   return (
-    <div className="absolute inset-0" style={still ? undefined : { opacity: 'var(--visible)' }}>
+    <div className="story-scene absolute inset-0" style={still ? undefined : { opacity: 'var(--visible)' }}>
       {/* Velo solo donde el texto cae sobre el suelo iluminado (celular, sujeto al centro) */}
       {ground && <div aria-hidden className="absolute inset-0 bg-[linear-gradient(to_top,rgb(5_7_13/0.92)_0%,rgb(5_7_13/0.7)_38%,transparent_62%)] lg:hidden" />}
 
-      <div className={cx('absolute inset-x-0 px-5 sm:px-10 lg:bottom-auto lg:top-0 lg:px-16 lg:pt-40',
+      <div className={cx('story-scene-copy absolute inset-x-0 px-5 sm:px-10 lg:bottom-auto lg:top-0 lg:px-16 lg:pt-40',
         ground ? (still ? 'bottom-10' : 'bottom-16') : 'top-0 pt-36 sm:pt-40')}>
         <h2 id={`escena-${scene.id}`}
-          className={cx('font-display font-extrabold uppercase leading-[0.9] tracking-[0.005em] text-ink text-balance',
+          className={cx('story-scene-title font-display font-extrabold uppercase leading-[0.9] tracking-[0.005em] text-ink text-balance',
             scene.narrow ? 'max-w-3xl lg:max-w-[30vw]' : 'max-w-4xl',
             index === 0 ? 'text-[2.75rem] sm:text-7xl lg:text-8xl' : scene.narrow ? 'text-[2.5rem] sm:text-6xl lg:text-[3.25rem] xl:text-6xl' : 'text-[2.5rem] sm:text-6xl lg:text-7xl')}
           style={rise('title')}>
           {scene.title}
         </h2>
-        <p className={cx('mt-5 text-[0.9375rem] leading-relaxed text-ink-muted sm:text-lg', scene.narrow ? 'max-w-xl lg:max-w-[28vw]' : 'max-w-xl')}
+        <p className={cx('story-scene-body mt-5 text-[0.9375rem] leading-relaxed text-ink-muted sm:text-lg', scene.narrow ? 'max-w-xl lg:max-w-[28vw]' : 'max-w-xl')}
           style={rise('body')}>
           {scene.body}
         </p>
         {/* Celular: el dato en una línea, debajo del relato */}
         {scene.readout && (
-          <p className="mt-4 flex items-baseline gap-2 lg:hidden" style={rise('readout')}>
+          <p className="story-scene-readout mt-4 flex items-baseline gap-2 lg:hidden" style={rise('readout')}>
             <span className="font-display text-4xl font-black leading-none text-ink">{scene.readout.value.toFixed(scene.readout.decimals)}</span>
             <span className="font-display text-xl font-bold text-ink-muted">{scene.readout.unit}</span>
             <span className="text-xs leading-snug text-ink-faint">{scene.readout.label} · {scene.readout.source}</span>
@@ -419,7 +419,7 @@ function SceneText({ scene, index, still = false }: { scene: Scene; index: numbe
 
       {/* Escritorio: el dato abajo, sobre el suelo */}
       {scene.readout && (
-        <div className={cx('absolute left-16 hidden lg:block', still ? 'bottom-10' : 'bottom-12')}
+        <div className={cx('story-scene-fact absolute left-16 hidden lg:block', still ? 'bottom-10' : 'bottom-12')}
           style={still ? undefined : { opacity: 'var(--readout)', clipPath: 'inset(-1rem calc((1 - var(--readout)) * 100%) 0 0)' }}>
           <ReadoutBox r={scene.readout} />
         </div>

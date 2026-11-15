@@ -83,6 +83,17 @@ test('ascenso y transferencia comparten un reloj sin salto de posición al salir
   assert.equal(orbital.seconds, 0)
 })
 
+test('la presentación del ascenso empieza lentamente y no atraviesa la superficie', () => {
+  let previous = EARTH_RADIUS_KM
+  for (let step = 0; step <= 100; step++) {
+    const sample = journeyAt(orbit, LAUNCH_END * step / 100)
+    assert.ok(sample.shipXKm >= previous)
+    assert.ok(sample.shipXKm <= orbit.periapsisKm + 1e-8)
+    previous = sample.shipXKm
+  }
+  assert.ok(journeyAt(orbit, LAUNCH_END * 0.2).shipXKm - EARTH_RADIUS_KM < 0.1)
+})
+
 test('avance, nave y Luna comparten el instante al avanzar, retroceder y repetir', () => {
   for (const progress of [0, .5, .95, 1, .8, .3, 0]) {
     const s = journeyAt(orbit, progress)

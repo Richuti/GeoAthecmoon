@@ -254,7 +254,7 @@ function Planner() {
               <div className="min-w-0 space-y-7">
                 <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
                   <div className="min-w-0">
-                    <div className="h-[27rem] min-w-0 sm:h-[31rem]"><ViewerPanel data={p.data} index={i} contact={p.contact[i]} immersive /></div>
+                    <div className="terrain-stage h-[27rem] min-w-0 sm:h-[31rem]"><ViewerPanel data={p.data} index={i} contact={p.contact[i]} immersive /></div>
                     <p className="mt-3 text-xs leading-relaxed text-ink-muted">{p.data.site.description}</p>
                   </div>
                   {rec && <Viability p={p} rec={rec} onSimulate={() => { actions.setPlaying(false); setDraftStart(rec.window.from); actions.setMode('simulate') }} />}

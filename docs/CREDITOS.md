@@ -53,3 +53,8 @@ Condiciones consultadas: [LROC Terms of Use & Citation Policy](https://lroc.im-l
 - **Transferencia Tierra–Luna idealizada:** constante gravitatoria terrestre de [JPL DE440](https://ssd.jpl.nasa.gov/astro_par.html); radios, distancia media y periodo lunar de [NASA Moon Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html). Modelo y límites en `docs/TRANSFERENCIA.md`.
 
 > Pendiente: reemplazar la textura de la Luna por el **CGI Moon Kit** de NASA SVS (LROC color), que es dominio público, cuando se pueda descargar.
+
+
+## Plataforma de lanzamiento terrestre
+
+- `frontend/public/models/launch_platform.glb`: **NASA / Samuel H. Neblett**, [Mobile Launcher](https://science.nasa.gov/3d-resources/mobile-launcher/), archivo original `Mobile Launcher (assembled).glb`. Modelo sin modificar; posición, escala y materiales se ajustan al mostrarlo. Fuente NASA, sujeto a sus condiciones de uso de medios; no implica respaldo de NASA ni reconstruye un lanzamiento histórico con el Saturn V.

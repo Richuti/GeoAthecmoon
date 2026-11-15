@@ -88,7 +88,7 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
         <p className="mt-4 text-xs leading-relaxed text-ink-muted">Imágenes regionales · {SITE_IMAGE_CREDIT}
           {image && <a href={image.source} target="_blank" rel="noreferrer" className="ml-2 underline underline-offset-4">Fuente del sitio elegido ↗</a>}
         </p>
-        <div className="glass-surface sticky bottom-3 z-20 mt-6 flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
+        <div className="guide-actions glass-surface mt-6 flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
           <p className="min-w-0 flex-1 text-xs text-ink-muted sm:text-sm">Tu destino<span className="mt-1 line-clamp-2 font-bold text-ink">{selected?.name}</span></p>
           <Button variant="primary" size="lg" onClick={() => go(1)}>Elegir fecha →</Button>
         </div>

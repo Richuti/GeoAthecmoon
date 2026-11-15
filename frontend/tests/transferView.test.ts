@@ -1,7 +1,30 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { journeyAt, lunarTransfer, MOON_RADIUS_KM } from '../src/sim/transfer.ts'
-import { encounterFrame } from '../src/sim/transferView.ts'
+import { LAUNCH_PAD_DECK_M, LAUNCH_ROCKET_HEIGHT_M, encounterFrame, launchFrame } from '../src/sim/transferView.ts'
+
+test('el cohete parte apoyado en la cubierta y el encuadre conserva el conjunto en móvil', () => {
+  for (const aspect of [0.6, 350 / 400, 808 / 448, 2.5]) {
+    const frame = launchFrame(0, aspect)
+    assert.ok(Math.abs(frame.centerY - LAUNCH_ROCKET_HEIGHT_M / 2 - LAUNCH_PAD_DECK_M) < 1e-8)
+    const halfHeight = frame.distanceM * Math.tan(21 * Math.PI / 180)
+    assert.ok(halfHeight > 90)
+    assert.ok(halfHeight * aspect > 90)
+  }
+})
+
+test('la cámara sigue el ascenso sin discontinuidades ni distancias inválidas', () => {
+  let previous = launchFrame(0, 0.8)
+  for (let altitude = 100; altitude <= 200000; altitude += 100) {
+    const frame = launchFrame(altitude, 0.8)
+    assert.ok(Math.abs(frame.centerY - previous.centerY - 100) < 1e-8)
+    assert.ok(frame.distanceM >= previous.distanceM)
+    assert.ok(frame.distanceM - previous.distanceM <= 8.00001)
+    previous = frame
+  }
+  assert.throws(() => launchFrame(-1, 1), RangeError)
+  assert.throws(() => launchFrame(0, 0), RangeError)
+})
 
 test('el encuadre de aproximación mantiene a la nave y la Luna visibles en escritorio y móvil', () => {
   const orbit = lunarTransfer()

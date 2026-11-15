@@ -34,19 +34,28 @@ export function Select({ id, label, value, options, onChange, placeholder = 'Eli
     const place = () => {
       const r = trigger.current?.getBoundingClientRect()
       if (!r) return
-      if (r.bottom < 0 || r.top > window.innerHeight) { setOpen(false); return }
-      const width = Math.min(Math.max(r.width, 340), window.innerWidth - 32)
-      const below = window.innerHeight - r.bottom - 24
-      const above = r.top - 24
+      const viewport = window.visualViewport
+      const left = viewport?.offsetLeft ?? 0, top = viewport?.offsetTop ?? 0
+      const visibleWidth = viewport?.width ?? window.innerWidth, visibleHeight = viewport?.height ?? window.innerHeight
+      if (r.bottom < top || r.top > top + visibleHeight) { setOpen(false); return }
+      const width = Math.min(Math.max(r.width, 340), visibleWidth - 32)
+      const below = top + visibleHeight - r.bottom - 24
+      const above = r.top - top - 24
       const upward = below < 240 && above > below
-      const maxHeight = Math.max(100, Math.min(360, upward ? above : below))
-      setPosition({ width, maxHeight, left: Math.max(16, Math.min(r.left, window.innerWidth - width - 16)), top: upward ? r.top - 8 : r.bottom + 8,
-        transform: upward ? 'translateY(-100%)' : undefined })
+      const cramped = (upward ? above : below) < 96
+      const maxHeight = Math.max(0, Math.min(360, cramped ? visibleHeight - 32 : upward ? above : below))
+      setPosition({ width, maxHeight, left: Math.max(left + 16, Math.min(r.left, left + visibleWidth - width - 16)), top: cramped ? top + 16 : upward ? r.top - 8 : r.bottom + 8,
+        transform: upward && !cramped ? 'translateY(-100%)' : undefined })
     }
     place()
     window.addEventListener('resize', place)
     window.addEventListener('scroll', place, true)
-    return () => { window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true) }
+    window.visualViewport?.addEventListener('resize', place)
+    window.visualViewport?.addEventListener('scroll', place)
+    return () => {
+      window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true)
+      window.visualViewport?.removeEventListener('resize', place); window.visualViewport?.removeEventListener('scroll', place)
+    }
   }, [open])
   useEffect(() => {
     if (!open) return

@@ -12,6 +12,7 @@ Con eso da un **porcentaje de viabilidad** y, si no conviene, **recomienda un si
 
 **Simulador de misión:** el usuario elige sitio, fecha y duración, y configura el módulo (batería, panel, consumo y datos). Después **simula la misión hora por hora** con los datos reales de luz y comunicación. Al final ve si la misión sobrevive, cuántos datos envió y qué fecha o sitio funcionaría mejor.
 - La pregunta central del reto es: *"Si la misión se atrasa, ¿todavía funciona?"*. Se mueve la fecha, se vuelve a simular y se ve.
+- **Aclaración de Richard al compartir el texto completo del reto (14 nov):** el usuario debe poder cambiar sitio, fecha/hora, duración o módulo y volver a evaluar cuantas veces quiera. La prioridad es comparar rápidamente el plan original con alternativas cuando cambian el calendario o las restricciones. El viaje Tierra–Luna es un recurso complementario y no debe ser un paso obligatorio para repetir cada evaluación. Luz y contacto cambian según las efemérides y el relieve; no se generan variaciones aleatorias. No presentar condiciones térmicas u otras variables como simuladas si el modelo no las calcula.
 - **Regla: el simulador no inventa números.** Todo sale de `isLit`, `hasContact` y la elevación del Sol (tarea 5), más los parámetros que elige el usuario. Los valores de los presets son ilustrativos, y así lo dice la interfaz.
 - **Física:**
   - Potencia del panel = `1361 W/m² × área × eficiencia (0.30 por defecto) × fracción del disco solar visible`.

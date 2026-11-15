@@ -12,6 +12,14 @@ Richard pidió volver a revisar la entrada de MXL Parts (https://mxlparts.us/) y
 
 Permite saltar con botón, Escape o Tab, se omite con movimiento reducido y no se repite al regresar del planificador durante la misma carga. No aparece al entrar directamente a `#planificador`. Al terminar o saltar se restaura el scroll y se retira la animación de acercamiento. El relato y las transiciones con el horizonte de Shackleton se conservan.
 
+## Adaptación a dispositivos y Safari
+
+Los campos `datetime-local` de planificador y simulador comparten 56 px de altura y una línea de texto de 54 px, descontando los bordes. El padding vertical es cero y las partes internas de WebKit heredan esa línea: la fecha queda centrada, además de contenida horizontalmente. Se conserva el selector nativo.
+
+`responsive.css` respeta los espacios seguros del dispositivo (`viewport-fit=cover` y `safe-area-inset-*`) y adapta las cinco escenas de la landing a ventanas bajas u orientación horizontal. En ese caso, título, explicación y dato se organizan en la zona superior izquierda con una escala menor; el dato deja de ocupar una caja independiente al pie. Los textos mantienen su secuencia y su recorrido de scroll.
+
+La acción de selección de destino sigue el flujo del documento y no se superpone a las fotografías. Los segmentos y las ayudas táctiles tienen un objetivo mínimo de 44 px. Menús y ayudas se colocan dentro del `visualViewport`, reaccionan a cambios del área visible y disponen de scroll cuando falta altura. El zoom sigue habilitado. En ventanas bajas, los visores del terreno y del viaje reducen su altura para caber en pantalla sin cambiar los modelos ni sus cálculos.
+
 ### Ritmo de lectura de la landing
 
 Cada escena dispone de unos 180 svh de recorrido efectivo, un 18 % menos que los 220 svh anteriores por petición de Richard. Título, explicación y dato aparecen antes del 40 % y se mantienen completamente legibles hasta el 86 %. La salida usa `storyCues.visible` como única referencia (se eliminó el desvanecido temprano del contenedor); la transición por el horizonte comienza al 88 %. Los capítulos llevan a una posición donde todo el texto ya es visible. El ritmo depende del scroll del visitante; la entrada del logo conserva sus tiempos propios y el modo de movimiento reducido presenta todo estático.

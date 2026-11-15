@@ -1,30 +1,15 @@
 // Solo carga modelos GLB. La órbita se dibuja en SVG, proyectando las posiciones calculadas.
-import { Html, useGLTF } from '@react-three/drei'
+import { Html } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
 import { EARTH_RADIUS_KM, MOON_RADIUS_KM, transferAt, type journeyAt, type TransferOrbit } from '../../sim/transfer'
 import { encounterFrame } from '../../sim/transferView'
 import { SpaceBackground } from '../SpaceBackground'
+import { useFlightModel } from './useFlightModel'
 
 const KM_PER_UNIT = 50000
 const smooth = (from: number, to: number, x: number) => { const t = Math.max(0, Math.min(1, (x - from) / (to - from))); return t * t * (3 - 2 * t) }
-
-/** Centra y normaliza un GLB sin generar ni modificar su geometría. */
-function useModel(url: string) {
-  const { scene } = useGLTF(url)
-  return useMemo(() => {
-    const group = new THREE.Group()
-    const copy = scene.clone(true)
-    copy.traverse(o => { if (o.name.startsWith('site-')) o.visible = false })
-    group.add(copy)
-    const box = new THREE.Box3().setFromObject(copy)
-    const size = box.getSize(new THREE.Vector3())
-    copy.position.sub(box.getCenter(new THREE.Vector3()))
-    group.scale.setScalar(1 / Math.max(size.x, size.y, size.z))
-    return group
-  }, [scene])
-}
 
 interface SceneProps {
   orbit: TransferOrbit
@@ -35,14 +20,12 @@ interface SceneProps {
 }
 
 function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
-  const earth = useModel('/models/earth.glb')
-  const moon = useModel('/models/moon.glb')
-  const rocket = useModel('/models/launch_vehicle.glb')
-  const lander = useModel('/models/lander.glb')
+  const earth = useFlightModel('/models/earth.glb')
+  const moon = useFlightModel('/models/moon.glb')
+  const lander = useFlightModel('/models/lander.glb')
   const moonGroup = useRef<THREE.Group>(null)
   const earthGroup = useRef<THREE.Group>(null)
   const ship = useRef<THREE.Group>(null)
-  const rocketGroup = useRef<THREE.Group>(null)
   const landerGroup = useRef<THREE.Group>(null)
   const { camera, size } = useThree()
   const route = useMemo(() => Array.from({ length: 241 }, (_, j) => {
@@ -87,12 +70,12 @@ function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
     camera.updateMatrixWorld()
 
     if (ship.current) {
+      ship.current.visible = !isLaunch
       direction.set(isLaunch ? 1 : sample.vxKmS, isLaunch ? 0 : sample.vyKmS, 0).normalize()
       ship.current.quaternion.setFromUnitVectors(up, direction)
       ship.current.position.set(x + (isLaunch ? visualSize / 2 : 0), y, 0.0002)
       ship.current.scale.setScalar(visualSize)
     }
-    if (rocketGroup.current) rocketGroup.current.visible = isLaunch
     if (landerGroup.current) landerGroup.current.visible = !isLaunch
     if (line.current) {
       line.current.setAttribute('d', route.map((v, j) => {
@@ -115,9 +98,8 @@ function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
       <Html position={[0, -0.8, 0]} center style={{ pointerEvents: 'none' }}><span aria-hidden className="whitespace-nowrap text-xs text-ink-muted">Luna</span></Html>
     </group>
     <group ref={ship}>
-      <group ref={rocketGroup}><primitive object={rocket} dispose={null} /></group>
       <group ref={landerGroup}><primitive object={lander} dispose={null} /></group>
-      <Html position={[0.7, 0.3, 0]} style={{ pointerEvents: 'none' }}><span aria-hidden className="whitespace-nowrap text-xs text-ink">Nave</span></Html>
+      {!sample.launch && <Html position={[0.7, 0.3, 0]} style={{ pointerEvents: 'none' }}><span aria-hidden className="whitespace-nowrap text-xs text-ink">Nave</span></Html>}
     </group>
     {sample.flight > 0.05 && sample.flight < 0.88 && <Html position={[-orbit.apoapsisKm / KM_PER_UNIT, -0.3, 0]} center style={{ pointerEvents: 'none' }}>
       <span aria-hidden className="whitespace-nowrap text-xs text-ink-muted">Encuentro previsto</span>
@@ -125,10 +107,10 @@ function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
   </>
 }
 
-export default function TransferViewer({ orbit, sample, reduced, onReady }: Omit<SceneProps, 'line'>) {
+export default function TransferViewer({ orbit, sample, reduced, onReady, active = true }: Omit<SceneProps, 'line'> & { active?: boolean }) {
   const line = useRef<SVGPathElement>(null)
   return <>
-    <Canvas dpr={[1, 1.5]} camera={{ position: [0.14, 0, 0.42], fov: 42, near: 0.00001, far: 100 }} aria-hidden>
+    <Canvas frameloop={active ? 'always' : 'never'} dpr={[1, 1.5]} camera={{ position: [0.14, 0, 0.42], fov: 42, near: 0.00001, far: 100 }} aria-hidden>
       <Suspense fallback={null}><TransferScene orbit={orbit} sample={sample} reduced={reduced} onReady={onReady} line={line} /></Suspense>
     </Canvas>
     <svg aria-hidden className="pointer-events-none absolute inset-0 size-full overflow-hidden"><path ref={line} fill="none" stroke="#e8ebf1" strokeOpacity={0.3} strokeWidth={1} strokeDasharray="4 5" /></svg>
