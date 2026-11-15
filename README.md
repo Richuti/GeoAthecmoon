@@ -75,7 +75,8 @@ Full site-by-site table in [`docs/VALIDACION_NASA.md`](docs/VALIDACION_NASA.md) 
 
 - **JPL Horizons (NASA/JPL):** position and distance of the Sun and Earth from each site, and of the Moon from the DSN antennas.
 - **LOLA / LRO (NASA, PDS):** south pole topography (DEM `LDEM_80S_80M`) and illumination maps for validation.
-- **LRO QuickMap (ASU) and Moon Trek (NASA):** verification of the site coordinates.
+- **LRO QuickMap (ASU):** verification of the site coordinates (6 of 6 with a visible marker).
+- **Moon Trek (NASA):** 3D reference for the south pole terrain.
 - **CSA Moon Exploration:** mission context and Canada's role in Artemis.
 - 3D models from NASA 3D Resources and textures from Solar System Scope (CC BY 4.0). Full list in [`docs/CREDITOS.md`](docs/CREDITOS.md) and in the app's "Sources" panel.
 

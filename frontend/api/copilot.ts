@@ -131,7 +131,8 @@ const json = (body: unknown, status = 200) =>
 /** Solo se aceptan pedidos desde la misma app (o desde localhost en desarrollo). */
 function sameOrigin(request: Request): boolean {
   const origin = request.headers.get('origin')
-  if (!origin) return true
+  // Los navegadores siempre mandan Origin en un POST con fetch: sin él, es un script ajeno gastando la clave.
+  if (!origin) return false
   try {
     const o = new URL(origin)
     const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? new URL(request.url).host

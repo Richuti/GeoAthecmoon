@@ -227,6 +227,12 @@ describe('api/copilot: la función del servidor', () => {
     assert.equal(((await res.json()) as { error: string }).error, 'not-configured')
   })
 
+  test('rechaza pedidos sin Origin (no vienen de un navegador)', async () => {
+    process.env.OPENAI_API_KEY = 'k'
+    const res = await POST(req({ messages: [{ role: 'user', content: 'x' }] }))
+    assert.equal(res.status, 403)
+  })
+
   test('rechaza otros orígenes', async () => {
     process.env.OPENAI_API_KEY = 'k'
     const res = await POST(req({ messages: [{ role: 'user', content: 'x' }] }, 'https://otro-sitio.com'))
@@ -255,7 +261,7 @@ describe('api/copilot: la función del servidor', () => {
     globalThis.fetch = (async () => new Response('detalle interno', { status: 429 })) as unknown as typeof fetch
     const orig = console.error
     console.error = () => {}
-    const res = await POST(req({ messages: [{ role: 'user', content: 'x' }] }))
+    const res = await POST(req({ messages: [{ role: 'user', content: 'x' }] }, 'https://geoathectum.vercel.app'))
     console.error = orig
     assert.equal(res.status, 502)
     assert.doesNotMatch(await res.text(), /detalle interno/)

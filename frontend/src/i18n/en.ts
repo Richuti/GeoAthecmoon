@@ -124,6 +124,15 @@ export const EN: Record<string, string> = {
 
   // --- IA: «Planéalo por mí» ---
   'La IA no respondió. Prueba otra vez.': 'The AI did not respond. Try again.',
+  'La IA no respondió. Te mostramos el mejor plan ya simulado sin la IA.': 'The AI did not respond. Here is the best plan already simulated without the AI.',
+  'No hay conexión con el copiloto. Te mostramos el mejor plan ya simulado sin la IA.': 'No connection to the copilot. Here is the best plan already simulated without the AI.',
+  'No hay conexión con el copiloto. Prueba otra vez.': 'No connection to the copilot. Try again.',
+  'El copiloto no respondió. Te mostramos el mejor plan ya simulado sin la IA.': 'The copilot did not respond. Here is the best plan already simulated without the AI.',
+  'El copiloto no tiene configurada su clave en el servidor. Te mostramos el mejor plan ya simulado sin la IA.': 'The copilot has no API key configured on the server. Here is the best plan already simulated without the AI.',
+  'El copiloto no está disponible en este servidor. Te mostramos el mejor plan ya simulado sin la IA.': 'The copilot is not available on this server. Here is the best plan already simulated without the AI.',
+  'Algo falló al mostrar esta pantalla.': 'Something went wrong while showing this screen.',
+  'Recarga para volver a empezar desde la portada.': 'Reload to start again from the home page.',
+  'Recargar': 'Reload',
   'batería al 20 %': 'battery at 20%',
   'El módulo que configuraste': 'The lander you configured',
   '✦ Planéalo por mí': '✦ Plan it for me',
