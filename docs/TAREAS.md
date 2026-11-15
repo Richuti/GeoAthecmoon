@@ -467,28 +467,55 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - **Probado:** 12 pruebas nuevas (254 en total) y `npm run build`. En navegador (Edge headless): flujo completo, «Aplicar» lleva al 11 feb y la misión sobrevive, móvil sin desborde y sin errores de JavaScript.
 - **IA1 lo puede usar:** la IA explicaría el imprevisto y las salidas que el motor ya comprobó, sin inventar números.
 
-### IA1. Diseñar y aplicar un plan de misión con IA · Futura · [ ]
-- **Objetivo:** integrar la IA en el trabajo del simulador para proponer planes que se puedan comprobar y aplicar. No se plantea como un chat de preguntas generales.
-- **Ejemplo:** el usuario indica «Quiero una misión de 14 días, priorizando comunicación y usando este módulo». La IA interpreta el objetivo; el motor compara sitios y fechas y presenta las mejores opciones con sus resultados reales.
-- **Regla:** la IA no inventa horas de Sol, ventanas de comunicación, pendientes, viabilidad ni resultados de batería. Usa los datos y funciones del proyecto. Los parámetros de los módulos siguen marcados como ilustrativos.
-- **Dependencias:** SU1–SU3 y S3 estables; integrar el endpoint de IA con el integrante del backend. Richard todavía no tiene configurada una clave de la API de OpenAI.
+### IA1. Diseñar y aplicar un plan de misión con IA · [ ] · Especificada, por hacer
+- **Objetivo:** un planificador que **actúa dentro del simulador**, no un chat genérico ni solo explicaciones. El usuario escribe un objetivo y recibe planes comprobados que puede aplicar.
+- **Ejemplo:** «Quiero una misión de 14 días, priorizando comunicación y usando este módulo». El sistema:
+  1. Interpreta el objetivo y extrae duración, prioridades y restricciones.
+  2. Evalúa sitios, fechas y configuraciones permitidas con el motor existente.
+  3. Presenta una propuesta principal y alternativas, cuando existan.
+  4. Con «Aplicar este plan» actualiza sitio, fecha, duración y módulo, vuelve a simular y permite reproducir la misión.
+- **Papel de la IA:** traduce el objetivo a criterios estructurados y explica las opciones calculadas. Puede pedir que se ejecuten funciones del proyecto mediante herramientas (*function calling*).
+- **Regla:** los cálculos físicos y la selección verificable de opciones son del código del proyecto. La IA no inventa horas de Sol, contacto, pendientes, viabilidad, batería ni fechas favorables. Si ninguna opción cumple las restricciones, lo dice y señala qué condición habría que revisar; nunca presenta una misión fallida como viable. Los presets siguen siendo ilustrativos.
+- **Arquitectura:** React → endpoint propio del backend → API de OpenAI.
+  - Antes de elegir modelo y API, consultar la documentación oficial vigente de OpenAI.
+  - Validar estrictamente las entradas, los argumentos de las herramientas y las respuestas estructuradas.
+  - Usar únicamente los sitios, periodos y parámetros disponibles.
+  - `OPENAI_API_KEY` solo en el servidor. Nunca en React, variables `VITE_`, archivos públicos ni el repositorio.
+  - Richard todavía no tiene clave: no pedirla en el chat; documentar cómo configurarla localmente.
+  - Sin clave, la interfaz dice que la función está pendiente de configuración y el simulador sigue funcionando. No se simulan respuestas de IA como si fueran reales.
+  - El backend principal es de otro integrante (Rafael): revisar qué existe y coordinar el contrato; no reconstruir su trabajo.
+- **Fuera de alcance:** no modificar la portada ni el recorrido Tierra–Luna para esta función.
+- **Forma de trabajar:** un paso a la vez. Al terminar cada paso: comprobaciones, resumen de archivos y mensaje de commit sugerido; después se detiene. Richard hace los commits y el push; no se cambia de rama.
 
-#### IA1.1 Conexión segura con OpenAI · [ ]
-- Endpoint propio en el servidor y clave `OPENAI_API_KEY` en su entorno. Nunca incluir la clave en React, variables `VITE_`, archivos públicos ni el repositorio.
-- Definir límites de uso y tratar errores, esperas y falta de configuración. El simulador debe seguir funcionando si la IA no está disponible.
+#### IA1.1 Revisar lo existente y definir el contrato · [ ]
+- Leer el simulador actual (`src/sim/`, `src/lib/`, `App.tsx`, `SimulatorWorkspace.tsx`) y lo que hay en `origin/backend`.
+- Definir el contrato del endpoint: qué envía el frontend (objetivo en texto, sitio y módulo actuales, periodo disponible), qué devuelve (criterios estructurados, planes y explicación) y los errores (sin clave, límite de uso, tiempo agotado, objetivo inválido).
+- Definir las herramientas que la IA puede pedir (por ejemplo: listar sitios y periodo, evaluar un plan, buscar fechas que sobreviven, comparar sitios) con sus esquemas de argumentos y su validación.
+- Decidir con Rafael dónde corre el endpoint y quién ejecuta el motor. Si el motor sigue en TypeScript, el servidor puede reutilizar `src/sim` y `src/lib` sin duplicar cálculos.
+- Documentarlo en `docs/CONTRATO_IA.md`.
 
-#### IA1.2 Traducir objetivos a criterios verificables · [ ]
+#### IA1.2 Conexión segura con OpenAI · [ ]
+- Endpoint propio en el servidor, con `OPENAI_API_KEY` en su entorno, y las instrucciones para configurarla localmente.
+- Límites de uso y manejo de errores, esperas y falta de configuración. Sin clave, estado «pendiente de configuración» y el simulador intacto.
+
+#### IA1.3 Traducir objetivos a criterios verificables · [ ]
 - Recoger duración, prioridades y restricciones: luz solar, comunicación, pendiente, módulo y fechas o sitios permitidos.
-- La IA devuelve una propuesta estructurada y validada contra los sitios, periodos y parámetros disponibles. Si falta información esencial, pedir únicamente ese dato; si el objetivo no es viable, explicarlo.
+- Respuesta estructurada y validada contra los sitios, periodos y parámetros disponibles. Si falta información esencial, pedir solo ese dato; si el objetivo no es viable, explicarlo.
 
-#### IA1.3 Evaluar y ordenar los planes con el motor · [ ]
-- Ejecutar las búsquedas y simulaciones del proyecto para los criterios solicitados. Comparar opciones con el mismo objetivo y mostrar qué restricciones cumple cada una.
-- Devolver sitio, fecha, duración y configuración, junto con viabilidad, horas de luz y contacto, pendiente, batería mínima, datos enviados y tolerancia a atrasos.
-- Comprobar con pruebas objetivos imposibles, restricciones incompatibles y que todos los números correspondan a simulaciones reales.
+#### IA1.4 Evaluar y ordenar los planes con el motor · [ ]
+- Ejecutar las búsquedas y simulaciones del proyecto para los criterios pedidos. Comparar opciones con el mismo objetivo y mostrar qué restricciones cumple cada una.
+- Cada plan lleva: sitio, fecha, duración y módulo; viabilidad; horas de luz y contacto; pendiente; supervivencia y batería mínima; datos enviados; tolerancia a atrasos; y una explicación breve de por qué cumple el objetivo.
 
-#### IA1.4 Aplicar el plan al simulador · [ ]
-- Acción **«Diseñar mi misión»**, integrada en la pantalla y con pocos controles. Presentar una propuesta principal y alternativas cuando existan, con razones breves basadas en los resultados.
-- Botón **«Aplicar este plan»**: actualiza sitio, fecha, duración y módulo; vuelve a simular y permite reproducir la batería y los eventos. El usuario revisa el plan antes de aplicarlo.
+#### IA1.5 «Diseñar mi misión» y «Aplicar este plan» · [ ]
+- Acción **«Diseñar mi misión»** integrada en el simulador: pocos controles, lenguaje claro, navegación por teclado y buen funcionamiento en móvil.
+- Identidad espacial del proyecto. Sin ventanas de chat flotantes, tarjetas repetidas, adornos de IA ni pantallas llenas de parámetros.
+- Primero lo esencial; los detalles, desplegables. Propuesta principal y alternativas.
+- **«Aplicar este plan»** actualiza sitio, fecha, duración y módulo, vuelve a simular y permite reproducir la batería y los eventos.
+
+#### IA1.6 Verificación · [ ]
+- Aplicar un plan reproduce **exactamente** sus resultados con el motor.
+- Pruebas de restricciones incompatibles, objetivos imposibles, errores de la API y fechas fuera del periodo disponible.
+- Capturas en escritorio y móvil. No afirmar que se verificó la conexión real con OpenAI sin credenciales.
 - **Listo cuando:** un objetivo produce un plan comprobado que se puede aplicar y reproducir; los valores mostrados coinciden con los del motor; se entiende en móvil y con teclado; los fallos de la API no bloquean el planificador.
 - **Commit sugerido al completar la integración:** `Tarea IA1: planificador de misión con IA y aplicación de planes verificados`.
 
@@ -535,8 +562,10 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 
 ## Fase D · Cierre
 
-### 11.1 Conectar con el backend real · MVP
+### 11.1 Conectar con el backend real · MVP · [ ] · Implementado, pendiente de revisión de Richard
 - Configurar `VITE_API_URL`, revisar el checklist de `docs/CONTRATO_DATOS.md` con los datos reales y mostrar un aviso cuando se usan datos de prueba.
+- **Hecho:** checklist revisado sobre `backend/out` y `public/data` (los dos pasan; detalle y diferencias en `docs/CONTRATO_DATOS.md`). `VITE_API_URL` queda vacía: la app lee los JSON estáticos de `public/data`, también en Vercel. `dataNotice` (`src/api.ts`, con pruebas en `tests/api.test.ts`) avisa en el encabezado si un sitio trae datos de prueba. Anotado qué tendría que agregar `backend/build.py` para no perder los campos opcionales de D1.
+- **Commit sugerido:** `Tarea 11.1: datos reales verificados contra el contrato y aviso de datos de prueba`
 
 ### 11.2 Fuentes de datos y créditos · MVP · NASA
 - Panel "Fuentes" que acredita a JPL Horizons, Moon Trek, Quickmap (datos del LRO) y CSA Moon Exploration.

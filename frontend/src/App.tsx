@@ -2,6 +2,7 @@ import { useDeferredValue, useEffect, useMemo, useState, type CSSProperties, typ
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
 import { SkyPlot } from './components/SkyPlot'
+import { dataNotice } from './api'
 import { Sources } from './components/Sources'
 import { SimulatorWorkspace } from './components/sim/SimulatorWorkspace'
 import { Story } from './components/Story'
@@ -158,6 +159,7 @@ function Planner() {
     actions.setIndex(index)
   }
   const plannedStart = current ? missionWindow(current.data, draftStart ?? landing ?? i, missionDays).from : 0
+  const notice = p ? dataNotice(p.data) : null
 
   return (
     <div className={cx('flex min-h-dvh flex-col', mode === 'explore' && 'lg:h-dvh')}>
@@ -165,11 +167,16 @@ function Planner() {
         <Brand />
         <Segmented label="Modo" options={MODES} value={mode} onChange={actions.setMode} />
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
-          {p?.data.sources?.ephemeris === 'jpl-horizons' && <Badge>Sol y Tierra: JPL Horizons (NASA)</Badge>}
-          {p?.data.sources?.terrain === 'synthetic' && <Badge tone="caution">Terreno de prueba</Badge>}
+          {p && !notice && <Badge>Datos reales · JPL Horizons y LOLA (NASA)</Badge>}
+          {notice && <Badge tone="caution">Datos de prueba</Badge>}
           <Sources data={p?.data} />
         </div>
       </header>
+      {notice && (
+        <p role="status" className="border-y border-caution/40 px-4 py-2.5 text-sm leading-relaxed text-caution sm:px-5">
+          {notice}
+        </p>
+      )}
 
       {state.listStatus === 'error' ? (
         <LoadError title="No se pudo cargar la lista de sitios" onRetry={actions.reload}>

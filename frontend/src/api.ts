@@ -1,15 +1,19 @@
 // Cliente de datos: lista de sitios y datos completos de cada sitio.
 //
 // - Si VITE_API_URL tiene valor, pide al backend: GET {VITE_API_URL}/sites y GET {VITE_API_URL}/sites/{id}.
-// - Si está vacío, usa los archivos de prueba: /data/sites.json y /data/sites/{id}.json (`npm run mock`).
+// - Si está vacío (lo normal, también en Vercel), lee los archivos estáticos /data/sites.json y
+//   /data/sites/{id}.json. Hoy son datos reales (LOLA + JPL Horizons) que generan `npm run mock` o
+//   `python backend/export.py`; si algún sitio trae datos de prueba, `dataNotice` lo dice.
 //
 // Valida cada respuesta contra el contrato (docs/CONTRATO_DATOS.md) y explica qué está mal si algo no cuadra.
 
 import type { Site, SiteCategory, SiteData, SitesResponse } from './types'
 
-const API_URL = (import.meta.env?.VITE_API_URL ?? '').trim().replace(/\/+$/, '')
+// `env` lo pone Vite; en las pruebas de Node no existe, y entonces se leen los archivos estáticos.
+const env = (import.meta as ImportMeta & { env?: { VITE_API_URL?: string } }).env
+const API_URL = (env?.VITE_API_URL ?? '').trim().replace(/\/+$/, '')
 
-/** true cuando la app usa los archivos de prueba de public/data en lugar del backend. */
+/** true cuando la app lee los archivos estáticos de public/data en lugar de un servidor. */
 export const usingLocalData = API_URL === ''
 
 const CATEGORIES: readonly SiteCategory[] = ['artemis', 'clps', 'apollo', 'international', 'custom']
@@ -36,7 +40,24 @@ function siteUrl(id: string): string {
   return usingLocalData ? `/data/sites/${safe}.json` : `${API_URL}/sites/${safe}`
 }
 
-const MOCK_HINT = ' Si estás usando los datos de prueba, corre `npm run mock` en frontend/.'
+const MOCK_HINT = ' Para generar los archivos de public/data, corre `npm run mock` en frontend/.'
+
+/**
+ * Aviso para la interfaz cuando los datos de un sitio no son reales, o null si lo son.
+ * Son reales solo si no traen `mock: true` y `sources` dice JPL Horizons y LOLA.
+ */
+export function dataNotice(d: Pick<SiteData, 'mock' | 'sources'>): string | null {
+  const s = d.sources
+  const fake: string[] = []
+  if (!s || s.ephemeris !== 'jpl-horizons') fake.push('el Sol y la Tierra')
+  if (!s || s.terrain !== 'lola') fake.push('el relieve')
+  if (fake.length) {
+    const verb = fake.length === 1 && fake[0] === 'el relieve' ? 'no es real' : 'no son reales'
+    return `Datos de prueba: ${fake.join(' ni ')} de este sitio ${verb}. No uses estos resultados.`
+  }
+  if (d.mock) return 'Datos de prueba: este sitio está marcado como no real. No uses estos resultados.'
+  return null
+}
 
 async function getJson(url: string): Promise<unknown> {
   let res: Response

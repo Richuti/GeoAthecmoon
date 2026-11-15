@@ -113,10 +113,37 @@ Pueden ser archivos JSON estáticos o una API. El frontend usa las mismas rutas 
 
 ## Checklist para el backend
 
-- [ ] `sun.az`, `sun.el`, `earth.az` y `earth.el` tienen el mismo largo.
-- [ ] El azimut va desde el norte, en sentido horario, y la longitud es este (0–360).
-- [ ] `horizon.elevationDeg` tiene `360 / azimuthStepDeg` valores.
-- [ ] El horizonte se calculó con un DEM de unos 150 km y con la corrección de curvatura `d² / (2R)`.
-- [ ] La consulta a Horizons usa `TIME_TYPE='UT'`.
-- [ ] `terrain.heightsM` tiene `size × size` valores, si se incluye.
-- [ ] Cada sitio de `/sites` tiene su `/sites/{id}`.
+Revisado el 14 nov 2026 (tarea 11.1) con `validateSites` y `validateSiteData` de `src/api.ts`, sobre `origin/backend:backend/out` (6 sitios) y sobre `frontend/public/data` (6 sitios). Los dos pasan el contrato sin problemas.
+
+- [x] `sun.az`, `sun.el`, `earth.az` y `earth.el` tienen el mismo largo (backend: 1440; `public/data`: 8760).
+- [x] El azimut va desde el norte, en sentido horario, y la longitud es este (0–360).
+- [x] `horizon.elevationDeg` tiene `360 / azimuthStepDeg` valores.
+- [x] El horizonte se calculó con un DEM de unos 150 km y con la corrección de curvatura `d² / (2R)` (`backend/horizon.py` y `scripts/compute-horizon.mjs`; en los primeros 60 días la luz coincide a menos de 0.5 puntos).
+- [x] La consulta a Horizons usa `TIME_TYPE='UT'` (`scripts/fetch-horizons.mjs`).
+- [x] `terrain.heightsM` tiene `size × size` valores, si se incluye (backend: 96 × 96; `public/data` no lo incluye).
+- [x] Cada sitio de `/sites` tiene su `/sites/{id}`.
+- [x] Las coordenadas de los 6 sitios coinciden con `backend/sites_verified.json`.
+
+### Cómo se conecta la app (tarea 11.1)
+- **`VITE_API_URL` vacía (lo normal, también en Vercel):** la app lee `/data/sites.json` y `/data/sites/{id}.json`, que son archivos estáticos con datos reales. No hace falta servidor, CORS ni rewrites.
+- **`VITE_API_URL` con valor:** la app pide `GET {VITE_API_URL}/sites` y `GET {VITE_API_URL}/sites/{id}`, con la misma forma. Solo se usaría si algún día hay un servidor en vivo.
+- **Aviso de datos de prueba:** si un sitio trae `mock: true`, o si `sources` no dice `jpl-horizons` y `lola`, el encabezado muestra «Datos de prueba» y una franja que lo explica (`dataNotice` en `src/api.ts`). Con datos reales muestra «Datos reales · JPL Horizons y LOLA (NASA)».
+
+### Diferencias entre `backend/out` y `public/data`, y qué gana al integrar
+`public/data` (generado con `npm run horizon` + `npm run mock`) es la versión que usa la app. `backend/out` es la versión de Rafael con el mismo método. En el conflicto al integrar gana `public/data`.
+
+| | `backend/out` | `public/data` |
+|---|---|---|
+| Periodo | 60 días (1440 h) | Todo 2027 (8760 h); los primeros 60 días son los mismos |
+| `site.coordSource` | Sí | No (el tipo `Site` no lo tiene; se puede agregar como opcional) |
+| `terrain` 96 × 96 | Sí | No (la vista 3D usa `public/models/terrain/{id}.glb`) |
+| `sun/earth.distKm`, `horizon.distanceKm`, `horizon.obstacleHeightM`, `dsn`, `reference` | No | Sí |
+
+### Qué tendría que cambiar `backend/build.py` para no perder los campos opcionales
+Solo hace falta si alguien vuelve a generar `public/data` con el backend. Sin estos cambios, la app sigue funcionando, pero sin eclipses, sin la cresta que tapa el Sol, sin DSN y sin la validación con NASA.
+La caché de Horizons sigue en `frontend/public/data/horizons/`, que es donde la lee `build.py`.
+1. **Periodo:** la caché ya tiene todo 2027 (8760 h). `build.py` copia las listas tal cual, así que no hay que cambiar nada; su constante `N_SAMPLES = 1440` no se usa.
+2. **`sun.distKm` y `earth.distKm`:** ya vienen en la caché (`eph["sun"]["distKm"]`). Basta con copiarlos junto a `az` y `el`.
+3. **`dsn`:** está en `frontend/public/data/horizons/dsn.json` y es la misma para todos los sitios. Se copia tal cual.
+4. **`horizon.distanceKm` y `horizon.obstacleHeightM`:** `horizon.py` ya recorre cada rayo. En `horizon_deg` habría que devolver también la distancia `d` y la altura `h − h0` del punto que da el ángulo máximo (`np.nanargmax`).
+5. **`reference`:** sale de los mapas `AVGVISIB_75S_120M_201608` y `_EARTH` en el píxel del sitio, más el horizonte con el observador a 0 m. Hoy lo calcula `scripts/compute-horizon.mjs`; lo más simple es leerlo de `assets-src/horizon/{id}.json` en lugar de recalcularlo.
