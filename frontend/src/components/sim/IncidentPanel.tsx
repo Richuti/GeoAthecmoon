@@ -24,9 +24,11 @@ interface IncidentPanelProps {
   onCfg: (cfg: LanderConfig) => void
   originalResult: SimResult
   children: ReactNode
+  /** Avisa qué plan se aplicó (sitio, inicio y si cambió el módulo) */
+  onApplied?: (siteId: string, startIndex: number, cfg: LanderConfig) => void
 }
 
-export function IncidentPanel({ data, cfg, startIndex, missionDays, onTryStart, onTrySite, onCfg, originalResult, children }: IncidentPanelProps) {
+export function IncidentPanel({ data, cfg, startIndex, missionDays, onTryStart, onTrySite, onCfg, originalResult, children, onApplied }: IncidentPanelProps) {
   const { state, actions } = useAppState()
   const [active, setActive] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -53,6 +55,7 @@ export function IncidentPanel({ data, cfg, startIndex, missionDays, onTryStart, 
   /** Aplica un plan al original: sitio, módulo y fecha. Se evalúa sin repetir el viaje. */
   const applyPlan = (siteId: string, next: LanderConfig, start: number) => {
     setActive(false)
+    onApplied?.(siteId, start, next)
     if (siteId !== data.site.id) onTrySite(siteId)
     if (JSON.stringify(next) !== JSON.stringify(cfg)) onCfg(next)
     onTryStart(start)

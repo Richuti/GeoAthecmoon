@@ -1,6 +1,5 @@
-// Control de misión: cada suceso de la simulación se dice como «qué pasó» y «qué hacemos», con los números del
-// propio simulador. También responde preguntas simples («¿qué pasa?», «¿cómo lo resolvemos?») con los datos del
-// momento. No hay modelo de lenguaje aquí: todo sale de `SimResult`, la luz y el contacto calculados.
+// Control de misión: cada suceso de la simulación se muestra como «qué pasó» y «qué hacemos», con los números del
+// propio simulador. No hay modelo de lenguaje aquí: todo sale de `SimResult`, la luz y el contacto calculados.
 
 import { formatDateTime, formatDurationLong, sampleTime } from '../lib/time.ts'
 import type { SiteData } from '../types'
@@ -123,60 +122,4 @@ export function controlFeed(ctx: ControlContext, index: number): ControlMessage[
     .map((e) => controlMessage(ctx, e))
     .filter((m): m is ControlMessage => m !== null)
     .reverse()
-}
-
-export type Intent = 'fix' | 'battery' | 'sun' | 'earth' | 'play' | 'pause' | 'status'
-
-const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-
-/** Qué se pregunta, por palabras clave (sin modelo de lenguaje). */
-export function intentOf(question: string): Intent {
-  const q = norm(question)
-  if (/(resolv|soluci|arregl|salv|que hacemos|hacemos)/.test(q)) return 'fix'
-  if (/(pausa|para |detente|alto)/.test(q) || q.trim() === 'para') return 'pause'
-  if (/(reproduc|sigue|continua|play|empieza|arranca)/.test(q)) return 'play'
-  if (/(bateri|energia|carga)/.test(q)) return 'battery'
-  if (/(sol|luz|panel|sombra)/.test(q)) return 'sun'
-  if (/(tierra|contacto|datos|comunic|antena)/.test(q)) return 'earth'
-  return 'status'
-}
-
-/** Respuesta con los datos del momento `index`. */
-export function answer(ctx: ControlContext, intent: Intent, index: number): string {
-  const { data, result, lit, contact } = ctx
-  const s = result.series
-  const kk = k(ctx, index)
-  const end = result.to - 1
-  const span = (a: number, b: number) => formatDurationLong((b - a) * data.stepHours)
-  const failed = result.summary.failedAtIndex
-  switch (intent) {
-    case 'fix':
-      return result.summary.survived
-        ? `No hace falta: con este plan la misión sobrevive los ${result.plan.missionDays} días.`
-        : `La misión falla el ${formatDateTime(sampleTime(data, failed!))}. ${fixText(ctx)}`
-    case 'battery': {
-      const mode = s.mode[kk]
-      return `La batería está al ${pct(s.soc[kk])}. ${mode === 'failed' ? 'Llegó al mínimo: la misión falló.' : mode === 'survival' ? 'Estamos en modo ahorro.' : s.generatedW[kk] >= s.loadW[kk] ? 'El panel la está cargando.' : 'Se está descargando.'}`
-    }
-    case 'sun': {
-      const next = nextWhere(lit, index, !lit[index])
-      const when = next === null || next > end ? 'hasta el final de la misión' : `durante ${span(index, next)} más`
-      return lit[index] ? `El Sol ilumina el panel: genera ${Math.round(s.generatedW[kk])} vatios, ${when}.` : `El Sol está oculto tras el relieve ${when}.`
-    }
-    case 'earth': {
-      const next = nextWhere(contact, index, !contact[index])
-      const when = next === null || next > end ? 'hasta el final de la misión' : `durante ${span(index, next)} más`
-      return contact[index]
-        ? `Hay contacto con la Tierra ${when}. Llevamos ${gb(s.dataSentMb[kk])} enviados.`
-        : `No vemos la Tierra ${when}. Hay ${gb(s.dataQueuedMb[kk])} de datos esperando.`
-    }
-    case 'play':
-      return 'Reproduciendo la misión.'
-    case 'pause':
-      return 'Pausado.'
-    case 'status': {
-      const last = controlFeed(ctx, index)[0]
-      return `${last ? `${last.problem} ${last.response} ` : ''}Batería al ${pct(s.soc[kk])}, ${lit[index] ? 'con Sol' : 'sin Sol'} y ${contact[index] ? 'con contacto con la Tierra' : 'sin contacto con la Tierra'}.`
-    }
-  }
 }

@@ -1,8 +1,8 @@
 // Un espacio de trabajo lunar: el plan arriba, el terreno en el centro y la evidencia debajo.
 // Conserva la tipografía y los colores de vuelo; evita marcos repetidos y columnas con scroll independiente.
 import { useMemo, useRef, useState, type ComponentProps } from 'react'
-import { formatDate } from '../../lib/time'
-import { PRESETS } from '../../sim/lander'
+import { formatDate, formatDateTime, sampleTime } from '../../lib/time'
+import { PRESETS, type LanderConfig } from '../../sim/lander'
 import { useAppState } from '../../state'
 import type { SiteData } from '../../types'
 import { Button, cx, Disclosure, Select } from '../ui'
@@ -34,6 +34,31 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
   const [view, setView] = useState<'plan' | 'journey' | 'surface'>('plan')
   const heading = useRef<HTMLHeadingElement>(null)
   const [rescueSignal, setRescueSignal] = useState(0)
+  // Aviso después de aplicar un plan (de la IA o de una salida): qué cambió, para que se note que pasó algo.
+  const [applied, setApplied] = useState<string[] | null>(null)
+  /** Qué cambió respecto al plan anterior, en palabras. El resultado (sobrevive o no) se lee después del recálculo. */
+  const announce = (siteId: string, start: number, next: LanderConfig) => {
+    const nameOf = (id: string) => state.sites?.find((s) => s.id === id)?.name ?? id
+    const changes: string[] = []
+    if (siteId !== data.site.id) changes.push(`sitio ${nameOf(data.site.id)} → ${nameOf(siteId)}`)
+    const before = report?.result.from
+    if (before !== undefined && before !== start) changes.push(`alunizaje ${formatDateTime(sampleTime(data, before))} → ${formatDateTime(sampleTime(data, start))}`)
+    const share = setup.cfg.instrumentLoadW > 0 ? next.instrumentLoadW / setup.cfg.instrumentLoadW : 1
+    if (Math.abs(share - 1) > 1e-6) changes.push(`instrumentos al ${Math.round(share * 100)} %`)
+    if (Math.abs(next.survivalThreshold - setup.cfg.survivalThreshold) > 1e-6) changes.push(`modo ahorro desde el ${Math.round(next.survivalThreshold * 100)} %`)
+    setApplied(changes)
+    requestAnimationFrame(() => {
+      const title = document.getElementById('mission-step-title')
+      title?.focus({ preventScroll: true })
+      title?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    })
+  }
+  const applyPlan = (siteId: string, cfg: LanderConfig, start: number) => {
+    announce(siteId, start, cfg)
+    if (siteId !== data.site.id) report?.onTrySite(siteId)
+    if (JSON.stringify(cfg) !== JSON.stringify(setup.cfg)) setup.onCfg(cfg)
+    report?.onTryStart(start)
+  }
   // La mejor salida sencilla si la misión falla: el «así lo resolvemos» del control de misión (simulada).
   const failing = report && !report.result.summary.survived ? report.result : null
   const rescueFix = useMemo(() => {
@@ -50,6 +75,7 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
   const navigate = (next: typeof view) => {
     actions.setPlaying(false)
     setView(next)
+    setApplied(null)
     requestAnimationFrame(() => { heading.current?.focus({ preventScroll: true }); heading.current?.scrollIntoView({ block: 'start' }) })
   }
   const result = report?.result
@@ -94,7 +120,7 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       } />
       </div>
       <aside aria-label="Resumen de tu plan" className="min-w-0 lg:border-l lg:border-seam lg:pl-10">
-        <img src="/media/i2-borde-crater.jpg" alt="" className="mb-6 aspect-[16/7] w-full object-cover" />
+        <img src="/media/i2-borde-crater.jpg" alt="" className="mb-6 aspect-16/7 w-full object-cover" />
         <p className="text-sm text-ink-muted">Tu destino · Polo sur lunar</p>
         <h3 className="mt-2 font-display text-4xl font-bold uppercase leading-tight text-ink">{data.site.name}</h3>
         <dl className="mt-5 divide-y divide-seam text-sm">
@@ -106,11 +132,26 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       </aside>
       </div>}
       {view === 'journey' && <EarthMoonJourney data={data} arrival={setup.timelineDate} destination={data.site.name} onArrive={() => { setup.onSimulate(); navigate('surface') }} />}
+      {view === 'surface' && applied && report && (() => {
+        const s = report.result.summary
+        const failDay = s.failedAtIndex === null ? null : Math.floor((s.failedAtIndex - report.result.from) * data.stepHours / 24) + 1
+        return <div role="status" className={cx('applied-note mb-6 flex flex-wrap items-start justify-between gap-3', !s.survived && 'is-fail')}>
+          <div className="min-w-0">
+            <p className="text-lg font-bold leading-snug text-ink">
+              {s.survived
+                ? <><span aria-hidden className="mr-2 text-ok">✓</span>Listo, funcionó. La misión ahora sobrevive los {report.result.plan.missionDays} días y envía {(s.dataSentMb / 1000).toFixed(1)} Gb a la Tierra.</>
+                : <><span aria-hidden className="mr-2 text-critical">✗</span>Se aplicó el plan, pero la misión todavía se queda sin energía el día {failDay}.</>}
+            </p>
+            <p className="mt-1 text-sm text-ink-muted">{applied.length ? <>Cambiamos: {applied.join(' · ')}.</> : 'El plan ya era el mismo.'} El resultado de abajo ya está actualizado.</p>
+          </div>
+          <button type="button" className="text-sm text-ink-muted underline underline-offset-4 hover:text-ink" onClick={() => setApplied(null)}>Cerrar</button>
+        </div>
+      })()}
       {view === 'surface' && report && <IncidentPanel key={`${data.site.id}:${report.result.from}:${report.result.plan.missionDays}:${JSON.stringify(setup.cfg)}`}
         data={data} cfg={setup.cfg} startIndex={report.result.from} missionDays={report.result.plan.missionDays} originalResult={report.result}
-        onTryStart={report.onTryStart} onTrySite={report.onTrySite} onCfg={setup.onCfg}>
+        onTryStart={report.onTryStart} onTrySite={report.onTrySite} onCfg={setup.onCfg} onApplied={announce}>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
-        <div className="terrain-stage h-[34rem] min-w-0 sm:h-[32rem]">
+        <div className="terrain-stage h-136 min-w-0 sm:h-128">
           <ViewerPanel data={data} index={state.index} contact={contact[state.index]} immersive
             missionState={result && sample !== null ? result.series.mode[sample] : undefined}
             missionOverlay={result && <MissionLive key={`${data.site.id}:${result.from}:${JSON.stringify(result.plan)}:${JSON.stringify(setup.cfg)}`}
@@ -121,10 +162,10 @@ export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, 
       </div>
         <MissionTimeline data={data} result={report.result} lit={lit} contact={contact} index={state.index} playing={state.playing}
           speed={state.speed} survivalThreshold={survivalThreshold} onToggle={actions.togglePlay} onSeek={onSeek} onSpeed={actions.setSpeed}
-          fix={rescueFix} onPlay={() => actions.setPlaying(true)} onPause={() => actions.setPlaying(false)} onRescue={report.result.summary.survived ? undefined : askRescue} />
+          fix={rescueFix} onRescue={report.result.summary.survived ? undefined : askRescue} />
         {!report.result.summary.survived && <PlanRescue key={`${data.site.id}:${report.result.from}:${report.result.plan.missionDays}:${JSON.stringify(setup.cfg)}`}
           data={data} cfg={setup.cfg} startIndex={report.result.from} missionDays={report.result.plan.missionDays} startSignal={rescueSignal}
-          onApply={(siteId, cfg, start) => { if (siteId !== data.site.id) report.onTrySite(siteId); if (JSON.stringify(cfg) !== JSON.stringify(setup.cfg)) setup.onCfg(cfg); report.onTryStart(start) }} />}
+          onApply={applyPlan} />}
         <SurvivalMap data={data} cfg={setup.cfg} missionDays={report.result.plan.missionDays} landing={report.result.from} tolerance={report.tolerance}
           onPick={(siteId, start) => { if (siteId !== data.site.id) report.onTrySite(siteId); report.onTryStart(start) }} />
         <MissionOptions {...report} />

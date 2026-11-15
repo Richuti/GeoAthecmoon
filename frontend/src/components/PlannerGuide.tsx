@@ -105,7 +105,7 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
             return <button key={site.id} type="button" data-guide-site={site.id} aria-pressed={active}
               disabled={!!errors[site.id]} onClick={() => onSelect(site.id)}
               className={cx('guide-site glass-surface relative flex min-w-0 flex-col overflow-hidden text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40', active ? 'guide-site--selected' : 'hover:border-ink-faint')}>
-              <div className="relative aspect-[16/9] w-full overflow-hidden bg-hull">
+              <div className="relative aspect-video w-full overflow-hidden bg-hull">
                 {photo && <img src={photo.src} alt="" width={640} height={360} className="guide-site__photo size-full object-cover" style={{ objectPosition: photo.position }} />}
                 {active && <span className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-ink text-void" aria-hidden>
                   <svg viewBox="0 0 20 20" className="size-4"><path d="m4 10 4 4 8-8" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
@@ -131,7 +131,7 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
       {step === 1 && <>
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <section aria-label="Destino de tu plan" className="glass-surface hidden overflow-hidden lg:block">
-            {image && <img src={image.src} alt="" width={640} height={360} className="aspect-[16/7] w-full object-cover" style={{ objectPosition: image.position }} />}
+            {image && <img src={image.src} alt="" width={640} height={360} className="aspect-16/7 w-full object-cover" style={{ objectPosition: image.position }} />}
             <div className="p-5">
               <p className="text-xs text-ink-muted">Tu destino · Polo sur lunar</p>
               <h2 className="mt-2 font-display text-3xl font-bold uppercase leading-tight text-ink">{selected?.name}</h2>
