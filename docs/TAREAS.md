@@ -8,6 +8,8 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 - **Navegación y recarga (14 nov), implementadas; pendiente de revisión y subida de Richard:** al recargar se vuelve a `#inicio`, conservando `?sitio=` para el planificador. Los enlaces compartidos siguen abriendo directamente el sitio al visitarlos por primera vez. El scroll se reinicia después del montaje de cada pantalla y la restauración automática del navegador queda en modo manual. Verificado: 278 pruebas, build y capturas a 1440/390 px; abrir desde el pie de la landing, recargar desde abajo del planificador, Atrás/Adelante, volver por la marca y enlaces directos al sitio elegido.
 
+- **Entrada siempre oscura (14 nov), implementada; pendiente de revisión y subida de Richard:** se elimina el cambio a fondo blanco y la inversión del logo. Se conserva la secuencia de apertura corta, nombre central, cierre y apertura final. Fondo fijo #05070d y logo blanco/gris. Verificado: 278 pruebas, build y capturas por fase a 1440/390 px; revisión adicional a 320 px.
+
 ## Cómo trabajamos
 
 1. Se hace **un solo paso a la vez** (por ejemplo, 4.2).

@@ -336,9 +336,6 @@ function StoryBar({ onOpen, solid }: { onOpen: () => void; solid: boolean }) {
         </p>
         <PlannerButton onOpen={onOpen} compact />
       </div>
-      {!solid && <p className="mt-3 text-right text-xs leading-relaxed text-ink-muted">
-        Ilustración · los datos no salen de la imagen
-      </p>}
     </header>
   )
 }

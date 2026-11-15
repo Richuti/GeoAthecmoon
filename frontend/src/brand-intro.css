@@ -1,4 +1,4 @@
-﻿/* Apertura breve → nombre → cierre y cambio de contraste → salida a la portada. */
+/* Apertura breve → nombre → cierre, siempre sobre fondo oscuro → salida a la portada. */
 .brand-intro {
   --intro-gap: clamp(38px, 5vw, 62px);
   position: fixed;
@@ -16,8 +16,8 @@
   animation-timing-function: linear;
   animation-fill-mode: both;
 }
-.brand-intro__half--top { clip-path: inset(0 0 calc(50% - 0.5px)); animation-name: brand-open-top, brand-surface; }
-.brand-intro__half--bottom { clip-path: inset(50% 0 0); animation-name: brand-open-bottom, brand-surface; }
+.brand-intro__half--top { clip-path: inset(0 0 calc(50% - 0.5px)); animation-name: brand-open-top; }
+.brand-intro__half--bottom { clip-path: inset(50% 0 0); animation-name: brand-open-bottom; }
 .brand-intro__identity {
   position: absolute;
   top: 50%;
@@ -27,7 +27,6 @@
   aspect-ratio: 510 / 355;
   transform: translate(-50%, -50%);
   mix-blend-mode: screen;
-  animation: brand-logo-blend 2800ms linear both;
 }
 .brand-intro__emblem {
   display: block;
@@ -72,16 +71,10 @@
   76% { transform: translateY(0); animation-timing-function: cubic-bezier(0.83, 0, 0.17, 1); }
   100% { transform: translateY(51%); }
 }
-@keyframes brand-surface {
-  0%, 64% { background-color: #05070d; }
-  64.01%, 100% { background-color: #e8ebf1; }
-}
 @keyframes brand-emblem {
-  0% { opacity: 0; transform: scale(0.96); filter: grayscale(1) contrast(1.25); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  10%, 64% { opacity: 1; transform: scale(1); filter: grayscale(1) contrast(1.25); }
-  64.01%, 100% { opacity: 1; transform: scale(1); filter: grayscale(1) contrast(1.25) invert(1); }
+  0% { opacity: 0; transform: scale(0.96); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  10%, 100% { opacity: 1; transform: scale(1); }
 }
-@keyframes brand-logo-blend { 0%, 64% { mix-blend-mode: screen; } 64.01%, 100% { mix-blend-mode: multiply; } }
 @keyframes brand-strip { 0%, 64% { opacity: 1; } 64.01%, 100% { opacity: 0; } }
 /* La primera escena acompaña la apertura final; el documento no cambia de escala. */
 .brand-intro-active section[aria-label='Viaje al polo sur lunar'] > .sticky {
