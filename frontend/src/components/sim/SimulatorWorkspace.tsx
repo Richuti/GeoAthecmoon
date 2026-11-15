@@ -30,7 +30,7 @@ const TOURS: Record<'plan' | 'journey' | 'surface', TourStep[]> = {
   ],
   journey: [
     { target: '[data-tour="sim-start"]', title: 'Pulsa «Iniciar viaje»', text: 'Empieza aquí: verás el despegue, el viaje hasta la Luna y el descenso sobre el relieve real del sitio. Puedes pausarlo cuando quieras.' },
-    { target: '[data-tour="sim-skip"]', title: '¿Con prisa?', text: '«Ir a la llegada» salta al final del viaje. El viaje es ilustrativo: no cambia el resultado de la misión.' },
+    { target: '[data-tour="sim-skip"]', title: '¿Con prisa?', text: '«Ir a la llegada» salta al final del viaje. El viaje no cambia el resultado de la misión en la superficie.' },
     { target: '[data-tour="sim-evaluate"]', title: 'Después, evalúa', text: 'Cuando la nave llegue, aquí comprobamos hora por hora si tu módulo aguanta en la Luna.' },
   ],
   surface: [

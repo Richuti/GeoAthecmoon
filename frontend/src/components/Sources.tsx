@@ -20,7 +20,8 @@ const DATA: Source[] = [
   { name: 'Mapas de iluminación del equipo LOLA · NASA/GSFC', use: 'Validación de la luz y de la Tierra visible (Mazarico et al. 2011, Icarus 211, 1066–1081).' },
   { name: 'Deep Space Network · NASA/JPL', href: 'https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301K.pdf', use: 'Ubicación de las antenas DSS-14, DSS-63 y DSS-43 (documento 810-005, módulo 301).' },
   { name: 'OpenAI · copiloto de rescate', use: 'Decide qué combinaciones probar cuando un atraso hace fallar la misión y explica el plan elegido. No calcula: cada número sale del simulador de la app.' },
-  { name: 'JPL DE440 y NASA Moon Fact Sheet', href: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html', use: 'Constantes del viaje Tierra–Luna idealizado.' },
+  { name: 'JPL DE440 y NASA Moon Fact Sheet', href: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html', use: 'Constantes del viaje Tierra–Luna: gravedad de la Tierra y la Luna, radios y órbita lunar. La distancia del día de llegada sale de JPL Horizons.' },
+  { name: 'Módulo lunar Apolo 11 · NASA NSSDC', href: 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C', use: 'Nave de referencia del descenso: 15 103 kg, 8 248 kg de propelente, motor de 45.04 kN y 311 s de impulso específico.' },
 ]
 
 const EXPLORE: Source[] = [

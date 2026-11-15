@@ -1,14 +1,23 @@
-# GEOATHECMOON · Lunar Landing Site Navigator
+# GEOATHECMOON · Next-Generation Landing Site Planning for the Lunar South Pole
 **[English](README.md)** · Español
 
 
-Proyecto para el **NASA Space Apps Challenge 2026**, reto *Lunar Landing Site Navigator*.
+Proyecto del equipo **GeoAthectum** para el **NASA Space Apps Challenge 2026**, reto *Lunar Landing Site Navigator*.
 
 > **En 10 segundos sabes si un sitio y una fecha sirven en el polo sur lunar, y qué pasa si tu misión se atrasa.**
 >
 > *In 10 seconds you know whether a site and a date work at the lunar south pole, and what happens if your mission is delayed.*
 
-En el polo sur de la Luna el Sol nunca sube más de un par de grados: una cresta a varios kilómetros basta para dejar un sitio a oscuras o cortar el contacto con la Tierra. GEOATHECMOON compara **6 sitios** del polo sur durante **todo 2027, hora por hora**, con posiciones reales del Sol y la Tierra (JPL Horizons) y el relieve real (LOLA). Después **simula tu módulo**: batería, paneles y envío de datos.
+**App en línea:** https://geoathecmoon.vercel.app (en inglés por defecto; el botón EN/ES, abajo a la izquierda, cambia a español).
+**Código:** https://github.com/Richuti/GeoAthecmoon
+
+## Resumen
+
+En el polo sur de la Luna el Sol nunca sube más de un par de grados, así que una cresta lejana puede dejar un sitio de alunizaje a oscuras o cortar el contacto con la Tierra. GEOATHECMOON es un planificador y simulador de misiones que responde la pregunta central del reto: si la misión se atrasa, ¿todavía funciona?
+
+El usuario elige una fecha, los días en la superficie y uno de 6 sitios reales del polo sur. Con las posiciones reales del Sol y la Tierra de JPL Horizons y el relieve LOLA, la app revisa la luz solar, el contacto con la Tierra y la pendiente hora por hora durante todo 2027. Da un puntaje de 0 a 100, muestra qué lo limita e ilumina el terreno 3D para esa fecha. Se pueden probar atrasos, comparar planes y simular la batería, los paneles solares y el envío de datos del módulo. Un mapa de supervivencia muestra dónde y cuándo sobrevive la misión. Si la misión falla, un copiloto con IA propone planes de rescate y el simulador comprueba cada uno.
+
+Nuestros resultados de luz solar quedan a menos de 5 puntos de los mapas oficiales de iluminación LOLA de NASA. Las herramientas de NASA son potentes pero complejas. GEOATHECMOON da una respuesta clara a ingenieros, estudiantes y público general, en inglés y en español.
 
 ## Cómo se usa
 
@@ -59,7 +68,7 @@ Tabla completa sitio por sitio en [`docs/VALIDACION_NASA.md`](docs/VALIDACION_NA
 - No se modelan la temperatura real (el consumo de supervivencia es fijo), el polvo sobre los paneles, la degradación de la batería ni los satélites de relevo.
 - El simulador supone que siempre hay una antena de la DSN disponible cuando la Tierra es visible. Los datos de las tres antenas ya están calculados.
 - La pendiente es regional (DEM de 80 m): no ve rocas ni cráteres más pequeños que un píxel.
-- El viaje Tierra–Luna es un modelo educativo de dos cuerpos: no incluye ascenso físico, captura lunar ni descenso.
+- Viaje Tierra–Luna: transferencia de dos cuerpos hasta la distancia Tierra–Luna real del día de llegada (JPL Horizons), captura en órbita lunar con cónicas empalmadas y descenso propulsado integrado con la gravedad lunar, el empuje y el consumo (datos del módulo lunar del Apolo 11, NASA). Simplificaciones: Luna esférica sin mascones, sin la gravedad del Sol y frenados de captura y descenso instantáneos. El ascenso desde la Tierra es una animación.
 - Los presets de los módulos y el imprevisto son escenarios ilustrativos; las posiciones del Sol, la Tierra y el relieve son reales.
 - Las imágenes de la portada son ilustraciones: ningún dato sale de ellas.
 
