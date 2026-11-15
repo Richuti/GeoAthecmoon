@@ -43,6 +43,7 @@ const TOURS: Record<'plan' | 'journey' | 'surface', TourStep[]> = {
 }
 
 interface WorkspaceProps {
+  initialView?: 'plan' | 'journey'
   data: SiteData
   setup: ComponentProps<typeof MissionSetup>
   report: MissionResultProps | null
@@ -52,9 +53,9 @@ interface WorkspaceProps {
   survivalThreshold: number
 }
 
-export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, survivalThreshold }: WorkspaceProps) {
+export function SimulatorWorkspace({ data, setup, report, lit, contact, onSeek, survivalThreshold, initialView = 'plan' }: WorkspaceProps) {
   const { state, actions } = useAppState()
-  const [view, setView] = useState<'plan' | 'journey' | 'surface'>('plan')
+  const [view, setView] = useState<'plan' | 'journey' | 'surface'>(initialView)
   const heading = useRef<HTMLHeadingElement>(null)
   const [rescueSignal, setRescueSignal] = useState(0)
   // Aviso después de aplicar un plan (de la IA o de una salida): qué cambió, para que se note que pasó algo.

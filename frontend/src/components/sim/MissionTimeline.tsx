@@ -103,12 +103,12 @@ export function MissionTimeline({ data, result, lit, contact, index, playing, sp
           <i aria-hidden><i style={{ width: `${soc * 100}%` }} /></i>
         </div>
         <div className={cx('mission-now__tile', sunNow ? 'is-sun' : 'is-off')}>
-          <span>Sol</span><b>{sunNow ? 'Ilumina el panel' : 'Oculto'}</b>
+          <span>Energía del panel</span><b>{gen > 0 ? 'Produce electricidad' : 'Sin producción'}</b>
           <small className="tabular-nums">{Math.round(gen)} W de {Math.round(load)} W que consume</small>
         </div>
         <div className={cx('mission-now__tile', earthNow ? 'is-earth' : 'is-off')}>
-          <span>Tierra</span><b>{earthNow ? 'Con contacto' : 'Sin contacto'}</b>
-          <small>{earthNow ? 'Puede enviar datos' : 'Los datos esperan'}</small>
+          <span>Envío de mediciones</span><b>{earthNow ? 'Señal disponible' : 'Guarda a bordo'}</b>
+          <small>{earthNow ? 'Puede enviar datos a la Tierra' : 'Espera a recuperar la señal'}</small>
         </div>
         <div className="mission-now__tile">
           <span>Datos enviados</span><b className="tabular-nums">{(series.dataSentMb[k] / 1000).toFixed(1)} Gb</b>
@@ -120,7 +120,7 @@ export function MissionTimeline({ data, result, lit, contact, index, playing, sp
 
       {/* La misión entera: Sol, Tierra y batería, con el cursor del momento */}
       <div className="mission-track mt-5">
-        <div className="mission-track__labels" aria-hidden><span>Sol</span><span>Tierra</span><span>Batería</span></div>
+        <div className="mission-track__labels" aria-hidden><span>Panel</span><span>Envío</span><span>Batería</span></div>
         <div className="mission-track__body">
           <svg className="mission-track__strip" viewBox={`0 0 ${W} 1`} preserveAspectRatio="none" aria-hidden>
             {drawing.sun.map(([s, e]) => <rect key={s} x={x(s)} width={Math.max(1, x(e) - x(s))} y={0} height={1} className="fill-sun" />)}
@@ -151,8 +151,8 @@ export function MissionTimeline({ data, result, lit, contact, index, playing, sp
         </div>
       </div>
       <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-faint">
-        <span><i aria-hidden className="mission-key is-sun" />Sol sobre el horizonte</span>
-        <span><i aria-hidden className="mission-key is-earth" />Contacto con la Tierra</span>
+        <span><i aria-hidden className="mission-key is-sun" />Luz disponible para el panel</span>
+        <span><i aria-hidden className="mission-key is-earth" />Puede enviar mediciones</span>
         <span><i aria-hidden className="mission-key is-save" />Modo ahorro ({Math.round(survivalThreshold * 100)} %)</span>
         <span><i aria-hidden className="mission-key is-floor" />Falla (20 %)</span>
         <span>Haz clic o arrastra sobre la línea para ir a cualquier momento.</span>

@@ -3,6 +3,12 @@ import { describe, test } from 'node:test'
 import { translate } from '../src/i18n/translate.ts'
 
 describe('translate: español → inglés', () => {
+  test('comparación de atrasos: resultado claro y fechas de falla', () => {
+    assert.equal(translate('Con la nueva fecha, la misión completa los 14 días.'), 'With the new date, the mission completes all 14 days.')
+    assert.equal(translate('Con la nueva fecha, la misión se queda sin energía el día 14.'), 'With the new date, the mission runs out of power on day 14.')
+    assert.equal(translate('Tiempo para enviar datos'), 'Time to send data')
+    assert.equal(translate('Tu plan actual no llega al final. Con esta fecha, la batería sí alcanza.'), 'Your current plan does not reach the end. With this date, the battery lasts.')
+  })
   test('textos fijos, con los espacios de los bordes', () => {
     assert.equal(translate('¿Y si la misión se atrasa?'), 'What if the mission is delayed?')
     assert.equal(translate(' Tu plan tolera atrasos de hasta '), ' Your plan tolerates delays of up to ')

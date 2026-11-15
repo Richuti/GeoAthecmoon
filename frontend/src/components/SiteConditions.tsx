@@ -7,21 +7,21 @@ export function SiteConditions({ data, index, lit, contact }: { data: SiteData; 
   const lightChange = nextChange(lit, index)
   const contactChange = nextChange(contact, index)
   const items = [
-    { name: 'Luz solar', image: '/media/escena-2-sol.jpg', visible: lit[index], tone: 'text-sun',
-      title: lit[index] ? 'El Sol está a la vista.' : 'El relieve tapa al Sol.',
-      description: lit[index] ? 'El panel puede recibir luz solar.' : 'El módulo depende de la energía guardada en su batería.',
+    { name: 'Energía para la nave', earth: false, image: '/media/escena-2-sol.jpg', visible: lit[index], tone: 'text-sun',
+      title: lit[index] ? 'El panel recibe luz.' : 'El terreno oculta el Sol.',
+      description: lit[index] ? 'El panel puede producir electricidad. Si no cubre el consumo, la batería aporta lo que falta.' : 'La nave depende de la batería hasta recuperar suficiente producción de energía.',
       next: lightChange === null ? 'Sin cambios hasta el final de los datos.' : `${lit[index] ? 'El Sol se oculta' : 'Vuelve la luz'} en ${formatDuration(lightChange * data.stepHours)}.` },
-    { name: 'Contacto con la Tierra', image: '/media/escena-3-tierra.jpg', visible: contact[index], tone: 'text-earth',
-      title: contact[index] ? 'La Tierra está a la vista.' : 'La Tierra queda oculta.',
-      description: contact[index] ? 'Hay línea de vista para la comunicación directa.' : 'Los datos deben esperar a la próxima ventana de contacto.',
+    { name: 'Envío de mediciones', earth: true, image: '/media/escena-3-tierra.jpg', visible: contact[index], tone: 'text-earth',
+      title: contact[index] ? 'Puede comunicarse con la Tierra.' : 'No hay señal directa.',
+      description: contact[index] ? 'La antena puede enviar las mediciones a la Tierra.' : 'Guarda las mediciones a bordo para enviarlas después. Puede seguir trabajando si tiene energía.',
       next: contactChange === null ? 'Sin cambios hasta el final de los datos.' : `${contact[index] ? 'Se pierde el contacto' : 'Vuelve el contacto'} en ${formatDuration(contactChange * data.stepHours)}.` },
   ]
   return <section aria-labelledby="conditions-title">
-    <div className="mb-4"><h2 id="conditions-title" className="text-xl font-bold text-ink">¿Qué ve tu módulo ahora?</h2><p className="mt-2 text-sm text-ink-muted">Así afectan el Sol y la Tierra al instante que elegiste.</p></div>
+    <div className="mb-4"><h2 id="conditions-title" className="text-xl font-bold text-ink">¿Puede obtener energía y enviar mediciones?</h2><p className="mt-2 text-sm text-ink-muted">Estas condiciones corresponden al momento que elegiste.</p></div>
     <div className="grid gap-5 sm:grid-cols-2">
       {items.map(item => <figure key={item.name} className="glass-surface condition-figure">
         <div className="relative aspect-[16/7] overflow-hidden rounded-t-[inherit] bg-black">
-          <img src={item.image} alt="" loading="lazy" className="size-full object-cover" style={{ filter: item.visible ? 'brightness(.8)' : 'brightness(.32) saturate(.35)', transform: item.name === 'Contacto con la Tierra' ? 'scale(2.5)' : 'scale(1.25)', transformOrigin: item.name === 'Contacto con la Tierra' ? '58% 60%' : '40% 55%' }} />
+          <img src={item.image} alt="" loading="lazy" className="size-full object-cover" style={{ filter: item.visible ? 'brightness(.8)' : 'brightness(.32) saturate(.35)', transform: item.earth ? 'scale(2.5)' : 'scale(1.25)', transformOrigin: item.earth ? '58% 60%' : '40% 55%' }} />
           <span className={`absolute left-4 top-4 rounded-full bg-black/75 px-3 py-1.5 text-xs font-bold ${item.tone}`}>{item.name}</span>
         </div>
         <figcaption className="p-5"><h3 className="text-base font-bold text-ink">{item.title}</h3><p className="mt-2 text-sm leading-relaxed text-ink-muted">{item.description}</p><p className={`mt-4 text-sm ${item.tone}`}>{item.next}</p></figcaption>

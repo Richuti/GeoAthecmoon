@@ -4,6 +4,36 @@
 // Las partes variables se traducen a su vez (fechas, duraciones, nombres de sitios…).
 
 export const EN: Record<string, string> = {
+  '¿Qué pasa si llegas más tarde?': 'What happens if you arrive later?',
+  'Probamos el mismo sitio y módulo durante los mismos días. Solo movemos la fecha de alunizaje.': 'We test the same site and lander for the same number of days. Only the landing date moves.',
+  '¿Cuánto se atrasa la llegada?': 'How much later do you arrive?',
+  'Tu llegada actual': 'Your current arrival',
+  'La fecha que estás probando': 'The date you are testing',
+  'después': 'later',
+  'No queda espacio para atrasar esta misión.': 'There is no room to delay this mission.',
+  'Elige una fecha anterior: la misión completa tiene que caber en los datos de 2027.': 'Choose an earlier date: the full mission must fit within the 2027 data.',
+  'La batería alcanza hasta el final. Abajo puedes ver qué cambia con el atraso.': 'The battery lasts until the end. Compare what changes with the delay below.',
+  'Tu plan actual no llega al final. Con esta fecha, la batería sí alcanza.': 'Your current plan does not reach the end. With this date, the battery lasts.',
+  'El atraso se limitó para conservar toda la misión dentro de los datos de 2027.': 'The delay was limited to keep the full mission within the 2027 data.',
+  'Qué cambia durante tu misión': 'What changes during your mission',
+  'Condición': 'Condition',
+  'Nueva fecha': 'New date',
+  'Plan actual': 'Current plan',
+  'Tiempo con Sol': 'Time in sunlight',
+  'Sí': 'Yes',
+  'No': 'No',
+  '¿Completa la misión?': 'Does it complete the mission?',
+  'Luz para el panel': 'Sunlight for the panel',
+  'Enlace con la Tierra': 'Link with Earth',
+  'Tiempo para enviar datos': 'Time to send data',
+  'Tu plan actual admite hasta': 'Your current plan allows up to',
+  'de atraso': 'of delay',
+  '(límite de los datos disponibles)': '(limit of the available data)',
+  'El plan actual ya necesita otra fecha o configuración.': 'The current plan already needs another date or configuration.',
+  'Cambiar a la nueva fecha': 'Switch to the new date',
+  'Estás probando una alternativa. Tu plan cambia cuando pulses el botón.': 'You are testing an alternative. Your plan changes when you press the button.',
+  'Ver el detalle hora por hora': 'See the hour-by-hour detail',
+  'Ámbar: hay Sol. Azul: se puede enviar a la Tierra. El triángulo marca la falla de la batería. El puntaje combina luz, contacto y pendiente; no es una probabilidad de éxito.': 'Amber: sunlight. Blue: data can be sent to Earth. The triangle marks battery failure. The score combines light, contact and slope; it is not a probability of success.',
   'GEOATHECMOON · Planificador de alunizaje lunar': 'GEOATHECMOON · Lunar landing planner',
 
   // --- Sitios (public/data/sites.json) ---
@@ -945,6 +975,9 @@ export const EN: Record<string, string> = {
 
 /** Frases con partes variables. {} en español; {0}, {1}… en inglés (permite reordenar). */
 export const EN_PATTERNS: [string, string][] = [
+  ['Con la nueva fecha, la misión completa los {} días.', 'With the new date, the mission completes all {0} days.'],
+  ['Con la nueva fecha, la misión se queda sin energía el día {}.', 'With the new date, the mission runs out of power on day {0}.'],
+  ['La batería llega a su mínimo operativo (20 %) el {}.', 'The battery reaches its operational minimum (20%) on {0}.'],
   ['Día {} de la misión', 'Day {0} of the mission'],
   ['{} · Fuente: {}', '{0} · Source: {1}'],
   ['{} ({} del tiempo), {} ({}) y {} ({} como máximo).', '{0} ({1} of the time), {2} ({3}) and {4} ({5} at most).'],
