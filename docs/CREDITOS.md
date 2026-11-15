@@ -23,6 +23,7 @@ Proyecto del equipo para el NASA Space Apps Challenge 2026. El material de NASA 
 |---|---|---|
 | `stars.jpg` | Tycho Star Map — NASA 3D Resources | Dominio público (NASA) |
 | `earth_night.jpg` | Black Marble — NASA Earth Observatory, vía geovista-data | Dominio público (NASA) |
+| `moon_surface.jpg` | Textura de superficie extraída sin modificar de `moon.glb`, Solar System Scope (basada en datos LRO); relleno de la marca en el footer | **CC BY 4.0** — crédito y enlace a la licencia visibles en el footer |
 
 ## Datos
 - **Posiciones y distancias del Sol y la Tierra, y la Luna vista desde la DSN:** JPL Horizons (NASA/JPL).

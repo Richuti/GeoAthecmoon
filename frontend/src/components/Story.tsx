@@ -5,7 +5,7 @@
 //   (LOLA): la imagen nueva asoma detrás de la cresta.
 // - Abajo, una franja fija muestra ese horizonte y el Sol de JPL Horizons. El scroll avanza los días: cuando el
 //   relieve tapa al Sol, la ilustración se oscurece. La luz de la portada la deciden los datos, no la imagen.
-// - Al final, el cierre y un pie de página con la marca gigante rellena con el mapa de luz LOLA del polo sur.
+// - Al final, el cierre y un pie de página con la marca gigante rellena con la textura de la superficie lunar.
 //
 // Rendimiento: un solo bucle requestAnimationFrame escribe estilos y atributos; React no se vuelve a dibujar
 // en cada cuadro. Con "reducir movimiento" las escenas se ven apiladas y quietas.
@@ -196,6 +196,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
   const edge = useRef<SVGPolylineElement | null>(null)
   const stage = useRef<HTMLDivElement | null>(null)
   const band = useRef<BandHandle | null>(null)
+  const bandWrap = useRef<HTMLDivElement | null>(null)
   const [active, setActive] = useState(0)
 
   useEffect(() => {
@@ -255,9 +256,17 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
         el.style.setProperty('--visible', (k === n - 1 ? 1 : 1 - smooth(0.62, 0.74, local)).toFixed(4))
       })
 
-      // Los datos deciden la luz: si el relieve real tapa al Sol, la ilustración se oscurece.
+      // La franja del horizonte no está en la primera pantalla: entra desde abajo al pasar a la segunda escena.
+      const bandIn = smooth(0.75, 1.15, pos)
+      if (bandWrap.current) {
+        bandWrap.current.style.opacity = bandIn.toFixed(3)
+        bandWrap.current.style.transform = `translate3d(0, ${((1 - bandIn) * 100).toFixed(1)}%, 0)`
+        bandWrap.current.style.visibility = bandIn > 0 ? 'visible' : 'hidden'
+      }
+
+      // Los datos deciden la luz: si el relieve real tapa al Sol, la ilustración se oscurece (solo con la franja a la vista).
       const idx = band.current?.update(g) ?? null
-      const target = idx === null || !lit ? 1 : lit[idx] ? 1 : 0.5
+      const target = idx === null || !lit || bandIn < 1 ? 1 : lit[idx] ? 1 : 0.5
       light += (target - light) * 0.08
       stage.current?.style.setProperty('--light', light.toFixed(3))
 
@@ -331,7 +340,9 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
                   <SceneText scene={sc} index={k} />
                 </article>
               ))}
-              {reference && <HorizonBand ref={band} data={reference} lit={lit} />}
+              <div ref={bandWrap} className="absolute inset-x-0 bottom-0 z-10" style={{ opacity: 0, visibility: 'hidden', transform: 'translate3d(0, 100%, 0)' }}>
+                {reference && <HorizonBand ref={band} data={reference} lit={lit} />}
+              </div>
               <p className="absolute right-4 top-16 text-[0.6875rem] text-ink-faint sm:right-8">Ilustración · los datos no salen de la imagen</p>
             </div>
           </section>
@@ -397,7 +408,7 @@ function SceneText({ scene, index, still = false }: { scene: Scene; index: numbe
       <div className={cx('absolute inset-x-0 px-5 sm:px-10 lg:bottom-auto lg:top-0 lg:px-16 lg:pt-28',
         ground ? (still ? 'bottom-10' : 'bottom-36') : 'top-0 pt-24 sm:pt-28')}>
         <h2 id={`escena-${scene.id}`}
-          className={cx('font-display font-extrabold uppercase leading-[0.9] tracking-[0.005em] text-ink [text-wrap:balance]',
+          className={cx('font-display font-extrabold uppercase leading-[0.9] tracking-[0.005em] text-ink text-balance',
             scene.narrow ? 'max-w-3xl lg:max-w-[30vw]' : 'max-w-4xl',
             index === 0 ? 'text-[2.75rem] sm:text-7xl lg:text-8xl' : scene.narrow ? 'text-[2.5rem] sm:text-6xl lg:text-[3.25rem] xl:text-6xl' : 'text-[2.5rem] sm:text-6xl lg:text-7xl')}
           style={rise('title')}>
@@ -501,7 +512,7 @@ function HorizonBand({ ref, data, lit }: { ref: React.Ref<BandHandle>; data: Sit
   }
 
   return (
-    <figure className="absolute inset-x-0 bottom-0 z-10 border-t border-seam bg-void/85 px-4 pb-2 pt-2 sm:px-8" aria-label={`Horizonte real de ${data.site.name} y recorrido del Sol`}>
+    <figure className="relative border-t border-seam bg-void/85 px-4 pb-2 pt-2 sm:px-8" aria-label={`Horizonte real de ${data.site.name} y recorrido del Sol`}>
       <figcaption className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-0.5 text-[0.6875rem] leading-snug">
         <span className="text-ink-muted">Horizonte real · {data.site.name} · LOLA + JPL Horizons</span>
         <span ref={label} className="font-mono text-ink-faint" />
@@ -547,9 +558,8 @@ function Finale({ facts, onOpen }: { facts: StoryFacts | null; onOpen: () => voi
 }
 
 /**
- * Pie de página: la marca gigante, rellena con el mapa real de horas de sol del polo sur
- * (LOLA AVGVISIB, NASA/GSFC). Ámbar = mucha luz; azul oscuro = sombra permanente. El mapa se desliza
- * despacio con el scroll.
+ * Pie de página: la marca gigante muestra la superficie lunar en sus tonos naturales.
+ * Reutiliza sin modificar la textura de moon.glb; se desplaza despacio con el scroll.
  */
 function Footer({ onOpen }: { onOpen: () => void }) {
   const fill = useRef<SVGPatternElement | null>(null)
@@ -565,7 +575,7 @@ function Footer({ onOpen }: { onOpen: () => void }) {
       if (el && pat) {
         const r = el.getBoundingClientRect()
         const p = Math.min(1, Math.max(0, 1 - r.top / window.innerHeight))
-        pat.setAttribute('patternTransform', `translate(${(-120 * p).toFixed(1)} ${(-260 + 140 * p).toFixed(1)})`)
+        pat.setAttribute('patternTransform', `translate(${(-90 * p).toFixed(1)} ${(-240 + 60 * p).toFixed(1)})`)
       }
       raf = requestAnimationFrame(frame)
     }
@@ -577,8 +587,9 @@ function Footer({ onOpen }: { onOpen: () => void }) {
     <footer ref={root} className="relative overflow-hidden border-t border-seam bg-void">
       <div className="flex flex-col gap-6 px-5 pb-6 pt-14 sm:flex-row sm:items-end sm:justify-between sm:px-10 lg:px-16">
         <p className="max-w-md text-sm leading-relaxed text-ink-muted">
-          Dentro de las letras está el mapa real de luz del polo sur: en ámbar, los lugares con más horas de sol; en azul
-          oscuro, los cráteres donde nunca llega. Fuente: equipo LOLA, NASA/GSFC (Mazarico et al. 2011).
+          La superficie de la Luna, con sus mares y cráteres, recorre las letras.
+          {' '}Textura: <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noreferrer" className="underline decoration-seam-strong underline-offset-4 hover:decoration-ink">Solar System Scope</a>,
+          {' '}<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" className="underline decoration-seam-strong underline-offset-4 hover:decoration-ink">CC BY 4.0</a>.
         </p>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
           <button type="button" onClick={onOpen} className="font-bold text-ink underline decoration-seam-strong underline-offset-4 hover:decoration-ink">
@@ -597,8 +608,8 @@ function Footer({ onOpen }: { onOpen: () => void }) {
       <div aria-hidden className="select-none px-2 pb-2 pt-6 sm:px-3">
         <svg width="0" height="0" className="absolute">
           <defs>
-            <pattern ref={fill} id="lola-light" patternUnits="userSpaceOnUse" width="1400" height="1400" patternTransform="translate(0 -260)">
-              <image href="/textures/illumination/south_pole_sun.jpg" width="1400" height="1400" preserveAspectRatio="xMidYMid slice" />
+            <pattern ref={fill} id="lunar-surface" patternUnits="userSpaceOnUse" width="1400" height="700" patternTransform="translate(0 -240)">
+              <image href="/textures/moon_surface.jpg" width="1400" height="700" preserveAspectRatio="xMidYMid slice" />
             </pattern>
           </defs>
         </svg>
@@ -619,10 +630,9 @@ function GiantWord({ text, viewBox, fontSize, y, textLength, className }: {
   className?: string
 }) {
   return (
-    <svg viewBox={viewBox} preserveAspectRatio="xMidYMid meet" className={cx('block w-full', className)}
-      style={{ filter: 'drop-shadow(0 0 36px rgb(255 181 71 / 0.16))' }}>
+    <svg viewBox={viewBox} preserveAspectRatio="xMidYMid meet" className={cx('block w-full', className)}>
       <text x="500" y={y} textAnchor="middle" textLength={textLength} lengthAdjust="spacingAndGlyphs"
-        fill="url(#lola-light)" fontFamily="'Big Shoulders Stencil', 'Arial Narrow', sans-serif" fontWeight={900} fontSize={fontSize}>
+        fill="url(#lunar-surface)" fontFamily="'Big Shoulders Stencil', 'Arial Narrow', sans-serif" fontWeight={900} fontSize={fontSize}>
         {text}
       </text>
     </svg>
