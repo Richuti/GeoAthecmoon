@@ -20,6 +20,10 @@ export interface PlanOutcome {
   survived: boolean
   minSocPct: number
   dataSentPct: number
+  /** Muestra en la que la batería llegó al 20 %, o null si aguantó */
+  failedAtIndex: number | null
+  /** Fin de la ventana de la misión [from, to) */
+  to: number
 }
 
 export function planOutcome(data: SiteData, vis: Visibility, cfg: LanderConfig, startIndex: number, missionDays: number): PlanOutcome {
@@ -34,6 +38,8 @@ export function planOutcome(data: SiteData, vis: Visibility, cfg: LanderConfig, 
     survived: s.survived,
     minSocPct: s.minSocPct,
     dataSentPct: s.dataSentPct,
+    failedAtIndex: s.failedAtIndex,
+    to: w.to,
   }
 }
 

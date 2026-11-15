@@ -1,12 +1,14 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { formatDateTime, formatDuration } from '../../lib/time'
-import { EARTH_RADIUS_KM, LAUNCH_END, DESCENT_START, journeyAt, lunarTransfer } from '../../sim/transfer'
-import { Button, Disclosure } from '../ui'
+import { EARTH_RADIUS_KM, LAUNCH_END, DESCENT_START, TIME_SCALES_H_PER_S, journeyAt, lunarTransfer, transferPlaybackSeconds } from '../../sim/transfer'
+import { Button, Disclosure, Segmented } from '../ui'
 import type { SiteData } from '../../types'
 
 const TransferViewer = lazy(() => import('./TransferViewer'))
 const LaunchViewer = lazy(() => import('./LaunchViewer'))
 const DescentViewer = lazy(() => import('./DescentViewer'))
+
+const SCALE_OPTIONS = TIME_SCALES_H_PER_S.map(h => ({ value: String(h), label: `1 s = ${h} h` }))
 
 class JourneyError extends Component<{ children: ReactNode; onFail: () => void }, { failed: boolean }> {
   state = { failed: false }
@@ -23,6 +25,8 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
   const [descentReady, setDescentReady] = useState(false)
   const ready = launchReady && orbitalReady && descentReady
   const [failed, setFailed] = useState(false)
+  /** Horas de viaje por segundo en pantalla durante la transferencia. */
+  const [scale, setScale] = useState('5')
   const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   const orbit = useMemo(() => lunarTransfer(200), [])
   const onLaunchReady = useCallback(() => setLaunchReady(true), [])
@@ -37,6 +41,7 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
     mq.addEventListener('change', change)
     return () => mq.removeEventListener('change', change)
   }, [])
+  const transferMs = transferPlaybackSeconds(orbit, Number(scale)) * 1000
   useEffect(() => {
     if (!playing || (!ready && !failed)) return
     let previous: number | null = null
@@ -45,13 +50,14 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
       // Si un cuadro tarda en dibujarse, el viaje espera en vez de saltar una fase.
       const elapsed = previous === null ? 0 : Math.min(now - previous, 100)
       previous = now
-      // El lanzamiento tiene su propio tramo para poder observar la salida de la plataforma.
-      setProgress(p => Math.min(1, p + elapsed * (p < LAUNCH_END ? LAUNCH_END / 10000 : p < DESCENT_START ? (DESCENT_START - LAUNCH_END) / 24000 : (1 - DESCENT_START) / 10000)))
+      // Despegue y descenso tienen su propio tramo ilustrativo (10 s cada uno). La transferencia avanza a
+      // la escala elegida: el tiempo del modelo orbital es lineal con el avance de este tramo.
+      setProgress(p => Math.min(1, p + elapsed * (p < LAUNCH_END ? LAUNCH_END / 10000 : p < DESCENT_START ? (DESCENT_START - LAUNCH_END) / (transferMs) : (1 - DESCENT_START) / 10000)))
       frame = window.requestAnimationFrame(advance)
     }
     frame = window.requestAnimationFrame(advance)
     return () => window.cancelAnimationFrame(frame)
-  }, [playing, ready, failed])
+  }, [playing, ready, failed, transferMs])
   useEffect(() => { if (progress >= 1) setPlaying(false) }, [progress])
   useEffect(() => {
     const pauseWhenHidden = () => { if (document.hidden) setPlaying(false) }
@@ -69,6 +75,8 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
   const departure = new Date(arrivalMs - orbit.durationSeconds * 1000)
   const clock = new Date(departure.getTime() + sample.seconds * 1000)
   const seek = (value: number) => { setPlaying(false); setProgress(value) }
+  const cruising = !launch && !sample.descent
+  const moonDistanceKm = Math.hypot(sample.shipXKm - sample.moonXKm, sample.shipYKm - sample.moonYKm)
 
   return <section aria-label="Viaje Tierra–Luna">
     <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-4 border-y border-seam py-4">
@@ -77,6 +85,7 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
         <input type="range" aria-label="Avance del viaje Tierra–Luna" aria-valuetext={`${phase}. ${launch ? 'Ascenso ilustrativo' : formatDuration(sample.seconds / 3600) + ' de transferencia'}.`}
           min={0} max={1} step={0.001} value={progress} onChange={e => seek(Number(e.target.value))} className="range mt-2 w-full" style={{ '--fill': `${progress * 100}%` } as CSSProperties} />
       </label>
+      <Segmented label="Escala de tiempo del viaje" options={SCALE_OPTIONS} value={scale} onChange={setScale} />
       <Button size="lg" onClick={() => seek(1)}>Ir a la llegada</Button>
     </div>
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
@@ -100,8 +109,18 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
           <p className="text-sm text-ink-muted">Salida · Viaje · Encuentro</p>
           <h2 aria-live="polite" className="mt-2 text-xl font-bold text-ink">{phase}</h2>
         </div>
+        {/* Arriba a la derecha: en esta trayectoria la Luna pasa por la izquierda y la Tierra queda abajo. */}
+        {cruising && <div aria-hidden className="pointer-events-none absolute right-5 top-24 text-right sm:right-6">
+          <p className="text-2xl font-bold tabular-nums text-ink sm:text-4xl">T + {formatDuration(sample.seconds / 3600)}</p>
+          <p className="mt-1 text-xs text-ink-muted">desde la salida · 1 s = {scale} h</p>
+          <dl className="mt-3 space-y-1 text-xs tabular-nums">
+            <div className="flex justify-end gap-2"><dt className="text-ink-muted">Tierra</dt><dd className="text-earth">{Math.round(sample.radiusKm).toLocaleString('es')} km</dd></div>
+            <div className="flex justify-end gap-2"><dt className="text-ink-muted">Luna</dt><dd className="text-ink">{Math.round(moonDistanceKm).toLocaleString('es')} km</dd></div>
+            <div className="flex justify-end gap-2"><dt className="text-ink-muted">Velocidad</dt><dd className="text-ink">{sample.speedKmS.toFixed(2)} km/s</dd></div>
+          </dl>
+        </div>}
         <p className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/80 px-5 py-3 text-xs leading-relaxed text-ink-muted">
-          {launch ? 'Ascenso ilustrativo. Cohete y plataforma de referencia NASA; el cálculo orbital comienza a 200 km.' : 'Trayectoria orbital idealizada. Tamaños de planetas y nave ampliados en la vista general.'}
+          {launch ? 'Ascenso ilustrativo. Cohete y plataforma de referencia NASA; el cálculo orbital comienza a 200 km.' : 'Modelo de dos cuerpos; distancias a los centros. Tierra ×4 y Luna ×5 en la vista general; el anillo marca la nave.'}
         </p>
       </div>
       <div className="flex flex-col justify-center px-1 py-2 lg:px-6">
@@ -121,13 +140,13 @@ export function EarthMoonJourney({ arrival, destination, data, onArrive }: { arr
             <p>Salida orbital de referencia: {formatDateTime(departure)}. Encuentro de referencia: {formatDateTime(arrival)}. Se ancla a la fecha elegida de alunizaje; no calcula una ventana real de lanzamiento.</p>
             <p>Impulso de salida de órbita: {orbit.injectionDeltaVKmS.toFixed(2)} km/s (sin incluir el ascenso). Fecha durante el recorrido: {formatDateTime(clock)}.</p>
             <p><a className="underline underline-offset-4" href="https://ssd.jpl.nasa.gov/astro_par.html" target="_blank" rel="noreferrer">Constantes JPL</a> · <a className="underline underline-offset-4" href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html" target="_blank" rel="noreferrer">Datos Tierra–Luna de NASA</a>.</p>
-            <p>Modelos de referencia: Tierra Blue Marble, Saturn V y módulo Apolo adaptado (NASA). No representan un vehículo CLPS concreto. Textura lunar del globo: <a className="underline underline-offset-4" href="https://svs.gsfc.nasa.gov/4720/" target="_blank" rel="noreferrer">NASA SVS, CGI Moon Kit</a>.</p>
-            <p>Imagen a?rea de Kennedy: <a className="underline underline-offset-4" href="https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer" target="_blank" rel="noreferrer">USGS / USDA, NAIP</a>. Humo y escape son efectos visuales, sin din?mica de fluidos.</p>
+            <p>Modelos de referencia: Tierra Blue Marble y cohete Saturn V (NASA). Se usa la misma nave en el despegue, el viaje y el alunizaje como ilustración; no representa un vehículo CLPS concreto. Textura lunar del globo: <a className="underline underline-offset-4" href="https://svs.gsfc.nasa.gov/4720/" target="_blank" rel="noreferrer">NASA SVS, CGI Moon Kit</a>.</p>
+            <p>Imagen aérea de Kennedy: <a className="underline underline-offset-4" href="https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer" target="_blank" rel="noreferrer">USGS / USDA, NAIP</a>. Florida y el Caribe al subir: <a className="underline underline-offset-4" href="https://nasa-gibs.github.io/gibs-api-docs/" target="_blank" rel="noreferrer">NASA GIBS</a> (Landsat WELD y Blue Marble Next Generation). Humo y escape son efectos visuales, sin dinámica de fluidos.</p>
             <p>Plataforma y torre: <a className="underline underline-offset-4" href="https://science.nasa.gov/3d-resources/mobile-launcher/" target="_blank" rel="noreferrer">NASA / Samuel H. Neblett, Mobile Launcher</a>. El conjunto es una referencia visual, no una reconstrucción de una instalación o un lanzamiento concretos.</p>
           </div>
         </Disclosure>
       </div>
     </div>
-    <p className="mt-4 text-sm text-ink-muted">Tiempo acelerado. Puedes pausar, arrastrar la línea de tiempo o usar las flechas del teclado para recorrer el viaje.</p>
+    <p className="mt-4 text-sm text-ink-muted">La transferencia avanza a la escala elegida (1 segundo en pantalla = {scale} horas de viaje). El despegue y el descenso duran 10 s cada uno y son ilustrativos. Puedes pausar, arrastrar la línea de tiempo o usar las flechas del teclado.</p>
   </section>
 }

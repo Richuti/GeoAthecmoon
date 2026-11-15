@@ -12,6 +12,16 @@ export const LAUNCH_END = 0.12
 /** El último tramo es una presentación del descenso, fuera del modelo orbital. */
 export const DESCENT_START = 0.86
 
+/** Escalas de reproducción de la transferencia: horas de viaje por cada segundo en pantalla. */
+export const TIME_SCALES_H_PER_S = [2, 5, 12] as const
+export type TimeScale = (typeof TIME_SCALES_H_PER_S)[number]
+
+/** Segundos en pantalla que dura la transferencia a una escala dada (tiempo real ÷ escala). */
+export function transferPlaybackSeconds(orbit: TransferOrbit, hoursPerSecond: number): number {
+  if (!(hoursPerSecond > 0)) throw new RangeError('La escala debe ser positiva.')
+  return orbit.durationSeconds / 3600 / hoursPerSecond
+}
+
 export interface TransferOrbit {
   parkingAltitudeKm: number
   encounterAltitudeKm: number

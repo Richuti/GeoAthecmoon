@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { HorizonStrip } from './components/HorizonStrip'
 import { SiteSelector } from './components/SiteSelector'
 import { Help } from './components/Help'
@@ -11,11 +11,11 @@ import { PlannerGuide } from './components/PlannerGuide'
 import { ViewerPanel } from './components/ViewerPanel'
 import { WindowsBar } from './components/WindowsBar'
 import { TimeScale } from './components/TimeScale'
-import { Welcome } from './components/Welcome'
 import { DelayCheck } from './components/DelayCheck'
+import { PlanCompare, type SavedPlan } from './components/PlanCompare'
 import { SiteConditions } from './components/SiteConditions'
 import { VisibilityCalendar } from './components/VisibilityCalendar'
-import { Badge, Button, DateTimeField, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, type Tone } from './components/ui'
+import { Badge, Button, DateTimeField, Disclosure, InfoTip, Panel, Segmented, Stat, StatGrid, cx, transition, type Tone } from './components/ui'
 import { formatLat, formatLon } from './lib/format'
 import { dayNumber, formatDate, formatDateTime, formatDuration, formatDurationLong, formatShortDate, formatTime, fromInputValue, indexAt, sampleTime, samplesFor, totalDays } from './lib/time'
 import { missionWindow, recommend, type Recommendation } from './lib/recommend'
@@ -66,8 +66,14 @@ function viewFromUrl(): View {
 
 export default function App() {
   const [view, setView] = useState<View>(viewFromUrl)
+  const viewRef = useRef(view)
+  viewRef.current = view
   useEffect(() => {
-    const onHash = () => setView(viewFromUrl())
+    // La portada y el planificador se cruzan con una transición: hacia el planificador avanza, hacia la portada vuelve.
+    const onHash = () => {
+      const next = viewFromUrl()
+      if (next !== viewRef.current) transition(() => setView(next), next === 'planner' ? 'forward' : 'back')
+    }
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
@@ -93,12 +99,16 @@ function Planner() {
   const { sites, selectedId, index: i, mode } = state
 
   const { missionDays } = state
+  /** Cambiar entre Planificador y Simulador con transición (el simulador va «adelante»). */
+  const changeMode = (next: typeof mode) => { if (next !== mode) transition(() => actions.setMode(next), next === 'simulate' ? 'forward' : 'back') }
 
   const [preset, setPreset] = useState<PresetId | null>(DEFAULT_PRESET)
   const [plannerStep, setPlannerStep] = useState(0)
   const [cfg, setCfg] = useState<LanderConfig>(PRESETS[DEFAULT_PRESET].config)
   const [landing, setLanding] = useState<number | null>(null)
   const [draftStart, setDraftStart] = useState<number | null>(null)
+  /** Plan de referencia para comparar (tarea 10); se conserva al cambiar sitio, fecha o duración. */
+  const [savedPlan, setSavedPlan] = useState<SavedPlan | null>(null)
   const simCfg = useDeferredValue(cfg)
   const evaluationStart = mode === 'simulate' && landing !== null ? landing : i
 
@@ -171,10 +181,9 @@ function Planner() {
 
   return (
     <div className="flight-console flex min-h-dvh flex-col">
-      <Welcome />
       <header className="flight-header flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4 sm:px-8">
         <Brand />
-        <Segmented label="Modo" options={MODES} value={mode} onChange={actions.setMode} />
+        <Segmented label="Modo" options={MODES} value={mode} onChange={changeMode} />
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
           {notice && <Badge tone="caution">Datos de prueba</Badge>}
           <Help />
@@ -198,7 +207,7 @@ function Planner() {
       ) : !p || !sites ? (
         <Loading />
       ) : (
-        <>
+        <div className="app-screen">
           {mode === 'simulate' ? (
             <SimulatorWorkspace
               data={p.data} lit={p.lit} contact={p.contact} onSeek={seek} survivalThreshold={simCfg.survivalThreshold}
@@ -234,10 +243,10 @@ function Planner() {
             step={plannerStep} onStep={setPlannerStep}
             date={sampleTime(p.data, i)} missionDays={missionDays} schedule={
                 <section aria-label="Fecha y duración del plan" className="glass-surface grid grid-cols-1 items-end gap-5 px-5 py-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto]">
-                  <DateTimeField id="explore-date" label="Fecha de alunizaje · UTC" value={sampleTime(p.data, i)}
+                  <div data-tour="date" className="min-w-0"><DateTimeField id="explore-date" label="Fecha de alunizaje · UTC" value={sampleTime(p.data, i)}
                     min={sampleTime(p.data, 0)} max={sampleTime(p.data, p.data.sun.el.length - 1)}
-                    onChange={date => seek(indexAt(p.data, date, p.data.sun.el.length))} />
-                  <div className="min-w-0"><p className="mb-2 text-sm text-ink-muted">Días en la superficie</p>
+                    onChange={date => seek(indexAt(p.data, date, p.data.sun.el.length))} /></div>
+                  <div className="min-w-0" data-tour="duration"><p className="mb-2 text-sm text-ink-muted">Días en la superficie</p>
                     <Segmented label="Duración de la misión" options={MISSION_LENGTHS.some(o => o.value === String(missionDays)) ? MISSION_LENGTHS : [...MISSION_LENGTHS, { value: String(missionDays), label: `${missionDays} d` }]} value={String(missionDays)} onChange={v => actions.setMissionDays(Number(v))} className="min-h-12 w-full items-center [&_button]:min-h-10" />
                   </div>
                 </section>
@@ -247,14 +256,17 @@ function Planner() {
               <div className="min-w-0 space-y-7">
                 <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
                   <div className="min-w-0">
-                    <div className="terrain-stage h-[27rem] min-w-0 sm:h-[31rem]"><ViewerPanel data={p.data} index={i} contact={p.contact[i]} immersive /></div>
+                    <div className="terrain-stage h-[27rem] min-w-0 sm:h-[31rem]" data-tour="terrain"><ViewerPanel data={p.data} index={i} contact={p.contact[i]} immersive /></div>
                     <p className="mt-3 text-xs leading-relaxed text-ink-muted">{p.data.site.description}</p>
                   </div>
-                  {rec && <Viability p={p} rec={rec} onSimulate={() => { actions.setPlaying(false); setDraftStart(rec.window.from); actions.setMode('simulate') }} />}
+                  {rec && <Viability p={p} rec={rec} onSimulate={() => { actions.setPlaying(false); setDraftStart(rec.window.from); changeMode('simulate') }} />}
                 </div>
                 {current && <DelayCheck data={p.data} vis={current.vis} cfg={cfg} moduleName={preset ? PRESETS[preset].label : 'módulo personalizado'}
                   startIndex={i} missionDays={missionDays} onApply={seek} />}
                 {rec && <PlanAlternatives p={p} rec={rec} onSelect={actions.select} onSeek={seek} />}
+                <PlanCompare contexts={contexts} siteId={p.data.site.id} startIndex={i} missionDays={missionDays} cfg={cfg}
+                  moduleName={preset ? PRESETS[preset].label : 'módulo personalizado'} saved={savedPlan} onSave={setSavedPlan}
+                  onApply={(plan) => { actions.select(plan.siteId); actions.setMissionDays(plan.missionDays); seek(plan.startIndex) }} />
                 <Disclosure title="Ver luz, comunicación y calendario" description="Explora el entorno del módulo y busca otros días para alunizar.">
                   <SiteConditions data={p.data} index={i} lit={p.lit} contact={p.contact} />
                   <div className="mt-7"><Timeline p={p} index={i} playing={state.playing} speed={state.speed} onIndex={seek} onTogglePlay={actions.togglePlay} onSpeed={actions.setSpeed} /></div>
@@ -273,7 +285,7 @@ function Planner() {
             </div>
           </PlannerGuide>}
 
-        </>
+        </div>
       )}
     </div>
   )
@@ -453,7 +465,7 @@ function Viability({
   const to = sampleTime(p.data, rec.window.to)
 
   return (
-    <section aria-label="Viabilidad del plan" className="glass-surface order-first min-w-0 p-5 sm:p-6 xl:order-none">
+    <section aria-label="Viabilidad del plan" data-tour="score" className="glass-surface order-first min-w-0 p-5 sm:p-6 xl:order-none">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-bold text-ink">¿Conviene alunizar aquí?</h2>
         <InfoTip label="Viabilidad" align="end">
@@ -477,7 +489,7 @@ function Viability({
         </Badge>
       </div>
 
-      <div className="mt-5 flex flex-col gap-3.5">
+      <div className="mt-5 flex flex-col gap-3.5" data-tour="factors">
         <Factor
           label="Luz solar"
           weight={r.factors.light.weight}
@@ -500,13 +512,13 @@ function Viability({
         />
         {r.factors.slope.score === 0 && <p className="text-xs leading-relaxed text-caution">Pendiente peligrosa para el alunizaje.</p>}
       </div>
-      <Button variant="primary" size="lg" className="mt-5 w-full" onClick={onSimulate}>Simular este plan →</Button>
+      <Button variant="primary" size="lg" className="mt-5 w-full" data-tour="simulate" onClick={onSimulate}>Simular este plan →</Button>
     </section>
   )
 }
 
 function PlanAlternatives({ p, rec, onSelect, onSeek }: { p: SiteView; rec: Recommendation; onSelect: (id: string) => void; onSeek: (index: number) => void }) {
-  return <section aria-label="Recomendaciones para el plan" className="glass-surface p-5 sm:p-6">
+  return <section aria-label="Recomendaciones para el plan" data-tour="improve" className="glass-surface p-5 sm:p-6">
         <h2 className="text-xl font-bold text-ink">Cómo mejorar tu plan.</h2>
         {p.result.warnings.length > 0 && <p className="mt-3 text-sm leading-relaxed text-caution">{p.result.warnings.join(' ')}</p>}
         {rec.betterDate || rec.betterSite ? (

@@ -2,7 +2,8 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { SITE_IMAGERY, SITE_IMAGE_CREDIT } from '../content/siteImagery'
 import { formatDate } from '../lib/time'
 import type { Site } from '../types'
-import { Button, cx } from './ui'
+import { Button, cx, transition } from './ui'
+import { Tour, type TourStep } from './Tour'
 
 interface PlannerGuideProps {
   sites: Site[]
@@ -25,6 +26,29 @@ const HINTS = [
   'Tu puntaje, qué lo limita y cómo mejorarlo.',
 ]
 
+/** Explicaciones en contexto, una por elemento, la primera vez que se llega a cada paso. */
+const TOURS: TourStep[][] = [
+  [
+    { target: '[data-tour="sites"]', title: 'Elige dónde alunizar', text: 'Cada foto es un lugar real del polo sur de la Luna. Toca el que quieras explorar.' },
+    { target: '[data-tour="to-date"]', title: 'Después, la fecha', text: 'Con el destino elegido, sigue aquí para decidir cuándo llega tu misión.' },
+  ],
+  [
+    { target: '[data-tour="date"]', title: '¿Cuándo llegas?', text: 'Las montañas tapan el Sol y la Tierra según el día. Cambiar la fecha puede salvar tu misión. Las horas van en UTC.' },
+    { target: '[data-tour="duration"]', title: '¿Cuánto tiempo te quedas?', text: 'Días que el módulo trabaja en la superficie. Más días significa más noches que aguantar.' },
+    { target: '[data-tour="check"]', title: 'Comprueba el plan', text: 'Calculamos con datos reales de NASA si te conviene llegar ese día.' },
+  ],
+  [
+    { target: '[data-tour="score"]', title: 'Tu puntaje', text: 'De 0 a 100: qué tan buenas son las condiciones durante tus días en la Luna. No es una probabilidad de éxito.' },
+    { target: '[data-tour="factors"]', title: 'De qué depende', text: 'Luz solar (ámbar): energía para los paneles. Tierra visible (azul): solo entonces se envían datos. Pendiente: con más de 10° casi ningún módulo puede posarse.' },
+    { target: '[data-tour="terrain"]', title: 'El terreno real', text: 'Relieve medido por la sonda LRO. La luz y la sombra siguen los datos de tu fecha. Arrastra para girar.' },
+    { target: 'aside[aria-label="Elegir sitio de alunizaje"]', title: 'Compara sitios', text: 'El puntaje de cada lugar con tus mismas fechas. Toca uno para cambiar de destino.' },
+    { target: '[data-tour="delay"]', title: '¿Y si te atrasas?', text: 'Elige un atraso y compáralo con tu plan: así sabes cuánto margen tienes.' },
+    { target: '[data-tour="improve"]', title: 'Cómo mejorarlo', text: 'Si existe una fecha o un sitio mejor, aparece aquí con un botón para probarlo.' },
+    { target: '[data-tour="compare-plans"]', title: 'Compara lado a lado', text: 'Pon tu plan junto a otro sitio o junto a un plan que guardaste. Las franjas muestran cuándo hay Sol y cuándo se ve la Tierra.' },
+    { target: '[data-tour="simulate"]', title: 'Simula tu módulo', text: 'Comprueba hora por hora si la batería aguanta toda la misión.' },
+  ],
+]
+
 /** Una decisión por pantalla. Los resultados conservan el explorador y sus datos reales. */
 export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missionDays, step, onStep, schedule, children }: PlannerGuideProps) {
   const [reached, setReached] = useState(step)
@@ -40,11 +64,15 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
   }, [step])
 
   const go = (next: number) => {
-    setReached(previous => Math.max(previous, next))
-    onStep(next)
+    if (next === step) return
+    transition(() => {
+      setReached(previous => Math.max(previous, next))
+      onStep(next)
+    }, next > step ? 'forward' : 'back')
   }
 
   return <main className="mx-auto w-full max-w-[1600px] px-5 pb-14 pt-8 sm:px-8 lg:pt-10">
+    <Tour key={step} id={`planificador-${step}`} steps={TOURS[step]} />
     <div className={cx('mx-auto', step < 2 && 'max-w-5xl')}>
       <nav aria-label="Pasos del planificador" className="mb-8 max-w-xl">
         <ol className="grid grid-cols-3 gap-2">
@@ -64,7 +92,7 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
       </header>
 
       {step === 0 && <>
-        <div role="group" aria-label="Elige tu destino" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        <div role="group" aria-label="Elige tu destino" data-tour="sites" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
           {sites.map(site => {
             const photo = SITE_IMAGERY[site.id]
             const active = selectedId === site.id
@@ -90,7 +118,7 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
         </p>
         <div className="guide-actions glass-surface mt-6 flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
           <p className="min-w-0 flex-1 text-xs text-ink-muted sm:text-sm">Tu destino<span className="mt-1 line-clamp-2 font-bold text-ink">{selected?.name}</span></p>
-          <Button variant="primary" size="lg" onClick={() => go(1)}>Elegir fecha →</Button>
+          <Button variant="primary" size="lg" data-tour="to-date" onClick={() => go(1)}>Elegir fecha →</Button>
         </div>
       </>}
 
@@ -116,7 +144,7 @@ export function PlannerGuide({ sites, selectedId, errors, onSelect, date, missio
         </div>
         <div className="glass-surface mt-6 flex flex-wrap items-center justify-between gap-4 px-5 py-4">
           <p className="text-sm text-ink-muted">Tu plan<span className="mt-1 block font-bold text-ink">{formatDate(date)} · {missionDays} días en la Luna</span></p>
-          <Button variant="primary" size="lg" onClick={() => go(2)}>Comprobar mi plan →</Button>
+          <Button variant="primary" size="lg" data-tour="check" onClick={() => go(2)}>Comprobar mi plan →</Button>
         </div>
       </>}
 

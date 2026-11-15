@@ -31,13 +31,31 @@ export class DataError extends Error {
   }
 }
 
-function sitesUrl(): string {
-  return usingLocalData ? '/data/sites.json' : `${API_URL}/sites`
+/** Rutas del contrato: en el backend (si hay VITE_API_URL) y en los archivos estáticos de public/data. */
+function sitesUrls(): { remote: string | null; local: string } {
+  return { remote: usingLocalData ? null : `${API_URL}/sites`, local: '/data/sites.json' }
 }
 
-function siteUrl(id: string): string {
+function siteUrls(id: string): { remote: string | null; local: string } {
   const safe = encodeURIComponent(id)
-  return usingLocalData ? `/data/sites/${safe}.json` : `${API_URL}/sites/${safe}`
+  return { remote: usingLocalData ? null : `${API_URL}/sites/${safe}`, local: `/data/sites/${safe}.json` }
+}
+
+/** Tiempo máximo de espera al backend. Render gratis tarda hasta un minuto en despertar: mejor usar el respaldo. */
+const API_TIMEOUT_MS = 6000
+
+/**
+ * Primero el backend y, si no responde, falla o no cumple el contrato, el respaldo (los archivos de public/data,
+ * que tienen los mismos datos). Sin respaldo, el error llega tal cual a la interfaz.
+ */
+export async function withFallback<T>(primary: () => Promise<T>, fallback: (() => Promise<T>) | null): Promise<T> {
+  if (!fallback) return primary()
+  try {
+    return await primary()
+  } catch (err) {
+    console.warn('Backend no disponible; se usan los datos estáticos de public/data.', err)
+    return fallback()
+  }
 }
 
 const MOCK_HINT = ' Para generar los archivos de public/data, corre `npm run mock` en frontend/.'
@@ -59,13 +77,13 @@ export function dataNotice(d: Pick<SiteData, 'mock' | 'sources'>): string | null
   return null
 }
 
-async function getJson(url: string): Promise<unknown> {
+async function getJson(url: string, remote = !usingLocalData): Promise<unknown> {
   let res: Response
   try {
-    res = await fetch(url, { headers: { Accept: 'application/json' } })
+    res = await fetch(url, { headers: { Accept: 'application/json' }, signal: remote ? AbortSignal.timeout(API_TIMEOUT_MS) : undefined })
   } catch {
     throw new DataError(
-      usingLocalData
+      !remote
         ? `No se pudo leer ${url}.`
         : `No se pudo conectar con el backend (${API_URL}). Revisa que esté encendido y que VITE_API_URL sea correcta.`,
       url,
@@ -73,13 +91,13 @@ async function getJson(url: string): Promise<unknown> {
   }
   if (!res.ok) {
     const what = res.status === 404 ? `No existe ${url} (404).` : `El servidor respondió ${res.status} al pedir ${url}.`
-    throw new DataError(what + (usingLocalData ? MOCK_HINT : ''), url)
+    throw new DataError(what + (remote ? '' : MOCK_HINT), url)
   }
   try {
     return await res.json()
   } catch {
     // En desarrollo, Vite responde index.html (no JSON) cuando falta un archivo de public/.
-    throw new DataError(`La respuesta de ${url} no es JSON válido.` + (usingLocalData ? MOCK_HINT : ''), url)
+    throw new DataError(`La respuesta de ${url} no es JSON válido.` + (remote ? '' : MOCK_HINT), url)
   }
 }
 
@@ -214,24 +232,25 @@ function cached<T>(key: string, load: () => Promise<T>): Promise<T> {
 
 /** Lista de sitios. */
 export function getSites(): Promise<SitesResponse> {
-  const url = sitesUrl()
-  return cached(url, async () => {
-    const json = await getJson(url)
-    const problems = validateSites(json)
-    if (problems.length) throw invalid(url, problems)
-    return json as SitesResponse
-  })
+  const { remote, local } = sitesUrls()
+  return cached(local, () => loadChecked<SitesResponse>(remote, local, validateSites))
 }
 
 /** Datos completos de un sitio: horizonte, pendiente, Sol, Tierra y terreno. */
 export function getSiteData(id: string): Promise<SiteData> {
-  const url = siteUrl(id)
-  return cached(url, async () => {
-    const json = await getJson(url)
-    const problems = validateSiteData(json, id)
+  const { remote, local } = siteUrls(id)
+  return cached(local, () => loadChecked<SiteData>(remote, local, (json) => validateSiteData(json, id)))
+}
+
+/** Lee y valida una ruta del contrato, con el respaldo estático si hay backend. */
+function loadChecked<T>(remote: string | null, local: string, check: (json: unknown) => string[]): Promise<T> {
+  const read = async (url: string, isRemote: boolean) => {
+    const json = await getJson(url, isRemote)
+    const problems = check(json)
     if (problems.length) throw invalid(url, problems)
-    return json as SiteData
-  })
+    return json as T
+  }
+  return withFallback(() => read(remote ?? local, remote !== null), remote ? () => read(local, false) : null)
 }
 
 /** Datos de todos los sitios de la lista (para comparar y recomendar). */

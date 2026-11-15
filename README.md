@@ -10,12 +10,23 @@ En el polo sur de la Luna el Sol nunca sube más de un par de grados: una cresta
 
 ## Cómo se usa
 
+**Planificador** (la entrada principal), en tres pasos: sitio, fecha y resultado. La primera vez, cada elemento se explica junto a donde se usa; se repite desde «Ayuda».
+
+1. **Elige el sitio** entre 6 lugares reales del polo sur, con fotografías regionales de LROC.
+2. **Elige la fecha** (UTC) y los días en la superficie.
+3. **Mira el resultado:** puntaje de 0 a 100, qué lo limita y el terreno 3D con la luz de esa fecha. Desde ahí:
+   - **¿Y si la misión se atrasa?** Eliges un atraso (+1 día a +2 semanas) y ves tu plan y el atrasado como franjas hora por hora de Sol y Tierra, con la marca donde se agotaría la batería y cuántos días de atraso tolera.
+   - **Compara tu plan** con otro sitio en las mismas fechas o con un plan que guardaste, lado a lado, y cambia a la mejor opción con un clic.
+   - **Simular este plan** abre el mismo plan en el simulador.
+
+**Simulador:**
+
 1. **Prepara la misión.** Elige el sitio, la fecha de alunizaje y la duración. El módulo trae una configuración inicial; los presets son ilustrativos.
 2. **Viaja.** El recorrido Tierra–Luna usa una transferencia orbital calculada (modelo educativo de dos cuerpos).
 3. **Evalúa.** Ves la viabilidad, las horas de luz y de contacto, la pendiente, si la batería aguanta y cuántos días de atraso tolera la misión.
 4. **Simula un imprevisto.** Una corrección de trayectoria atrasa la llegada justo lo suficiente para que la misión falle. La app explica por qué y propone salidas comprobadas: esperar en órbita, cambiar de sitio o encender menos instrumentos.
 
-El **Planificador** guía la elección en tres pasos: sitio, fecha y resultado. Primero se elige un destino con fotografías regionales y después la fecha UTC y la duración. El resultado compara luz, contacto y pendiente y muestra el terreno 3D. El calendario, las ventanas de luz/contacto/DSN y los gráficos del cielo quedan como detalles opcionales. El mismo plan se puede abrir en el simulador para comprobar la energía del módulo.
+La reproducción dice su escala de tiempo (por ejemplo, «1 segundo en pantalla = 1 hora», 3 600 veces más rápido) y cuánto tarda en verse la misión completa. Se puede cambiar sitio, fecha, duración o módulo y volver a evaluar cuantas veces se quiera, sin repetir el viaje. El calendario, las ventanas de luz/contacto/DSN y los gráficos del cielo quedan como detalles opcionales.
 
 ## Qué se calcula
 
@@ -37,7 +48,7 @@ El **Planificador** guía la elección en tres pasos: sitio, fecha y resultado. 
 - **Contra los mapas de iluminación oficiales del equipo LOLA** (`AVGVISIB_75S_120M_201608`, NASA/GSFC, Mazarico et al. 2011): con el observador a ras de suelo, como en el mapa, nuestro % de luz queda a menos de 5 puntos en los 6 sitios (mediana de 2.6). Ejemplos: Connecting Ridge 72.3 % frente a 72.6 %, Malapert 62.6 % frente a 61.3 %.
 - **Contra el backend del equipo** (Python, independiente): en los primeros 60 días, la luz y el contacto coinciden a menos de 0.5 puntos en los 6 sitios.
 - **Eclipse real:** el cálculo detecta el eclipse penumbral de Luna del 17 de agosto de 2027 como un eclipse parcial de Sol visto desde Malapert (hasta el 43 % del disco).
-- **Pruebas automáticas:** 274 pruebas de los cálculos y del simulador (`npm test`).
+- **Pruebas automáticas:** 294 pruebas de los cálculos y del simulador (`npm test`).
 
 Tabla completa sitio por sitio en [`docs/VALIDACION_NASA.md`](docs/VALIDACION_NASA.md).
 
@@ -79,7 +90,9 @@ npm run horizon    # horizonte y pendiente desde el DEM LOLA (pide LDEM_80S_80M.
 npm run mock       # arma public/data/sites/{id}.json
 ```
 
-**Deploy (Vercel):** Root Directory `frontend`, framework Vite, build `npm run build`, salida `dist`. No hace falta definir `VITE_API_URL`: la app lee los archivos estáticos de `public/data`.
+**Deploy (Vercel):** Root Directory `frontend`, framework Vite, build `npm run build`, salida `dist`. El build también genera una versión estática de la portada para buscadores, `robots.txt` y `sitemap.xml` (`scripts/prerender.mjs`).
+
+**Datos:** sin `VITE_API_URL`, la app lee los archivos estáticos de `public/data`. Con `VITE_API_URL` usa el backend (`GET /sites` y `GET /sites/{id}`), y si no responde en 6 s o falla, vuelve sola a los archivos estáticos.
 
 ## Estructura
 

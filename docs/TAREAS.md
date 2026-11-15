@@ -22,6 +22,12 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 - **Base del despegue cercano (14 nov), implementada; pendiente de revisión y subida:** nueva escena `LaunchViewer.tsx`, en metros, con cohete Saturn V existente y plataforma/torre de NASA (`launch_platform.glb`). Anclaje sobre la cara próxima del GLB terrestre, cámara de seguimiento y transición a la vista orbital; el cohete gigante desaparece de la vista planetaria durante el ascenso. El tramo ilustrativo ocupa 10 s y la transferencia 24 s; pausa, búsqueda y regreso a cero conservan la sincronización. Se detiene el render de cada escena oculta. Verificado: 281 pruebas, build y capturas a 1440/390 px y horizontal, controles, movimiento reducido y conservación del resultado lunar de la demo. **Acabado fotorealista pendiente:** terreno detallado, humo/escape y eventualmente vehículo por etapas; especificaciones para Richard en `docs/ESCENA_DESPEGUE.md`. No se ha añadido dinámica de empuje ni atmósfera al cálculo orbital.
 
+- **Simulador visual (14 nov, noche) · asignado a Codex:** los sucesos de la misión tienen que verse en la escena, no como estadísticas. Base sin conectar en `src/components/sim/MissionLive.tsx` (batería, energía y datos sobre el 3D, avisos grandes por suceso, estados «ahorro», «sin energía» y «misión cumplida», botón «Ver la misión» y pausa al fallar).
+
+- **Planificador e integración (14 nov, noche), implementados; pendiente de subida:** recorrido en contexto (`Tour.tsx`, una explicación junto a cada elemento la primera vez que se llega a cada paso), comparación con atraso en el resultado (`DelayCheck`, `src/sim/delay.ts` con pruebas), textos repetidos eliminados, logo sin fondo en la entrada móvil y respaldo a `public/data` si `VITE_API_URL` no responde en 6 s. Verificado: 293 pruebas, build y capturas a 1440/390 px.
+
+- **Transiciones entre pantallas (15 nov), implementadas; pendiente de subida:** `transition()` con View Transitions: portada ↔ planificador, pasos sitio/fecha/resultado (adelante a la izquierda, atrás a la derecha) y Planificador ↔ Simulador, con la cabecera fija. Sin soporte, entrada suave por CSS; sin animación con «reducir movimiento». Verificado: 294 pruebas, build y siete navegaciones en el navegador con su dirección correcta y sin errores. Falta que Codex la use en los pasos internos del simulador.
+
 ## Cómo trabajamos
 
 1. Se hace **un solo paso a la vez** (por ejemplo, 4.2).
@@ -447,7 +453,8 @@ El **C0** (sistema de diseño) ya está en curso y se cierra antes del 4.
 - El código gira `SolarPanel` hacia el Sol y `Antenna` hacia la Tierra en cada instante.
 - **Commit de la tarea 9:** `Tarea 9: visor 3D con modelos, luz solar y módulo animado`
 
-### 10. Comparador · Extra (MVP si hay tiempo)
+### 10. Comparador · Extra (MVP si hay tiempo) · [ ] · Implementado, pendiente de revisión de Richard
+- **Hecho (14 nov, noche):** `PlanCompare.tsx` en el resultado del planificador. Tu plan junto a «Otro sitio» (mismas fechas, propone el mejor) o junto a «Mi plan guardado» (plan de referencia que se conserva al cambiar sitio, fecha o duración). Cada columna: foto del sitio, puntaje, franjas hora por hora de Sol y Tierra (`PlanStrips.tsx`, `src/lib/strips.ts`), ▲ donde se agota la batería y «Cambiar a este plan». «¿Y si la misión se atrasa?» usa las mismas franjas en lugar de tabla. Verificado: 294 pruebas, build, capturas a 1440/390 px; Malapert 15 ene frente a 20 ene (falla el día 14) coincide con el caso de la demo.
 - Dos sitios lado a lado, con las mismas fechas, las mismas métricas y la viabilidad de cada uno.
 - **Commit:** `Tarea 10: comparador de sitios`
 

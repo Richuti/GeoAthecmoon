@@ -10,7 +10,7 @@ Proyecto del equipo para el NASA Space Apps Challenge 2026. El material de NASA 
 
 | Archivo | Origen | Licencia | Cambios del equipo |
 |---|---|---|---|
-| `lander.glb` | Apollo Lunar Module — NASA 3D Resources | Dominio público (NASA) | Escala real (~7 m), escotilla al norte, + panel solar y antena orientables (adaptación: el Apolo real no tenía panel solar). Scripts en `assets-src/models/apollo/` |
+| `lander.glb` | Apollo Lunar Module — NASA 3D Resources | Dominio público (NASA) | **Sin usar desde el 14 nov** (lo reemplaza `launch_vehicle.glb`). Escala real (~7 m), escotilla al norte, + panel solar y antena orientables (adaptación: el Apolo real no tenía panel solar). Scripts en `assets-src/models/apollo/` |
 | `rover.glb` | Space Exploration Vehicle — NASA 3D Resources | Dominio público (NASA) | Escala real (3 m de alto), geometría simplificada, texturas a 1024 px |
 | `astronaut.glb` | Astronaut — NASA 3D Resources | Dominio público (NASA) | Escala real (1.85 m) |
 | `lro.glb` | Lunar Reconnaissance Orbiter (A) — NASA 3D Resources | Dominio público (NASA) | Escala aproximada (3.9 m) |
@@ -19,7 +19,7 @@ Proyecto del equipo para el NASA Space Apps Challenge 2026. El material de NASA 
 | `earth.glb` | Esfera con **Blue Marble Next Generation** (NASA Visible Earth / Goddard), vía el repositorio geovista-data | Dominio público (NASA) | Generado con `assets-src/models/tools/build_bodies.py` |
 | `moon.glb` | Esfera con textura de la Luna de **Solar System Scope** (basada en datos de NASA LRO), vía pyvista/vtk-data | **CC BY 4.0** — dar crédito a Solar System Scope | Incluye marcadores `site-{id}` |
 | `sun.glb` | Esfera con textura del Sol de **Solar System Scope** | **CC BY 4.0** — dar crédito a Solar System Scope | Textura emisiva |
-| `launch_vehicle.glb` | [Saturn V — repositorio oficial NASA 3D Resources](https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Saturn%20V) | Dominio público (NASA) | GLB original renombrado; centrado y escala visual al cargar. Se usa como referencia histórica en el ascenso ilustrativo, no como vehículo CLPS real. |
+| `launch_vehicle.glb` | [Saturn V — repositorio oficial NASA 3D Resources](https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Saturn%20V) | Dominio público (NASA) | GLB original renombrado; centrado y escala visual al cargar. Por decisión de Richard (14 nov), es la nave de todo el recorrido: despegue, viaje, alunizaje y vista 3D del sitio. Ilustrativa, no un vehículo CLPS real. |
 
 ## Texturas (`frontend/public/textures/`)
 
@@ -58,3 +58,16 @@ Condiciones consultadas: [LROC Terms of Use & Citation Policy](https://lroc.im-l
 ## Plataforma de lanzamiento terrestre
 
 - `frontend/public/models/launch_platform.glb`: **NASA / Samuel H. Neblett**, [Mobile Launcher](https://science.nasa.gov/3d-resources/mobile-launcher/), archivo original `Mobile Launcher (assembled).glb`. Modelo sin modificar; posición, escala y materiales se ajustan al mostrarlo. Fuente NASA, sujeto a sus condiciones de uso de medios; no implica respaldo de NASA ni reconstruye un lanzamiento histórico con el Saturn V.
+
+## Imágenes de la Tierra para el despegue (15 nov)
+
+| Archivo | Fuente | Licencia | Uso |
+|---|---|---|---|
+| `textures/flight/earth-region.jpg` (±2000 km) y `earth-state.jpg` (±450 km) | NASA GIBS, `BlueMarble_NextGeneration` | Dominio público (NASA) | Capas amplias del despegue. |
+| `textures/flight/earth-coast.jpg` (±80 km) | NASA GIBS, `Landsat_WELD_CorrectedReflectance_TrueColor_Global_Annual` | Dominio público (NASA / USGS) | Capa cercana del despegue. |
+| `textures/flight/kennedy-naip.jpg` (±5 km) | USGS / USDA, NAIP | Dominio público | La plataforma y sus alrededores. |
+
+Se descargan con `npm run earth-imagery`; los recuadros están en `src/sim/earthImagery.ts`.
+
+**Nota sobre `earth.glb`, `moon.glb` y `sun.glb`:** el archivo trae la textura en espejo (comprobado con sus UV). El código los refleja en X al cargarlos (`useGlobeModel`), sin tocar la geometría.
+

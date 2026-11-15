@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { journeyAt, lunarTransfer, MOON_RADIUS_KM } from '../src/sim/transfer.ts'
-import { LAUNCH_PAD_DECK_M, LAUNCH_ROCKET_HEIGHT_M, descentFrame, encounterFrame, launchFrame } from '../src/sim/transferView.ts'
+import { LAUNCH_PAD_DECK_M, LAUNCH_SHIP_HEIGHT_M, descentFrame, encounterFrame, launchFrame } from '../src/sim/transferView.ts'
 
-test('el cohete parte apoyado en la cubierta y el encuadre conserva el conjunto en móvil', () => {
+test('la nave parte apoyada en la cubierta y el encuadre conserva el conjunto en móvil', () => {
   for (const aspect of [0.6, 350 / 400, 808 / 448, 2.5]) {
     const frame = launchFrame(0, aspect)
-    assert.ok(Math.abs(frame.centerY - LAUNCH_ROCKET_HEIGHT_M / 2 - LAUNCH_PAD_DECK_M) < 1e-8)
+    assert.ok(Math.abs(frame.centerY - LAUNCH_SHIP_HEIGHT_M / 2 - LAUNCH_PAD_DECK_M) < 1e-8)
     const halfHeight = frame.distanceM * Math.tan(21 * Math.PI / 180)
     assert.ok(halfHeight > 90)
     assert.ok(halfHeight * aspect > 90)
@@ -64,4 +64,49 @@ test('el descenso alcanza el suelo sin atravesarlo y conserva el m?dulo en m?vil
   }
   for (const aspect of [0, -1, NaN]) assert.throws(() => descentFrame(0, aspect), RangeError)
   assert.throws(() => descentFrame(NaN, 1), RangeError)
+})
+
+test('durante el ascenso la cámara no se aleja tanto que el cohete desaparezca', async () => {
+  const { LAUNCH_CHASE_MAX_M } = await import('../src/sim/transferView.ts')
+  for (const altitude of [10000, 65000, 200000]) assert.ok(launchFrame(altitude, 1.6).distanceM <= Math.max(LAUNCH_CHASE_MAX_M, 260))
+})
+
+test('la salida encuadra la Tierra entera y la nave', async () => {
+  const { departureFrame } = await import('../src/sim/transferView.ts')
+  const orbit = lunarTransfer()
+  for (const aspect of [0.46, 1.8]) {
+    for (const p of [0.12, 0.13, 0.16, 0.2]) {
+      const s = journeyAt(orbit, p)
+      const f = departureFrame(s, 6378.1, aspect)
+      const halfH = f.distanceKm * Math.tan(21 * Math.PI / 180)
+      for (const [x, y, r] of [[0, 0, 6378.1], [s.shipXKm, s.shipYKm, 0]]) {
+        assert.ok(Math.abs(y - f.yKm) + r <= halfH + 1e-6, `alto ${p} ${aspect}`)
+        assert.ok(Math.abs(x - f.xKm) + r <= halfH * aspect + 1e-6, `ancho ${p} ${aspect}`)
+      }
+    }
+  }
+})
+
+test('la vista general contiene toda la trayectoria y el recorrido de la Luna', async () => {
+  const { overviewFrame } = await import('../src/sim/transferView.ts')
+  const { transferAt } = await import('../src/sim/transfer.ts')
+  const orbit = lunarTransfer()
+  for (const aspect of [0.46, 1.8]) {
+    const f = overviewFrame(orbit, aspect, 6378.1 * 4, MOON_RADIUS_KM * 5)
+    const halfH = f.distanceKm * Math.tan(21 * Math.PI / 180)
+    for (let j = 0; j <= 50; j++) {
+      const s = transferAt(orbit, orbit.durationSeconds * j / 50)
+      for (const [x, y] of [[s.xKm, s.yKm], [s.moonXKm, s.moonYKm]]) {
+        assert.ok(Math.abs(x - f.xKm) <= halfH * aspect && Math.abs(y - f.yKm) <= halfH, `${j} ${aspect}`)
+      }
+    }
+  }
+})
+
+test('la escala de tiempo convierte la duración real en segundos de pantalla', async () => {
+  const { transferPlaybackSeconds, TIME_SCALES_H_PER_S } = await import('../src/sim/transfer.ts')
+  const orbit = lunarTransfer()
+  const hours = orbit.durationSeconds / 3600
+  for (const k of TIME_SCALES_H_PER_S) assert.ok(Math.abs(transferPlaybackSeconds(orbit, k) * k - hours) < 1e-9)
+  assert.throws(() => transferPlaybackSeconds(orbit, 0), RangeError)
 })
