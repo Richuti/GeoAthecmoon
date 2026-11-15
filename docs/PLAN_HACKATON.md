@@ -1,7 +1,7 @@
 # Plan de la hackatón · GeoAthectum
 
 **Entrega (H):** domingo 15 nov, **13:00** (meta interna: no hay hora oficial todavía; si la anuncian, se ajusta)
-**Checkpoint sáb 18:00:** 🟡→🔴 en integración: siguen las coordenadas viejas en la rama `frontend` (aviso de las 15:40), no hay nada en `main` y no hay deploy. El simulador avanza. IA1 (planificador con IA) queda **fuera de esta entrega**: necesita servidor y clave de API.
+**Checkpoint sáb 18:40:** 🟡. Coordenadas corregidas y PR #1 sin conflictos. Falta integrar en `main` y hacer el primer deploy (20:00). IA1 queda fuera de esta entrega.
 **Fechas clave:** plan B del relieve sáb 23:00 · pitch en borrador dom 05:00 · feature freeze dom 07:00 · deploy final dom 08:00 · ensayos dom 10:00–12:30
 **Frase de valor:** *En 10 segundos sabes si un sitio y una fecha sirven en el polo sur lunar, y qué pasa si tu misión se retrasa.*
 **Momento wow de la demo:** "la misión se retrasa". Se atrasa el alunizaje unos días: el **Sol** queda tras el relieve real, la batería cae a su mínimo del **20 %** (falla) y la app dice cuánto atraso tolera la misión y qué fecha o sitio la salva. (La Tierra tapada solo corta el envío de datos, no la energía.)
@@ -14,7 +14,7 @@
 | B1 DEM LOLA 80 m: lector y prueba de cordura | Rafael | ✅ (coincide con QuickMap ±80 m) | sáb 12:00 |
 | Datos LOLA en la app (`python backend/export.py`) y terreno real para Blender (`npm run export-terrain`) | Rafael | ✅ (85/85 pruebas; % de luz TS = Python) | sáb 14:00 |
 | ⚠ Richard: modelar en Blender sobre el relieve **real** (no el sintético) | Richard | ⏳ | sáb 16:00 |
-| 🔴 **URGENTE (sigue pendiente a las 18:00)** Richard: poner en `frontend/scripts/sites.mjs` las coordenadas de `backend/sites_verified.json` y volver a correr `build_terrains.py`, `npm run horizons` y `npm run mock`. Con las coordenadas viejas, su rama `frontend` deja a Malapert con 21 % de luz (con las nuevas tiene 78 %) y **el caso de la demo falla desde el 15 ene** | Richard | ⏳ | sáb 17:00 |
+| Coordenadas verificadas en la rama `frontend` + un año de datos (D1) | Richard | ✅ sáb 18:11. Caso de la demo verificado con su simulador: falla el 2 feb a las 10:00 y tolera 4.25 días | — |
 | Borrador del pitch (`docs/PITCH.md`) | Rafael | ✅ v1 | sáb 14:00 |
 | B2 Horizonte, pendiente y terreno reales | Rafael | ✅ | sáb 13:00 |
 | B3 JSON finales (LOLA + Horizons) en `backend/out/`, con 4 sitios movidos a la cresta | Rafael | ✅ | sáb 14:00 |
@@ -24,7 +24,7 @@
 | Entregar el terreno real a Richard para Blender | Rafael → Richard | ⏳ | sáb 14:00 |
 | C0, 4, 5, S1, S2, SU1–SU3, C3 (portada), 9 (visor 3D con luz desde los datos) | Richard | ✅ en la rama `frontend` (sáb 15:15) | — |
 | S3 (búsqueda de fechas y sitios), 6 (línea de tiempo), 7 (gráfico polar), 8 (métricas y recomendación) | Richard | ⏳ | sáb 23:00 |
-| Integrar en `main` la rama `frontend` (dueña de `public/data` desde que existe `build_terrains.py`) y del PR #1 solo `backend/` y `docs/`. Hoy chocan los 7 JSON de `public/data` y `horizon.test.ts`: en el conflicto gana la versión de `frontend` **regenerada con las coordenadas nuevas** | Richard | ⏳ | sáb 18:00 |
+| Integrar en `main` la rama `frontend` y el PR #1 (que ya no toca `frontend/`): **sin conflictos** (probado sáb 18:40) | Richard | ⏳ | sáb 20:00 |
 | 3.3 Verificar coordenadas en Quickmap (`docs/VERIFICACION_SITIOS.md`) | Dilan y Joshua | ⏳ | sáb 15:00 |
 | B4 Validación con Quickmap y Moon Trek (`docs/VALIDACION.md`; nuestros valores en `docs/validacion/`) | Rafael, Joshua y Dilan | ⏳ | sáb 18:00 |
 | Fuentes publicadas de iluminación de los 6 sitios (artículos o páginas de NASA con su enlace) para la diapositiva de validación | Joshua | ✅ (`docs/validacion/informe_iluminacion_joshua.pdf`; comparación en `VALIDACION.md`) | sáb 20:00 |
