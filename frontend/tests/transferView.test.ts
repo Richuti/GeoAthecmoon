@@ -65,3 +65,8 @@ test('el descenso alcanza el suelo sin atravesarlo y conserva el m?dulo en m?vil
   for (const aspect of [0, -1, NaN]) assert.throws(() => descentFrame(0, aspect), RangeError)
   assert.throws(() => descentFrame(NaN, 1), RangeError)
 })
+
+test('durante el ascenso la cámara no se aleja tanto que el cohete desaparezca', async () => {
+  const { LAUNCH_CHASE_MAX_M } = await import('../src/sim/transferView.ts')
+  for (const altitude of [10000, 65000, 200000]) assert.ok(launchFrame(altitude, 1.6).distanceM <= Math.max(LAUNCH_CHASE_MAX_M, 260))
+})

@@ -18,3 +18,19 @@ export function useFlightModel(url: string) {
     return group
   }, [scene])
 }
+
+/**
+ * earth.glb y moon.glb (Solar System Scope) traen la textura en espejo: vistos desde fuera, el este queda a
+ * la izquierda. Se reflejan en X al cargarlos, sin tocar la geometría; así sus caras miran hacia fuera y vale
+ * la convención de `earthDirection` (src/sim/earthImagery.ts). Comprobado con las UV de cada archivo.
+ */
+export function useGlobeModel(url: '/models/earth.glb' | '/models/moon.glb') {
+  const globe = useFlightModel(url)
+  useMemo(() => {
+    globe.scale.x = -Math.abs(globe.scale.x)
+    globe.updateMatrixWorld(true)
+  }, [globe])
+  return globe
+}
+
+export const useEarthModel = () => useGlobeModel('/models/earth.glb')

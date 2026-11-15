@@ -4,11 +4,24 @@ import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
 import { EARTH_RADIUS_KM, MOON_RADIUS_KM, transferAt, type journeyAt, type TransferOrbit } from '../../sim/transfer'
+import { LAUNCH_SITE, earthDirection, earthNorth } from '../../sim/earthImagery'
 import { encounterFrame } from '../../sim/transferView'
 import { SpaceBackground } from '../SpaceBackground'
-import { useFlightModel } from './useFlightModel'
+import { useEarthModel, useFlightModel, useGlobeModel } from './useFlightModel'
 
 const KM_PER_UNIT = 50000
+// La nave sale por +X. Se gira la Tierra para que Kennedy quede bajo esa salida, inclinada 40° hacia la
+// cámara (+Z) para que Florida se vea, con el norte hacia arriba (+Y). Se alinean dos ejes del sitio:
+// la vertical y el norte local.
+const LAUNCH_FACING = (() => {
+  const up = new THREE.Vector3(...earthDirection(LAUNCH_SITE.latDeg, LAUNCH_SITE.lonDeg))
+  const north = new THREE.Vector3(...earthNorth(LAUNCH_SITE.latDeg, LAUNCH_SITE.lonDeg))
+  const targetUp = new THREE.Vector3(Math.cos(40 * Math.PI / 180), 0, Math.sin(40 * Math.PI / 180))
+  const targetNorth = new THREE.Vector3(0, 1, 0)
+  const from = new THREE.Matrix4().makeBasis(up, north, new THREE.Vector3().crossVectors(up, north))
+  const to = new THREE.Matrix4().makeBasis(targetUp, targetNorth, new THREE.Vector3().crossVectors(targetUp, targetNorth))
+  return new THREE.Quaternion().setFromRotationMatrix(to.multiply(from.transpose()))
+})()
 const smooth = (from: number, to: number, x: number) => { const t = Math.max(0, Math.min(1, (x - from) / (to - from))); return t * t * (3 - 2 * t) }
 
 interface SceneProps {
@@ -20,8 +33,8 @@ interface SceneProps {
 }
 
 function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
-  const earth = useFlightModel('/models/earth.glb')
-  const moon = useFlightModel('/models/moon.glb')
+  const earth = useEarthModel()
+  const moon = useGlobeModel('/models/moon.glb')
   // La misma nave del despegue y del alunizaje.
   const rocket = useFlightModel('/models/launch_vehicle.glb')
   const moonMap = useLoader(THREE.TextureLoader, '/textures/flight/moon-lroc.jpg')
@@ -36,7 +49,8 @@ function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
       material.side = THREE.DoubleSide
       material.map = map ?? source.map
       if (map) { material.map!.flipY = false; material.color.set(0xffffff) }
-      // GLB con caras interiores y normales exteriores: corregir el sombreado sin alterar geometría.
+      // Las caras del GLB miran hacia dentro (también tras el reflejo, que Three.js compensa): desde fuera
+      // se ven sus reversos y la normal saldría invertida. Se corrige el sombreado sin alterar la geometría.
       material.onBeforeCompile = shader => { shader.vertexShader = shader.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nobjectNormal = -objectNormal;') }
       material.customProgramCacheKey = () => 'planet-inward-faces-v1'
       mesh.material = material
@@ -112,7 +126,7 @@ function TransferScene({ orbit, sample, reduced, onReady, line }: SceneProps) {
     <ambientLight intensity={0.75} />
     <directionalLight position={[8, 5, 10]} intensity={3} />
     <group ref={earthGroup} scale={EARTH_RADIUS_KM * 2 / KM_PER_UNIT}>
-      <primitive object={earth} dispose={null} />
+      <group quaternion={LAUNCH_FACING}><primitive object={earth} dispose={null} /></group>
       <Html position={[0, -0.7, 0]} center style={{ pointerEvents: 'none' }}><span aria-hidden className="whitespace-nowrap text-xs text-earth">Tierra</span></Html>
     </group>
     <group ref={moonGroup} scale={MOON_RADIUS_KM * 2 / KM_PER_UNIT}>

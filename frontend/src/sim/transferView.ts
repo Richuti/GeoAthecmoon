@@ -3,6 +3,8 @@ import { MOON_RADIUS_KM, type journeyAt } from './transfer.ts'
 /** Altura visual del cohete (launch_vehicle.glb), la misma nave en el despegue, el viaje y el alunizaje. */
 export const LAUNCH_SHIP_HEIGHT_M = 110
 export const LAUNCH_PAD_DECK_M = 4.85
+/** Distancia máxima de la cámara al cohete durante el ascenso (m). */
+export const LAUNCH_CHASE_MAX_M = 600
 
 /** Presentación local en km; no calcula una maniobra propulsiva lunar. */
 export function descentFrame(progress: number, aspect: number) {
@@ -19,7 +21,8 @@ export function launchFrame(altitudeM: number, aspect: number) {
   if (!Number.isFinite(altitudeM) || altitudeM < 0 || !Number.isFinite(aspect) || aspect <= 0) {
     throw new RangeError('Altura y proporción de cámara no válidas.')
   }
-  const distanceM = Math.max(220, 95 / (Math.tan(21 * Math.PI / 180) * Math.min(1, aspect)), altitudeM * 0.08)
+  // Cámara de persecución: se aleja al subir, pero no más de LAUNCH_CHASE_MAX_M para que el cohete siga a la vista.
+  const distanceM = Math.max(220, 95 / (Math.tan(21 * Math.PI / 180) * Math.min(1, aspect)), Math.min(altitudeM * 0.08, LAUNCH_CHASE_MAX_M))
   return { altitudeM, centerY: LAUNCH_PAD_DECK_M + altitudeM + LAUNCH_SHIP_HEIGHT_M / 2, distanceM }
 }
 

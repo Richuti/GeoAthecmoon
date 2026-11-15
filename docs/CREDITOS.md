@@ -58,3 +58,16 @@ Condiciones consultadas: [LROC Terms of Use & Citation Policy](https://lroc.im-l
 ## Plataforma de lanzamiento terrestre
 
 - `frontend/public/models/launch_platform.glb`: **NASA / Samuel H. Neblett**, [Mobile Launcher](https://science.nasa.gov/3d-resources/mobile-launcher/), archivo original `Mobile Launcher (assembled).glb`. Modelo sin modificar; posición, escala y materiales se ajustan al mostrarlo. Fuente NASA, sujeto a sus condiciones de uso de medios; no implica respaldo de NASA ni reconstruye un lanzamiento histórico con el Saturn V.
+
+## Imágenes de la Tierra para el despegue (15 nov)
+
+| Archivo | Fuente | Licencia | Uso |
+|---|---|---|---|
+| `textures/flight/earth-region.jpg` (±2000 km) y `earth-state.jpg` (±450 km) | NASA GIBS, `BlueMarble_NextGeneration` | Dominio público (NASA) | Capas amplias del despegue. |
+| `textures/flight/earth-coast.jpg` (±80 km) | NASA GIBS, `Landsat_WELD_CorrectedReflectance_TrueColor_Global_Annual` | Dominio público (NASA / USGS) | Capa cercana del despegue. |
+| `textures/flight/kennedy-naip.jpg` (±5 km) | USGS / USDA, NAIP | Dominio público | La plataforma y sus alrededores. |
+
+Se descargan con `npm run earth-imagery`; los recuadros están en `src/sim/earthImagery.ts`.
+
+**Nota sobre `earth.glb`, `moon.glb` y `sun.glb`:** el archivo trae la textura en espejo (comprobado con sus UV). El código los refleja en X al cargarlos (`useGlobeModel`), sin tocar la geometría.
+

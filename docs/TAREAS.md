@@ -26,6 +26,8 @@ Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python
 
 - **Planificador e integración (14 nov, noche), implementados; pendiente de subida:** recorrido en contexto (`Tour.tsx`, una explicación junto a cada elemento la primera vez que se llega a cada paso), comparación con atraso en el resultado (`DelayCheck`, `src/sim/delay.ts` con pruebas), textos repetidos eliminados, logo sin fondo en la entrada móvil y respaldo a `public/data` si `VITE_API_URL` no responde en 6 s. Verificado: 293 pruebas, build y capturas a 1440/390 px.
 
+- **Transiciones entre pantallas (15 nov), implementadas; pendiente de subida:** `transition()` con View Transitions: portada ↔ planificador, pasos sitio/fecha/resultado (adelante a la izquierda, atrás a la derecha) y Planificador ↔ Simulador, con la cabecera fija. Sin soporte, entrada suave por CSS; sin animación con «reducir movimiento». Verificado: 294 pruebas, build y siete navegaciones en el navegador con su dirección correcta y sin errores. Falta que Codex la use en los pasos internos del simulador.
+
 ## Cómo trabajamos
 
 1. Se hace **un solo paso a la vez** (por ejemplo, 4.2).

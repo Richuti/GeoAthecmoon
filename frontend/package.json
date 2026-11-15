@@ -11,6 +11,7 @@
     "horizons": "node scripts/fetch-horizons.mjs",
     "horizon": "node scripts/compute-horizon.mjs",
     "export-terrain": "node scripts/export-terrain.mjs",
+    "earth-imagery": "node --experimental-strip-types scripts/fetch-earth-imagery.mjs",
     "test": "node --experimental-strip-types --test \"tests/**/*.test.ts\""
   },
   "dependencies": {

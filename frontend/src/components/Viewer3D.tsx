@@ -81,7 +81,7 @@ function Ship({ groundY }: { groundY: number }) {
   return <group position={[0, groundY + SHIP_CENTER_KM, 0]} scale={SHIP_HEIGHT_KM}><primitive object={ship} dispose={null} /></group>
 }
 
-function SkyBody({ url, az, el, radius, unlit = false }: { url: string; az: number; el: number; radius: number; unlit?: boolean }) {
+function SkyBody({ url, az, el, radius, unlit = false, mirror = false }: { url: string; az: number; el: number; radius: number; unlit?: boolean; mirror?: boolean }) {
   const { scene } = useGLTF(url)
   const body = useMemo(() => {
     const clone = scene.clone(true)
@@ -98,7 +98,8 @@ function SkyBody({ url, az, el, radius, unlit = false }: { url: string; az: numb
     return clone
   }, [scene, unlit])
   const pos = direction(az, el).multiplyScalar(SKY_DISTANCE)
-  return <primitive object={body} position={pos} scale={radius} />
+  // earth.glb trae la textura en espejo; se refleja en X (ver useGlobeModel).
+  return <primitive object={body} position={pos} scale={[mirror ? -radius : radius, radius, radius]} />
 }
 
 /** Penumbra: casi nada de día (las sombras lunares son negras) y más de noche para que el relieve se lea. */
@@ -207,7 +208,7 @@ export default function Viewer3D({
         <Terrain siteId={siteId} onGroundHeight={onGroundHeight} />
         <Ship groundY={groundY + (arrivalProgress === undefined ? 0 : descentFrame(arrivalProgress, 1).altitudeKm)} />
         <SkyBody url="/models/sun.glb" az={sky.sunAz} el={sky.sunEl} radius={SUN_RADIUS} />
-        <SkyBody url="/models/earth.glb" az={sky.earthAz} el={sky.earthEl} radius={EARTH_RADIUS} unlit />
+        <SkyBody url="/models/earth.glb" az={sky.earthAz} el={sky.earthEl} radius={EARTH_RADIUS} unlit mirror />
         <CameraRig key={resetKey} siteId={siteId} sky={sky} groundY={groundY} controls={controls} arrivalProgress={arrivalProgress} />
       </Suspense>
       <OrbitControls

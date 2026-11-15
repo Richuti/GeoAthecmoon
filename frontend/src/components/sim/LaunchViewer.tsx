@@ -1,45 +1,82 @@
 import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
+import { EARTH_LAYERS, LAUNCH_SITE, boundsRad, earthDirection, earthEast } from '../../sim/earthImagery'
 import { EARTH_RADIUS_KM } from '../../sim/transfer'
 import { LAUNCH_PAD_DECK_M, LAUNCH_SHIP_HEIGHT_M, launchFrame } from '../../sim/transferView'
-import { useFlightModel } from './useFlightModel'
+import { useEarthModel, useFlightModel } from './useFlightModel'
 
 const EARTH_RADIUS_M = EARTH_RADIUS_KM * 1000
 const clamp = (value: number) => Math.max(0, Math.min(1, value))
+const LAYER_URLS = EARTH_LAYERS.map(l => l.url)
+
+// Capas de NASA en latitud y longitud, de la más amplia a la más cercana. Cada fragmento calcula su
+// latitud y longitud desde la dirección en el modelo terrestre (misma convención que la plataforma) y
+// funde cada capa en su borde. Los píxeles negros (sin datos) dejan ver la capa de abajo.
+const LAYER_FRAGMENT = `
+uniform sampler2D earthLayer[${EARTH_LAYERS.length}];
+uniform vec4 earthLayerBounds[${EARTH_LAYERS.length}];
+varying vec3 vEarthDir;
+vec3 earthLayerMix(vec3 base, sampler2D tex, vec4 b, vec2 lonLat) {
+  vec2 uv = (lonLat - b.xy) / (b.zw - b.xy);
+  vec2 edge = min(uv, 1.0 - uv);
+  float w = smoothstep(0.0, 0.08, min(edge.x, edge.y));
+  vec3 texel = texture2D(tex, clamp(uv, 0.0, 1.0)).rgb;
+  // Solo el negro puro es «sin datos»; el océano profundo de Blue Marble es muy oscuro pero válido.
+  w *= smoothstep(0.0003, 0.0015, max(texel.r, max(texel.g, texel.b)));
+  return mix(base, texel * 1.35, w);
+}
+`
+const LAYER_MAP_FRAGMENT = `#include <map_fragment>
+vec3 earthDir = normalize(vEarthDir);
+vec2 lonLat = vec2(atan(-earthDir.x, -earthDir.z), asin(clamp(earthDir.y, -1.0, 1.0)));
+vec3 layered = diffuseColor.rgb;
+${EARTH_LAYERS.map((_, i) => `layered = earthLayerMix(layered, earthLayer[${i}], earthLayerBounds[${i}], lonLat);`).join('\n')}
+vec2 border = min(vRegionalUv, 1.0 - vRegionalUv);
+float localBlend = smoothstep(0.02, 0.10, min(border.x, border.y));
+diffuseColor.rgb = mix(layered, texture2D(regionalMap, vRegionalUv).rgb, localBlend);`
 
 function LaunchScene({ altitudeM, ascent, reduced, onReady }: { altitudeM: number; ascent: number; reduced: boolean; onReady: () => void }) {
-  const earth = useFlightModel('/models/earth.glb')
-  const earthShadow = useFlightModel('/models/earth.glb')
+  const earth = useEarthModel()
+  const earthShadow = useEarthModel()
   // La misma nave que se ve en la transferencia, el alunizaje y el planificador.
   const rocket = useFlightModel('/models/launch_vehicle.glb')
   const platform = useFlightModel('/models/launch_platform.glb')
   const regionalMap = useLoader(THREE.TextureLoader, '/textures/flight/kennedy-naip.jpg')
+  const layerMaps = useLoader(THREE.TextureLoader, LAYER_URLS)
   const ship = useRef<THREE.Group>(null)
   const { camera, scene, size } = useThree()
   const vectors = useMemo(() => ({ target: new THREE.Vector3(), offset: new THREE.Vector3(), day: new THREE.Color('#98bdd6'), night: new THREE.Color('#02040b'), sky: new THREE.Color() }), [])
   const ground = useMemo(() => {
     // Un punto de referencia visual de Florida sobre el GLB existente. Se usa la
     // intersección y normal del triángulo, no un radio supuesto que deje la base flotando.
-    const lat = THREE.MathUtils.degToRad(28.6084), lon = THREE.MathUtils.degToRad(279.3957)
-    regionalMap.colorSpace = THREE.SRGBColorSpace
-    regionalMap.anisotropy = 8
-    const radial = new THREE.Vector3(Math.cos(lat) * Math.sin(lon), Math.sin(lat), -Math.cos(lat) * Math.cos(lon))
+    for (const map of [regionalMap, ...layerMaps]) {
+      map.colorSpace = THREE.SRGBColorSpace
+      map.anisotropy = 8
+    }
+    const layerBounds = EARTH_LAYERS.map(l => new THREE.Vector4(...boundsRad(l.bounds)))
+    // Matriz de cada malla en el marco del modelo terrestre, antes de colocarlo en la escena.
+    earth.updateMatrixWorld(true)
+    const radial = new THREE.Vector3(...earthDirection(LAUNCH_SITE.latDeg, LAUNCH_SITE.lonDeg))
     // El GLB terrestre tiene caras con orientación interior: se admiten ambos
     // lados para encontrar la superficie próxima, no la cara opuesta del planeta.
     earth.traverse(object => {
       if (!(object as THREE.Mesh).isMesh) return
       const mesh = object as THREE.Mesh
+      const earthFrame = mesh.matrixWorld.clone()
       const source = mesh.material as THREE.MeshStandardMaterial
       mesh.material = new THREE.MeshBasicMaterial({ map: source.map, color: source.color.clone().multiplyScalar(1.5), side: THREE.DoubleSide, fog: true })
       mesh.material.userData.launchGround = true
       // Proyección regional sobre la malla terrestre existente: ningún plano nuevo.
       mesh.material.onBeforeCompile = shader => {
         shader.uniforms.regionalMap = { value: regionalMap }
-        shader.vertexShader = 'varying vec2 vRegionalUv;\n' + shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvRegionalUv = (modelMatrix * vec4(transformed, 1.0)).xz / 10000.0 * vec2(1.0, -1.0) + 0.5;')
-        shader.fragmentShader = 'uniform sampler2D regionalMap;\nvarying vec2 vRegionalUv;\n' + shader.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\nvec2 border = min(vRegionalUv, 1.0 - vRegionalUv);\nfloat localBlend = smoothstep(0.02, 0.10, min(border.x, border.y));\ndiffuseColor.rgb = mix(diffuseColor.rgb, texture2D(regionalMap, vRegionalUv).rgb, localBlend);')
+        shader.uniforms.earthLayer = { value: layerMaps }
+        shader.uniforms.earthLayerBounds = { value: layerBounds }
+        shader.uniforms.earthFrame = { value: earthFrame }
+        shader.vertexShader = 'uniform mat4 earthFrame;\nvarying vec2 vRegionalUv;\nvarying vec3 vEarthDir;\n' + shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvEarthDir = (earthFrame * vec4(transformed, 1.0)).xyz;\nvRegionalUv = (modelMatrix * vec4(transformed, 1.0)).xz / 10000.0 * vec2(1.0, -1.0) + 0.5;')
+        shader.fragmentShader = 'uniform sampler2D regionalMap;\nvarying vec2 vRegionalUv;\n' + LAYER_FRAGMENT + shader.fragmentShader.replace('#include <map_fragment>', LAYER_MAP_FRAGMENT)
       }
-      mesh.material.customProgramCacheKey = () => 'kennedy-regional-v1'
+      mesh.material.customProgramCacheKey = () => 'kennedy-layers-v2'
     })
     earthShadow.traverse(object => {
       if (!(object as THREE.Mesh).isMesh) return
@@ -54,7 +91,7 @@ function LaunchScene({ altitudeM, ascent, reduced, onReady }: { altitudeM: numbe
     const normal = hit.face.normal.clone().applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld))
     if (normal.dot(radial) < 0) normal.negate()
     const rotation = new THREE.Quaternion().setFromUnitVectors(normal, new THREE.Vector3(0, 1, 0))
-    const east = new THREE.Vector3(Math.cos(lon), 0, Math.sin(lon)).applyQuaternion(rotation)
+    const east = new THREE.Vector3(...earthEast(LAUNCH_SITE.lonDeg)).applyQuaternion(rotation)
     rotation.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.atan2(east.z, east.x)))
     const position = hit.point.clone().applyQuaternion(rotation).multiplyScalar(-2 * EARTH_RADIUS_M)
     for (const model of [rocket, platform]) model.traverse(object => {
@@ -71,7 +108,7 @@ function LaunchScene({ altitudeM, ascent, reduced, onReady }: { altitudeM: numbe
       mesh.material = material
     })
     return { rotation, position }
-  }, [earth, earthShadow, rocket, platform, regionalMap])
+  }, [earth, earthShadow, rocket, platform, regionalMap, layerMaps])
   useEffect(onReady, [onReady])
   useEffect(() => () => {
     for (const model of [earth, earthShadow, platform]) model.traverse(object => {
@@ -94,8 +131,9 @@ function LaunchScene({ altitudeM, ascent, reduced, onReady }: { altitudeM: numbe
     scene.background = vectors.sky
     if (scene.fog instanceof THREE.Fog) {
       scene.fog.color.copy(vectors.sky)
-      scene.fog.near = Math.max(100, altitudeM * 2)
-      scene.fog.far = Math.max(4000, altitudeM * 150)
+      // Bruma ligera: deja ver la costa a decenas de km y se disipa al subir.
+      scene.fog.near = Math.max(300, altitudeM * 3)
+      scene.fog.far = Math.max(30000, altitudeM * 80)
     }
   })
 
