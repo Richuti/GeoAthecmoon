@@ -2,7 +2,7 @@
 // detrás, alejándose) y detrás de ella al llegar (la Luna crece delante). La trayectoria completa se dibuja en un
 // mapa SVG de la esquina, con las posiciones del modelo orbital (src/sim/transfer.ts).
 import { Html } from '@react-three/drei'
-import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { EARTH_RADIUS_KM, MOON_RADIUS_KM, transferAt, type journeyAt, type TransferOrbit } from '../../sim/transfer'
@@ -45,6 +45,7 @@ interface SceneProps {
 }
 
 function TransferScene({ sample, reduced, onReady }: SceneProps) {
+  const { camera } = useThree()
   const earth = useEarthModel()
   const moon = useGlobeModel('/models/moon.glb')
   // La misma nave del despegue y del alunizaje.
@@ -77,7 +78,6 @@ function TransferScene({ sample, reduced, onReady }: SceneProps) {
   const ship = useRef<THREE.Group>(null)
   const ambient = useRef<THREE.AmbientLight>(null)
   const sun = useRef<THREE.DirectionalLight>(null)
-  const { camera } = useThree()
   const v = useMemo(() => ({
     ship: new THREE.Vector3(), moon: new THREE.Vector3(), radial: new THREE.Vector3(), velocity: new THREE.Vector3(),
     toMoon: new THREE.Vector3(), nose: new THREE.Vector3(), a: new THREE.Vector3(), b: new THREE.Vector3(),

@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import { siteUrl } from '../scripts/site-url.mjs'
 
 test('el build local genera enlaces del despliegue público, nunca relativos', () => {
-  assert.equal(siteUrl({}), 'https://geoathectum.vercel.app')
+  assert.equal(siteUrl({}), 'https://geoathecmoon.vercel.app')
 })
 test('SITE_URL prevalece sobre Vercel y normaliza la barra final', () => {
   assert.equal(siteUrl({ SITE_URL: 'https://example.org///', VERCEL_PROJECT_PRODUCTION_URL: 'another.vercel.app' }), 'https://example.org')

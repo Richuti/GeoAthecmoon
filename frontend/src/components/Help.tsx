@@ -84,14 +84,14 @@ export function Help() {
         className="m-auto max-h-[min(52rem,calc(100dvh-2rem))] w-[min(46rem,calc(100vw-2rem))] border border-seam-strong bg-void p-0 text-ink backdrop:bg-void/80"
       >
         <div className="flex flex-col gap-5 p-5 sm:p-7">
-          <div className="flex items-start justify-between gap-4">
-            <div>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
               <h2 id="help-title" className="text-2xl font-bold leading-tight">Cómo leer esto</h2>
               <p className="mt-2 text-sm leading-relaxed text-ink-muted">
                 Las palabras de la app, explicadas en simple. En la app, el ámbar es siempre el Sol y el azul, siempre la Tierra.
               </p>
             </div>
-            <div className="flex shrink-0 flex-wrap justify-end gap-2">
+            <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
               <Button size="sm" variant="ghost" onClick={() => { dialog.current?.close(); openTour() }}>Guía de esta pantalla</Button>
               <Button size="sm" onClick={() => dialog.current?.close()} autoFocus>Cerrar</Button>
             </div>

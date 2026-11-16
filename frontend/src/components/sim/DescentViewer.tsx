@@ -17,6 +17,7 @@ export default function DescentViewer({ data, arrival, progress, active, onReady
     sunAz: data.sun.az[i], sunEl: data.sun.el[i],
     sunFraction: sunFraction(clearanceDeg(data.horizon, data.sun.az[i], data.sun.el[i])),
     earthAz: data.earth.az[i], earthEl: data.earth.el[i], earthVisible: hasContact(data, i),
+    sunDistanceKm: data.sun.distKm?.[i], earthDistanceKm: data.earth.distKm?.[i],
   }
   return <Viewer3D key={data.site.id} siteId={data.site.id} sky={sky} groundY={groundY}
     onGroundHeight={ground} resetKey={0} arrivalProgress={progress} active={active} />

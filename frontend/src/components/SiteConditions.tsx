@@ -1,6 +1,7 @@
 import { formatDuration } from '../lib/time'
 import { nextChange } from '../lib/visibility'
 import type { SiteData } from '../types'
+import { SiMark } from './ui'
 
 /** Una explicación visual del instante elegido; la fotografía ilustra y los datos deciden el estado. */
 export function SiteConditions({ data, index, lit, contact }: { data: SiteData; index: number; lit: boolean[]; contact: boolean[] }) {
@@ -23,6 +24,7 @@ export function SiteConditions({ data, index, lit, contact }: { data: SiteData; 
         <div className="relative aspect-[16/7] overflow-hidden rounded-t-[inherit] bg-black">
           <img src={item.image} alt="" loading="lazy" className="size-full object-cover" style={{ filter: item.visible ? 'brightness(.8)' : 'brightness(.32) saturate(.35)', transform: item.earth ? 'scale(2.5)' : 'scale(1.25)', transformOrigin: item.earth ? '58% 60%' : '40% 55%' }} />
           <span className={`absolute left-4 top-4 rounded-full bg-black/75 px-3 py-1.5 text-xs font-bold ${item.tone}`}>{item.name}</span>
+          <SiMark />
         </div>
         <figcaption className="p-5"><h3 className="text-base font-bold text-ink">{item.title}</h3><p className="mt-2 text-sm leading-relaxed text-ink-muted">{item.description}</p><p className={`mt-4 text-sm ${item.tone}`}>{item.next}</p></figcaption>
       </figure>)}

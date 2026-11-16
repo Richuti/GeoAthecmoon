@@ -1,4 +1,5 @@
 import { MOON_RADIUS_KM, transferAt, type journeyAt, type TransferOrbit } from './transfer.ts'
+import { PDI_ALT_KM, coastAltitudeKm, descentAt, descentOrbit, poweredDescent, type PoweredDescent } from './lunarArrival.ts'
 
 /** Altura visual del cohete (launch_vehicle.glb), la misma nave en el despegue, el viaje y el alunizaje. */
 export const LAUNCH_SHIP_HEIGHT_M = 110
@@ -14,7 +15,8 @@ export const LAUNCH_CHASE_MAX_M = 600
  * todavía se ve nítido y el relieve de 300 km ocupa el centro del cuadro.
  */
 export const APPROACH_FADE = [0.24, 0.3] as const
-export const DESCENT_START_ALT_KM = 25
+/** El descenso sobre el relieve empieza donde empieza el descenso propulsado calculado (PDI, 15 km). */
+export const DESCENT_START_ALT_KM = PDI_ALT_KM
 export const DESCENT_CAMERA_START_KM = 900
 export const DESCENT_CAMERA_START_ELEV_DEG = 80
 /** Mitad del lado del relieve LOLA lejano (km): el recorte `{id}_far.glb` mide 300 × 300 km. */
@@ -59,20 +61,31 @@ export function finalLeg(descentProgress: number) {
   }
 }
 
+const COAST = descentOrbit()
+let descentProfile: PoweredDescent | null = null
+/** Descenso propulsado calculado (lunarArrival.ts). Se integra una sola vez: no depende del sitio ni de la fecha. */
+export function descentProfileOf(): PoweredDescent {
+  descentProfile ??= poweredDescent()
+  return descentProfile
+}
+
 /**
- * Llegada (presentación): un cuarto de órbita desde el punto de encuentro (+X desde el centro lunar) hasta el
- * polo sur (−Y), bajando de 100 a 25 km. Al final la nave se endereza para alunizar. No calcula la maniobra.
+ * Llegada sobre el globo: después del frenado (LOI) en la órbita polar de 100 km y del impulso DOI, la nave cae
+ * libremente hasta 15 km. La altura sale de esa elipse calculada; el arco en pantalla se acorta a un cuarto de
+ * vuelta (la caída real es media vuelta, unos 57 min). Al final la nave se endereza para alunizar.
  */
 export function approachState(t: number) {
   if (!Number.isFinite(t)) throw new RangeError('Llegada no válida.')
   const s = smoothstep(0, 1, t)
   const phi = s * Math.PI / 2
   return {
+    /** Segundos de caída libre desde el impulso DOI que corresponden a este punto de la llegada. */
+    coastSeconds: s * COAST.coastSeconds,
     /** Dirección desde el centro de la Luna hacia la nave. */
     dir: [Math.cos(phi), -Math.sin(phi), 0] as [number, number, number],
     /** Dirección de avance sobre el arco. */
     tangent: [-Math.sin(phi), -Math.cos(phi), 0] as [number, number, number],
-    altitudeKm: lerp(ENCOUNTER_ALT_KM, DESCENT_START_ALT_KM, s),
+    altitudeKm: s <= 0 ? ENCOUNTER_ALT_KM : s >= 1 ? DESCENT_START_ALT_KM : coastAltitudeKm(COAST, s * COAST.coastSeconds),
     /** 0 = nariz hacia delante; 1 = nave vertical sobre el sitio, lista para descender. */
     upright: smoothstep(0.55, 1, t),
     /** 0 = cámara detrás de la nave; 1 = cámara sobre el sitio como al empezar el descenso. */
@@ -80,12 +93,16 @@ export function approachState(t: number) {
   }
 }
 
-/** Presentación local en km; no calcula una maniobra propulsiva lunar (frenado, combustible ni gravedad). */
+/**
+ * Descenso sobre el relieve: la altura de la nave es la del descenso propulsado calculado, comprimido en el tiempo
+ * de pantalla. La nave baja en vertical sobre el sitio: los ~480 km de recorrido horizontal se dan en cifras.
+ */
 export function descentFrame(progress: number, aspect: number) {
   if (!Number.isFinite(progress) || !Number.isFinite(aspect) || aspect <= 0) throw new RangeError('Descenso no válido.')
   const p = Math.max(0, Math.min(1, progress))
   const t = Math.min(1, p / TOUCHDOWN)
-  const altitudeKm = DESCENT_START_ALT_KM * (1 - t) ** 2
+  const profile = descentProfileOf()
+  const altitudeKm = t >= 1 ? 0 : descentAt(profile, t * profile.durationSeconds).altitudeKm
   const touched = p >= TOUCHDOWN
   const settle = touched ? Math.max(0, 1 - (p - TOUCHDOWN) / DUST_SETTLE) : 1
   // Cerca del suelo: distancia que deja ver la nave entera y el polvo, también en pantallas angostas.

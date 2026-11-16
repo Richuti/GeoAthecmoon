@@ -1,4 +1,4 @@
-# GEOATHECMOON · Lunar Landing Site Navigator
+# GEOATHECMOON · Next-Generation Landing Site Planning for the Lunar South Pole
 
 **English** · [Español](README.es.md)
 
@@ -6,18 +6,24 @@ Project by team **GeoAthectum** for the **NASA Space Apps Challenge 2026**, chal
 
 > **In 10 seconds you know whether a site and a date work at the lunar south pole, and what happens if your mission is delayed.**
 
-**Live app:** https://geoathectum.vercel.app (English by default; switch to Spanish with the EN/ES button, bottom left).
+**Live app:** https://geoathecmoon.vercel.app (English by default; switch to Spanish with the EN/ES button, bottom left).
+**Code:** https://github.com/Richuti/GeoAthecmoon
 
-At the Moon's south pole the Sun never climbs more than a couple of degrees: a ridge several kilometers away is enough to leave a site in darkness or cut contact with Earth. GEOATHECMOON compares **6 south pole sites** over **all of 2027, hour by hour**, using real Sun and Earth positions (JPL Horizons) and real topography (LOLA). Then it **simulates your lander**: battery, solar panels and data downlink.
+## Summary
+
+At the Moon's south pole the Sun never climbs more than a couple of degrees, so a distant ridge can leave a landing site in darkness or cut contact with Earth. GEOATHECMOON is a mission planner and simulator that answers the challenge's key question: if the mission is delayed, does it still work?
+
+Users choose a date, days on the surface and one of 6 real south pole sites. Using real Sun and Earth positions from JPL Horizons and LOLA topography, the app checks sunlight, Earth contact and slope hour by hour across all of 2027. It gives a 0–100 score, shows what limits it and lights the 3D terrain for that date. Users can test delays, compare plans and simulate their lander's battery, solar panels and data downlink. A survival map shows where and when the mission survives. If the mission fails, an AI copilot proposes rescue plans and the simulator checks every one.
+
+Our sunlight results are within 5 points of NASA's official LOLA illumination maps. NASA's tools are powerful but complex. GEOATHECMOON gives engineers, students and the public a clear answer, in English and Spanish.
 
 ## How to use it
 
-**Planner** (the main entry point), in three steps: site, date and result. On the first visit each element is explained next to where it is used; the guide can be reopened from "Help".
+**Planner** (the main entry point), in two steps: prepare and result. Site, date and duration are chosen on the same screen. The guide can be reopened from "Help".
 
-1. **Choose the site** among 6 real south pole locations, with LROC regional imagery.
-2. **Choose the date** (UTC) and the days on the surface.
-3. **See the result:** a 0–100 score, what limits it, and the 3D terrain lit for that date. From there:
-   - **What if the mission is delayed?** Pick a delay (+1 day to +2 weeks) and compare your plan with the delayed one as hour-by-hour Sun and Earth bands, with a mark where the battery would run out and how many days of delay the plan tolerates.
+1. **Prepare the plan:** choose the date (UTC), days on the surface and one of 6 real south pole sites, with LROC regional imagery. Or let the AI propose a checked plan.
+2. **See the result:** a 0–100 score, what limits it, and the 3D terrain lit for that date. "Edit my plan" returns to all the fields together, preserving your choices. From there:
+   - **What if the mission is delayed?** Pick a delay (+1 day to +2 weeks), compare arrival dates and check whether the battery lasts. A daily agenda shows hours of light and communication opportunities, with plain-language explanations.
    - **Compare your plan** with another site on the same dates, or with a saved plan, side by side.
    - **Simulate this plan** opens the same plan in the simulator.
    - **Plan it for me (AI):** choose a lander and a month; the AI proposes sites and dates and the simulator checks each one.
@@ -25,7 +31,7 @@ At the Moon's south pole the Sun never climbs more than a couple of degrees: a r
 **Simulator:**
 
 1. **Prepare the mission:** site, landing date, duration and lander (illustrative presets, or your own battery, panel and instruments).
-2. **Travel:** an Earth–Moon trip computed as an educational two-body transfer.
+2. **Travel:** the flight to the chosen site and arrival date: launch from Kennedy (animation over real USGS terrain), a two-body Earth–Moon transfer to the real Earth–Moon distance on that day (JPL Horizons), capture into a 100 km polar lunar orbit and a powered descent with Apollo 11 lunar module data.
 3. **Evaluate:** viability, hours of light and contact, slope, whether the battery lasts, and how many days of delay the mission tolerates. **Play the mission** replays it over the terrain hour by hour.
 4. **Simulate a setback:** a trajectory correction delays the arrival. The app shows what happens and offers fixes that are all simulated: wait in orbit, change site or run fewer instruments.
 5. **Rescue copilot (AI):** if the mission fails, an AI combines those levers and **checks every idea with the simulator**, keeping the plan that survives and sends the most data.
@@ -50,6 +56,7 @@ At the Moon's south pole the Sun never climbs more than a couple of degrees: a r
 
 - **In the app:** the rescue copilot and "Plan it for me" use an OpenAI model through a server function (`frontend/api/copilot.ts`; the API key never reaches the browser). The AI only **decides what to try and explains its choice**: every figure shown comes from the app's simulator with JPL Horizons and LOLA data. If the AI is unavailable, the rest of the app works the same.
 - **In development:** the team used AI coding assistants to write and review code and documentation. The data, the methods and the validation are the team's responsibility and are documented below.
+- **Images:** the home page illustrations were generated with ChatGPT (OpenAI). They are illustrations only: no data comes from them. Site photos are real LROC images (NASA/GSFC/ASU).
 
 ## Validation
 
@@ -67,9 +74,9 @@ Full site-by-site table in [`docs/VALIDACION_NASA.md`](docs/VALIDACION_NASA.md) 
 - Not modeled: real temperature (survival power draw is fixed), dust on the panels, battery degradation and relay satellites.
 - The simulator assumes a DSN antenna is always available when Earth is visible (the visibility from the three antennas is already computed).
 - Slope is regional (80 m DEM): it does not see rocks or craters smaller than a pixel.
-- The Earth–Moon trip is an educational two-body model: no physical ascent, lunar capture or powered descent.
+- Earth–Moon trip: a two-body transfer to the actual Earth–Moon distance on the arrival date (JPL Horizons), lunar orbit capture with patched conics, and a powered descent integrated with lunar gravity, thrust and propellant use (Apollo 11 lunar module data from NASA). Simplifications: spherical Moon without mascons, no solar gravity, instantaneous capture and descent burns. The ascent from Earth is an animation.
 - Lander presets and the setback are illustrative scenarios; Sun and Earth positions and the terrain are real.
-- Home page images are illustrations: no data comes from them.
+- Home page images are SI-generated illustrations (ChatGPT): no data comes from them.
 
 ## Data and credits
 

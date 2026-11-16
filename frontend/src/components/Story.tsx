@@ -13,7 +13,7 @@ import type { StoryFacts } from '../lib/storyFacts'
 import { storyCues, storyVideoProgress } from '../lib/storyTiming'
 import { formatDate, formatDateTime, sampleTime } from '../lib/time'
 import type { SiteData } from '../types'
-import { cx } from './ui'
+import { cx, SiMark } from './ui'
 import { BrandIntro } from './BrandIntro'
 import { LangToggle } from '../i18n/LangToggle'
 
@@ -286,6 +286,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
         scenes.map((sc, k) => (
           <section key={sc.id} aria-labelledby={`escena-${sc.id}`} className="relative min-h-dvh overflow-hidden">
             <img src={`${MEDIA}/${sc.image}`} alt="" className="absolute inset-0 size-full object-cover" style={{ objectPosition: sc.focus }} />
+            <SiMark place="absolute bottom-4 right-4 z-10" />
             <SceneText scene={sc} index={k} still />
           </section>
         ))
@@ -308,6 +309,7 @@ export function Story({ facts, reference, onOpen }: { facts: StoryFacts | null; 
                 <polyline ref={edge} fill="none" stroke="var(--color-relief-edge)" strokeWidth={1.25} vectorEffect="non-scaling-stroke"
                   style={{ opacity: 0, transition: 'opacity 120ms' }} />
               </svg>
+              <SiMark place="absolute bottom-4 right-4 z-10" />
               {scenes.map((sc, k) => (
                 <article key={sc.id} ref={(el) => { texts.current[k] = el }} aria-hidden={active !== k}
                   className="pointer-events-none absolute inset-0"
@@ -332,10 +334,10 @@ function StoryBar({ onOpen, solid }: { onOpen: () => void; solid: boolean }) {
       className={cx('story-header pointer-events-none fixed inset-x-0 top-0 z-40 px-5 py-4 transition-colors duration-300 sm:px-10 sm:py-6 lg:px-16',
         solid && 'bg-void')}>
       <div className="flex items-center justify-between gap-3 sm:gap-8">
-        <p className="story-brand font-display text-[clamp(1.5rem,7vw,2rem)] font-extrabold uppercase leading-none tracking-[0.01em] text-ink sm:text-4xl lg:text-5xl">
+        <p className="story-brand min-w-0 font-display text-[clamp(1.125rem,5.4vw,2rem)] font-extrabold uppercase leading-none tracking-[0.01em] text-ink sm:text-4xl lg:text-5xl">
           GEOATHECMOON
         </p>
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           <LangToggle className="pointer-events-auto" />
           <PlannerButton onOpen={onOpen} compact />
         </div>

@@ -57,6 +57,11 @@ Condiciones consultadas: [LROC Terms of Use & Citation Policy](https://lroc.im-l
 
 ## Plataforma de lanzamiento terrestre
 
+- `assets-src/terrain/kennedy/elevation-usgs.tif` y `frontend/public/models/kennedy_terrain.glb`: **USGS 3DEP**, [3DEPElevation ImageServer](https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer), exportación de alturas F32 descargada el 15 nov 2026. URL y extensión en `source.json`. GLB derivado offline por `frontend/scripts/build-kennedy-terrain.py`, con autorización de Richard, sin exageración vertical. Se usa como relieve real de 1.2 km alrededor del despegue; no contiene edificios derivados del DEM.
+
+- `frontend/public/models/launch_gantry.glb`: **NASA / Michael D. Carbajal**, [Gantry](https://science.nasa.gov/3d-resources/gantry/), GLB original sin modificar. Estructura histórica de servicio presentada como contexto ilustrativo; su combinación con el cohete no reconstruye un lanzamiento real ni representa el relieve completo de LC-39A.
+- `frontend/public/textures/flight/kennedy-pad-naip.jpg`: **USGS / USDA, The National Map, USGSNAIPImagery**, recorte de 1.2 × 1.2 km centrado en 28.6084° N, 80.6043° O, 2048 × 2048 px. [Servicio de origen](https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer), descargado el 15 nov 2026; capa de color natural, sin elevaciones derivadas de la imagen.
+
 - `frontend/public/models/launch_platform.glb`: **NASA / Samuel H. Neblett**, [Mobile Launcher](https://science.nasa.gov/3d-resources/mobile-launcher/), archivo original `Mobile Launcher (assembled).glb`. Modelo sin modificar; posición, escala y materiales se ajustan al mostrarlo. Fuente NASA, sujeto a sus condiciones de uso de medios; no implica respaldo de NASA ni reconstruye un lanzamiento histórico con el Saturn V.
 
 ## Imágenes de la Tierra para el despegue (15 nov)

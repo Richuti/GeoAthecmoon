@@ -20,7 +20,8 @@ const DATA: Source[] = [
   { name: 'Mapas de iluminación del equipo LOLA · NASA/GSFC', use: 'Validación de la luz y de la Tierra visible (Mazarico et al. 2011, Icarus 211, 1066–1081).' },
   { name: 'Deep Space Network · NASA/JPL', href: 'https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301K.pdf', use: 'Ubicación de las antenas DSS-14, DSS-63 y DSS-43 (documento 810-005, módulo 301).' },
   { name: 'OpenAI · copiloto de rescate', use: 'Decide qué combinaciones probar cuando un atraso hace fallar la misión y explica el plan elegido. No calcula: cada número sale del simulador de la app.' },
-  { name: 'JPL DE440 y NASA Moon Fact Sheet', href: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html', use: 'Constantes del viaje Tierra–Luna idealizado.' },
+  { name: 'JPL DE440 y NASA Moon Fact Sheet', href: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html', use: 'Constantes del viaje Tierra–Luna: gravedad de la Tierra y la Luna, radios y órbita lunar. La distancia del día de llegada sale de JPL Horizons.' },
+  { name: 'Módulo lunar Apolo 11 · NASA NSSDC', href: 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C', use: 'Nave de referencia del descenso: 15 103 kg, 8 248 kg de propelente, motor de 45.04 kN y 311 s de impulso específico.' },
 ]
 
 const EXPLORE: Source[] = [
@@ -33,6 +34,7 @@ const MODELS: Source[] = [
   { name: 'NASA 3D Resources · dominio público', href: 'https://github.com/nasa/NASA-3D-Resources', use: 'Cohete Saturn V (la nave del despegue, el viaje y el alunizaje), rover, astronauta, LRO, Gateway, antena DSN de 34 m y mapa de estrellas Tycho.' },
   { name: 'NASA GIBS · Blue Marble Next Generation y Landsat WELD', href: 'https://nasa-gibs.github.io/gibs-api-docs/', use: 'Imágenes de Florida, el Golfo y el Caribe que se ven durante el despegue. Ilustración: ningún dato sale de ellas.' },
   { name: 'NASA Visible Earth y Earth Observatory · dominio público', use: 'Tierra de día (Blue Marble Next Generation) y de noche (Black Marble).' },
+  { name: 'ChatGPT · OpenAI', href: 'https://chatgpt.com/', use: 'Ilustraciones de la portada y del fondo, generadas con IA y marcadas en pantalla. Ningún dato sale de ellas.' },
 ]
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -81,7 +83,7 @@ export function Sources({ data }: { data?: SiteData }) {
       >
         <div className="flex flex-col gap-5 p-5 sm:p-7">
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <h2 id="sources-title" className="text-2xl font-bold leading-tight">Fuentes</h2>
               <p className="mt-2 text-sm leading-relaxed text-ink-muted">De dónde sale cada dato de la app y quién hizo cada modelo.</p>
             </div>

@@ -1,0 +1,21 @@
+{
+  "source": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage?bbox=-8973513.070934359%2C3325214.48050936%2C-8972146.19256216%2C3326581.3588815606&bboxSR=3857&imageSR=3857&size=600%2C600&format=tiff&pixelType=F32&renderingRule=%7B%22rasterFunction%22%3A%22None%22%7D&interpolation=RSP_BilinearInterpolation&f=image&adjustAspectRatio=false",
+  "downloaded": "2026-11-15",
+  "center": {
+    "lat": 28.6084,
+    "lon": -80.6043
+  },
+  "bbox3857": [
+    -8973513.070934359,
+    3325214.48050936,
+    -8972146.19256216,
+    3326581.3588815606
+  ],
+  "size": [
+    600,
+    600
+  ],
+  "nominalGroundExtentM": 1200,
+  "verticalUnits": "meters",
+  "generatedMesh": false
+}

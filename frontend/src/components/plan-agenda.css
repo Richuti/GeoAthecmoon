@@ -1,0 +1,24 @@
+.plan-agenda { min-width: 0; color: var(--color-ink); }
+.plan-agenda__intro { font-size: .875rem; font-weight: 700; }
+.plan-agenda__hint { color: var(--color-ink-muted); font-size: .75rem; line-height: 1.65; margin-top: 5px; }
+.plan-agenda__days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; margin-block: 14px; }
+.plan-agenda__days button { min-height: 52px; padding: 5px 2px; border: 1px solid var(--color-seam); border-radius: 6px; color: var(--color-ink-muted); background: rgb(255 255 255 / .025); cursor: pointer; }
+.plan-agenda__days span { display: block; font-size: .625rem; }
+.plan-agenda__days strong { display: block; font-size: .9375rem; font-variant-numeric: tabular-nums; }
+.plan-agenda__days button[aria-pressed="true"] { color: #10141b; background: #e1e5ec; border-color: #e1e5ec; }
+.plan-agenda button:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 3px; }
+.plan-agenda__days button:hover:not([aria-pressed="true"]) { background: rgb(255 255 255 / .1); color: var(--color-ink); }
+.plan-agenda__detail { border-top: 1px solid var(--color-seam); padding-top: 16px; }
+.plan-agenda__detail h4 { font-size: 1rem; font-weight: 700; }
+.plan-agenda__date { font-size: .6875rem; color: var(--color-ink-muted); margin-top: 6px; line-height: 1.7; }
+.plan-agenda__facts { margin-block: 12px; }
+.plan-agenda__facts > div { display: grid; grid-template-columns: minmax(90px, .7fr) minmax(0, 1fr); gap: 12px; padding-block: 14px; border-bottom: 1px solid var(--color-seam); }
+.plan-agenda__facts dt { font-size: .75rem; color: var(--color-ink-muted); }
+.plan-agenda__facts dd strong { display: block; font-size: 1.0625rem; font-weight: 700; }
+.plan-agenda__facts dd span { display: block; margin-top: 6px; font-size: .75rem; color: var(--color-ink-muted); line-height: 1.65; }
+.plan-agenda__pages { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.plan-agenda__pages button { min-height: 44px; text-decoration: underline; font-size: .75rem; cursor: pointer; }
+.plan-agenda__pages button:disabled { opacity: .35; cursor: default; }
+.plan-agenda__stop { border-left: 2px solid #e1e5ec; padding-left: 12px; margin-top: 14px; font-size: .8125rem; line-height: 1.65; }
+@media (min-width: 1000px) { .delay-check .plan-agenda__days { grid-template-columns: repeat(14, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .plan-agenda__facts > div { grid-template-columns: 1fr; gap: 6px; } }

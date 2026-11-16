@@ -1,8 +1,32 @@
 # Tareas del frontend · GEOATHECMOON
 
+**Cámara del viaje, última decisión de Richard:** restaurado el encuadre automático anterior en despegue, transferencia y descenso, sin controles de giro/zoom. Retirados `JourneyCamera.tsx`, el botón de restablecer y la instrucción de gestos. Se conservan texturas y relieve nuevos, cargas independientes y cámara interactiva al explorar el sitio.
+
+Archivos: `frontend/src/components/Viewer3D.tsx`, `frontend/src/components/sim/LaunchViewer.tsx`, `TransferViewer.tsx`, `DescentViewer.tsx`, `EarthMoonJourney.tsx`, eliminación de `JourneyCamera.tsx` (los nombres abreviados están bajo `sim/`), `frontend/src/i18n/en.ts`, `CLAUDE.md`, `docs/RELIEVE_DESPEGUE.md` y este documento. Validación: 360 pruebas y build; Edge CDP a 1440/390 px verifica encuadre invariable ante arrastre, rueda o gesto táctil en las tres fases. El visor de explorar mantiene sus controles.
+
+**Claridad de propuestas e intentos:** `MissionGlyph` sustituido por `MissionSummary`: batería mínima, datos enviados y resultado expresados en texto. Se aplica al plan propuesto, al mejor intento durante la búsqueda y a la bitácora de ambas herramientas. Sin curvas diminutas ni franjas de colores; explica el mínimo del 20 % y qué porcentaje de mediciones llegó a la Tierra. Cálculos intactos, inglés actualizado.
+
+Archivos de este ajuste: `src/components/AiPlanner.tsx`, `src/components/sim/AiParts.tsx`, `src/components/sim/RescueCopilot.tsx`, `src/components/sim/ai.css`, `src/i18n/en.ts`, `tests/i18n.test.ts` (todos bajo `frontend/`), `CLAUDE.md` y este documento. Verificado: 360 pruebas, build y capturas Edge CDP a 1440/390 px; propuesta calculada con dos intentos, uno fallido y uno viable, sin llamadas reales de pago. Etiquetas visibles, versión inglesa y ausencia de desbordamientos comprobadas.
+
+**Relieve terrestre solicitado por Richard, terminado y pendiente de su commit conjunto:** autorizada la conversión offline del DEM USGS a `public/models/kennedy_terrain.glb`. Modelo de aproximadamente 1 MB con alturas reales sin exageración; plataforma, nave, cámara y humo anclados al terreno mediante rayos. Recorte y fundido sobre el globo, ortofoto georreferenciada y Gantry NASA. Exportador reproducible y pruebas del GLB; detalle en `docs/RELIEVE_DESPEGUE.md`. La aplicación sigue cargando GLB, sin generar mallas.
+
+**Cielo del visor corregido, revisión final de Richard:** Tierra y Sol con radios físicos y distancias topocéntricas de Horizons en kilómetros, en la misma escala que el terreno. Si falta `distKm`, se usan las constantes medias de `lib/sky.ts` y se indica. No se agrandan ni se levantan artificialmente sobre el horizonte. Profundidad logarítmica para conservar detalle entre nave y Sol. Solo transforma los GLB existentes; no modifica el motor.
+
+**Carga y cámara del viaje:** preparación anticipada del sitio elegido; terreno/nave, cielo y relieve lejano con cargas independientes. El inicio del viaje espera solo a la escena necesaria y no al descenso completo. Cámara orbital con ratón o gestos en despegue, transferencia y descenso; botón de restablecer. Las escenas transparentes están inertes para no interceptar los gestos de la visible. Textura cercana USGS de 1.2 km, relieve del DEM y estructura Gantry NASA en GLB, con créditos y exportación reproducible. No derivar elevaciones de las fotos.
+
+**Ajuste del control temporal:** reproducción con botón de texto «Reproducir / Pausar», sin círculo ni icono diminuto. Fecha, hora y contador comparten tamaño, interlineado y alineación; en móvil pasan juntos a una fila propia.
+
+**Revisión actual, pendiente del commit de Richard:** sustituir las franjas de luz y comunicación por una agenda diaria interactiva (`PlanStrips`, `plan-agenda.css`, `lib/missionDays.ts`). Cada día muestra horas reales de luz y enlace, fechas UTC y la falla de batería si corresponde. Se aplica a la comparación de sitios y de atrasos. Sin iconos ni colores saturados; datos posteriores a la falla identificados como condiciones del sitio. Pruebas de agregación diaria y traducciones incluidas.
+
 Lista detallada de la parte de Richard (carpeta `frontend/`). El backend (Python) lo hace otro integrante.
 
 ## Estado contrastado con el repositorio · 15 nov
+
+- **Ajuste visual solicitado por Richard:** retirados los esquemas con iconos de `MissionBasics` y los colores de la comparación de atrasos. Explicación con texto y paleta neutra; resultado, tabla y franjas opcionales conservan los mismos datos.
+
+- **Planificador unificado, pendiente de subir:** fecha y duración antes de los sitios, en la misma pantalla de preparación. Dos pasos: Preparar → Resultado. La IA salta directamente al resultado y «Editar mi plan» conserva las elecciones. Verificación: 352 pruebas, build, escritorio/móvil y traspaso del plan al simulador.
+
+- **Subida más reciente:** `33198b4`, traspaso del plan y primera simplificación de la comparación de atrasos. **Nueva entrega pendiente:** explicación de energía frente a comunicación con dos esquemas y textos por función de la nave, también en indicadores, franjas y condiciones. 351 pruebas; no se cambia el motor.
 
 - **Subido hasta `f139356`:** funciones principales, imprevisto visual, copiloto de rescate, planificación asistida por sitio/mes/módulo/duración, mapa anual de supervivencia, inglés/español, respaldo sin IA y manejo global de errores.
 - **Entrega actual, pendiente del commit de Richard:** el plan elegido conserva sitio, fecha, hora y duración al pasar al simulador; entra al viaje sin repetir el formulario y reemplaza cualquier fecha guardada de una misión anterior.

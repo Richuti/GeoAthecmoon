@@ -55,7 +55,7 @@ export function PlanCompare({ contexts, siteId, startIndex, missionDays, cfg, mo
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h2 id="compare-title" className="text-xl font-bold text-ink">Compara tu plan</h2>
-          <p className="mt-1 text-sm text-ink-muted">Lado a lado: cuándo hay Sol, cuándo se ve la Tierra y si la batería aguanta.</p>
+          <p className="mt-1 text-sm text-ink-muted">Compara la energía disponible, el envío de mediciones y la duración de cada plan.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Segmented label="Con qué comparar" value={effectiveMode} onChange={(v) => setMode(v)} className="[&_button]:min-h-10"
@@ -104,7 +104,7 @@ function PlanColumn({ label, ctx, o, moduleName, best, action }: {
   const failDay = o.failedAtIndex === null ? null : Math.floor(((o.failedAtIndex - o.from) * d.stepHours) / 24) + 1
   const v = Math.round(o.viability)
   return (
-    <article className={cx('plan-column', best && 'plan-column--best')}>
+    <article className={cx('plan-column flex flex-col', best && 'plan-column--best')}>
       <div className="relative h-24 overflow-hidden rounded-t-[15px] bg-hull">
         {photo && <img src={photo.src} alt="" loading="lazy" className="size-full object-cover opacity-80" style={{ objectPosition: photo.position }} />}
         <span aria-hidden className="absolute inset-0 bg-[linear-gradient(to_top,rgb(5_7_13/0.9),transparent_70%)]" />
@@ -112,18 +112,19 @@ function PlanColumn({ label, ctx, o, moduleName, best, action }: {
         {best && <p className="absolute right-3 top-3 rounded-full bg-ink px-2.5 py-0.5 text-[0.6875rem] font-bold text-void">Mejor opción</p>}
         <h3 className="absolute bottom-2 left-4 right-4 truncate text-lg font-bold text-ink">{d.site.name}</h3>
       </div>
-      <div className="p-4">
+      <div className="flex flex-1 flex-col p-4">
         <p className="text-xs text-ink-muted">{formatShortDate(sampleTime(d, o.from))} → {formatShortDate(sampleTime(d, o.to))}</p>
         <p className="mt-2 flex items-baseline gap-2">
           <span className="font-display text-5xl font-black leading-none text-ink">{v}</span>
           <span className="text-sm text-ink-muted">/100 · {VERDICT_LABEL[verdictOf(o.viability)]}</span>
         </p>
-        <div className="mt-4"><PlanStrips lit={ctx.vis.lit} contact={ctx.vis.contact} from={o.from} to={o.to} stepHours={d.stepHours} failedAt={o.failedAtIndex} /></div>
+        <div className="mt-4"><PlanStrips lit={ctx.vis.lit} contact={ctx.vis.contact} from={o.from} to={o.to} stepHours={d.stepHours} failedAt={o.failedAtIndex} startTime={sampleTime(d, o.from).getTime()} /></div>
         <p className={cx('mt-3 text-sm font-bold', o.survived ? 'text-ok' : 'text-critical')}>
           {o.survived ? `La batería aguanta toda la misión` : `La batería se agota el día ${failDay}`}
           <span className="block text-xs font-normal text-ink-faint">{moduleName}{d.slope.max100mDeg > 10 ? ` · pendiente de ${d.slope.max100mDeg.toFixed(1)}°, peligrosa` : ''}</span>
         </p>
-        <div className="mt-4">{action}</div>
+        {/* El botón va al fondo: en las dos columnas queda a la misma altura aunque el contenido cambie. */}
+        <div className="mt-auto pt-4">{action}</div>
       </div>
     </article>
   )

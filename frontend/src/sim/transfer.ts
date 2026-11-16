@@ -1,7 +1,8 @@
 // Transferencia educativa de dos cuerpos, con un encuentro lunar idealizado.
 // GM: JPL DE440, https://ssd.jpl.nasa.gov/astro_par.html
 // Radios, distancia y periodo lunar: https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-// Modelo: órbita elíptica de transferencia, sin gravedad lunar/solar, ascenso, captura ni descenso.
+// Modelo: órbita elíptica de transferencia de dos cuerpos hasta la distancia real de la Luna en la fecha de llegada
+// (JPL Horizons). La captura y el descenso se calculan en lunarArrival.ts; el ascenso desde la Tierra es ilustrativo.
 
 export const EARTH_GM_KM3_S2 = 398600.435507
 export const MOON_GM_KM3_S2 = 4902.800118
@@ -29,6 +30,8 @@ export function transferPlaybackSeconds(orbit: TransferOrbit, hoursPerSecond: nu
 }
 
 export interface TransferOrbit {
+  /** Distancia entre los centros de la Tierra y la Luna al llegar (km). */
+  moonDistanceKm: number
   parkingAltitudeKm: number
   encounterAltitudeKm: number
   periapsisKm: number
@@ -41,21 +44,27 @@ export interface TransferOrbit {
   injectionDeltaVKmS: number
 }
 
-/** Parte de una órbita circular de 200–2000 km; termina a 100 km de la cara lunar próxima a la Tierra. */
-export function lunarTransfer(parkingAltitudeKm = 200): TransferOrbit {
+/**
+ * Parte de una órbita circular de 200–2000 km; termina a 100 km de la cara lunar próxima a la Tierra.
+ * `moonDistanceKm` es la distancia Tierra–Luna al llegar (de las efemérides); por defecto, la media.
+ */
+export function lunarTransfer(parkingAltitudeKm = 200, moonDistanceKm = MOON_DISTANCE_KM): TransferOrbit {
   if (!Number.isFinite(parkingAltitudeKm) || parkingAltitudeKm < 200 || parkingAltitudeKm > 2000) {
     throw new RangeError('La órbita inicial debe estar entre 200 y 2000 km.')
   }
+  if (!Number.isFinite(moonDistanceKm) || moonDistanceKm < 350000 || moonDistanceKm > 410000) {
+    throw new RangeError('La distancia a la Luna debe estar entre 350 000 y 410 000 km.')
+  }
   const periapsisKm = EARTH_RADIUS_KM + parkingAltitudeKm
   const encounterAltitudeKm = 100
-  const apoapsisKm = MOON_DISTANCE_KM - MOON_RADIUS_KM - encounterAltitudeKm
+  const apoapsisKm = moonDistanceKm - MOON_RADIUS_KM - encounterAltitudeKm
   const semiMajorKm = (periapsisKm + apoapsisKm) / 2
   const eccentricity = (apoapsisKm - periapsisKm) / (apoapsisKm + periapsisKm)
   const semiMinorKm = semiMajorKm * Math.sqrt(1 - eccentricity ** 2)
   const durationSeconds = Math.PI * Math.sqrt(semiMajorKm ** 3 / EARTH_GM_KM3_S2)
   const departureSpeedKmS = Math.sqrt(EARTH_GM_KM3_S2 * (2 / periapsisKm - 1 / semiMajorKm))
   return {
-    parkingAltitudeKm, encounterAltitudeKm, periapsisKm, apoapsisKm, semiMajorKm, semiMinorKm, eccentricity, durationSeconds,
+    moonDistanceKm, parkingAltitudeKm, encounterAltitudeKm, periapsisKm, apoapsisKm, semiMajorKm, semiMinorKm, eccentricity, durationSeconds,
     departureSpeedKmS,
     injectionDeltaVKmS: departureSpeedKmS - Math.sqrt(EARTH_GM_KM3_S2 / periapsisKm),
   }
@@ -95,8 +104,8 @@ export function transferAt(orbit: TransferOrbit, elapsedSeconds: number) {
     seconds, xKm, yKm, vxKmS, vyKmS,
     radiusKm,
     speedKmS: Math.hypot(vxKmS, vyKmS),
-    moonXKm: MOON_DISTANCE_KM * Math.cos(moonAngle),
-    moonYKm: MOON_DISTANCE_KM * Math.sin(moonAngle),
+    moonXKm: orbit.moonDistanceKm * Math.cos(moonAngle),
+    moonYKm: orbit.moonDistanceKm * Math.sin(moonAngle),
   }
 }
 

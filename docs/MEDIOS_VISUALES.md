@@ -75,7 +75,7 @@ foreground. Black sky. The bottom-left third is very dark. Horizon line at 52% o
 
 ## Reglas (importante)
 
-1. **Son ilustraciones, no datos.** La app no menciona la IA en ningún lugar (decisión de Richard, 14 nov); solo dice *"Ilustración · los datos no salen de la imagen"*. Los datos (luz, horizonte, Sol y Tierra) siempre salen de JPL Horizons y del terreno, nunca de estas imágenes.
+1. **Son ilustraciones, no datos.** Desde el 15 nov, por la regla de NASA Space Apps, cada imagen generada con IA (ChatGPT) muestra la marca visible «Ilustración generada con IA · ChatGPT» (`SiMark`), y `og.jpg` la lleva dentro del archivo. Los datos (luz, horizonte, Sol y Tierra) siempre salen de JPL Horizons y del terreno, nunca de estas imágenes.
 2. **Sin marcas ni misiones reales:** sin logos de NASA, banderas, nombres, ni módulos reconocibles (Nova-C, Starship, Blue Ghost, etc.). El módulo es genérico y propio, como el `lander.glb` de Richard.
 3. **Física correcta**, que el jurado lo nota:
    - Cielo **negro** (no hay atmósfera) y sin estrellas, porque la exposición del suelo iluminado las borra.
